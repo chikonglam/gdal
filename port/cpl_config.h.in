@@ -1,5 +1,5 @@
 /* port/cpl_config.h.in.  Generated from configure.in by autoheader.  */
-/* $Id: cpl_config.h.in 36873 2016-12-15 01:53:11Z rouault $ */
+/* $Id: cpl_config.h.in 38508 2017-05-20 09:35:37Z rouault $ */
 
 /* Define if you want to use pthreads based multiprocessing support */
 #undef CPL_MULTIPROC_PTHREAD
@@ -258,3 +258,6 @@
 
 /* Define to 1 if you have the `uselocale' function. */
 #undef HAVE_USELOCALE
+
+/* Define to 1 if you have the `std::isnan' function. */
+#undef HAVE_STD_IS_NAN

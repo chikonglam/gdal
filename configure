@@ -17954,6 +17954,50 @@ if test "x$CXX" = x ; then
   as_fn_error $? "\"You don't have a working C++ compiler.\"" "$LINENO" 5
 fi
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for std::isnan" >&5
+$as_echo_n "checking for std::isnan... " >&6; }
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <cmath>
+    int CPLIsNan(float f) { return std::isnan(f); }
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STD_IS_NAN 1
+_ACEOF
+
+
+else
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
 
 # Check whether --with-libtool was given.
 if test "${with_libtool+set}" = set; then :
@@ -18714,7 +18758,7 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
 $as_echo_n "checking for 64bit integer type... " >&6; }
 
   echo 'int main() { long long off=0; }' >> conftest.c
-  if test -z "`${CC} -o conftest conftest.c 2>&1`" ; then
+  if test -z "`${CC} ${CCFLAGS} -o conftest conftest.c 2>&1`" ; then
 
 $as_echo "#define HAVE_LONG_LONG 1" >>confdefs.h
 
@@ -18746,7 +18790,7 @@ $as_echo_n "checking for 64bit file io... " >&6; }
     echo '#include <sys/types.h>' >> conftest.c
     echo '#include <sys/stat.h>' >> conftest.c
     echo 'int main() { struct __stat64 buf; _stat64( "", &buf ); return 0; }' >> conftest.c
-    if test -z "`${CC} -o conftest conftest.c 2>&1`" ; then
+    if test -z "`${CC} ${CCFLAGS} -o conftest conftest.c 2>&1`" ; then
         with_unix_stdio_64=no
 
 cat >>confdefs.h <<_ACEOF
@@ -18768,9 +18812,9 @@ _ACEOF
   fi
 
   if test x"$with_unix_stdio_64" = x"" ; then
-    echo '#include <stdio.h>' > conftest.cpp
+    echo '#include <stdio.h>' > conftest.c
     echo 'int main() { long long off=0; fseek64(NULL, off, SEEK_SET); off = ftell64(NULL); return 0; }' >> conftest.c
-    if test -z "`${CC} -o conftest conftest.c 2>&1`" ; then
+    if test -z "`${CC} ${CCFLAGS} -o conftest conftest.c 2>&1`" ; then
       with_unix_stdio_64=yes
       VSI_FTELL64=ftell64
       VSI_FSEEK64=fseek64
@@ -18780,9 +18824,9 @@ _ACEOF
 
 
   if test x"$with_unix_stdio_64" = x"" ; then
-    echo '#include <stdio.h>' > conftest.c
-    echo 'int main() { long long off=0; fseeko64(NULL, off, SEEK_SET); off = ftello64(NULL); return 0; }' >> conftest.c
-    if test -z "`${CXX} -o conftest conftest.c 2>&1`" ; then
+    echo '#include <stdio.h>' > conftest.cpp
+    echo 'int main() { long long off=0; fseeko64(NULL, off, SEEK_SET); off = ftello64(NULL); return 0; }' >> conftest.cpp
+    if test -z "`${CXX} ${CXXFLAGS} -o conftest conftest.cpp 2>&1`" ; then
       with_unix_stdio_64=yes
       VSI_FTELL64=ftello64
       VSI_FSEEK64=fseeko64
@@ -18792,10 +18836,10 @@ _ACEOF
 
 
   if test x"$with_unix_stdio_64" = x"" ; then
-    echo '#define _LARGEFILE64_SOURCE' > conftest.c
-    echo '#include <stdio.h>' >> conftest.c
-    echo 'int main() { long long off=0; fseeko64(NULL, off, SEEK_SET); off = ftello64(NULL); return 0; }' >> conftest.c
-    if test -z "`${CXX} -o conftest conftest.c 2>&1`" ; then
+    echo '#define _LARGEFILE64_SOURCE' > conftest.cpp
+    echo '#include <stdio.h>' >> conftest.cpp
+    echo 'int main() { long long off=0; fseeko64(NULL, off, SEEK_SET); off = ftello64(NULL); return 0; }' >> conftest.cpp
+    if test -z "`${CXX} ${CXXFLAGS} -o conftest conftest.cpp 2>&1`" ; then
       with_unix_stdio_64=yes
       VSI_FTELL64=ftello64
       VSI_FSEEK64=fseeko64
@@ -18821,7 +18865,7 @@ $as_echo "#define VSI_NEED_LARGEFILE64_SOURCE 1" >>confdefs.h
   if test x"$with_unix_stdio_64" = x"" ; then
     echo '#include <stdio.h>' > conftest.c
     echo 'int main() { fpos_t off=0; fseeko(NULL, off, SEEK_SET); off = ftello(NULL); return 0; }' >> conftest.c
-    if test -z "`${CC} -o conftest conftest.c 2>&1`" ; then
+    if test -z "`${CC} ${CCFLAGS} -o conftest conftest.c 2>&1`" ; then
       with_unix_stdio_64=yes
       VSI_FTELL64=ftello
       VSI_FSEEK64=fseeko
@@ -32943,7 +32987,7 @@ EXTRA_INCLUDES=$EXTRA_INCLUDES
 
 
 case "${host_os}" in
-    cygwin* | mingw32* | pw32*)
+    cygwin* | mingw* | pw32*)
       EXE_EXT=.exe
       SO_EXT=dll
       ;;

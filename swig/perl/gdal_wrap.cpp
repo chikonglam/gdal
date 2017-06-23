@@ -1742,7 +1742,7 @@ void DontUseExceptions() {
 
   double NVClassify(int comparison, double nv, AV* classifier, const char **error) {
      /* recursive, return nv < classifier[0] ? classifier[1] : classifier[2]
-        returns error if there are not three values in the classifier,
+        sets error if there are not three values in the classifier,
         first is not a number, or second or third are not a number of arrayref
      */
      SV** f = av_fetch(classifier, 0, 0);
@@ -1771,18 +1771,15 @@ void DontUseExceptions() {
              return SvNV(*t);
          else if (t && SvROK(*t) && (SvTYPE(SvRV(*t)) == SVt_PVAV))
              return NVClassify(comparison, nv, (AV*)(SvRV(*t)), error);
-         else {
+         else
              *error = "The decision in a classifier must be a number or a reference to a classifier.";
-             return 0;
-         }
-     } else {
+     } else
          *error = "The first value in a classifier must be a number.";
-         return 0;
-     }
+     return 0;
   }
   void NVClass(int comparison, double nv, AV* classifier, int *klass, const char **error) {
-     /* recursive, return nv < classifier[0] ? classifier[1] : classifier[2]
-        returns NULL if there are not three values in the classifier,
+     /* recursive, return in klass nv < classifier[0] ? classifier[1] : classifier[2]
+        sets NULL if there are not three values in the classifier,
         first is not a number, or second or third are not a number of arrayref
      */
      SV** f = av_fetch(classifier, 0, 0);
@@ -1816,14 +1813,10 @@ void DontUseExceptions() {
              return;
          else if (t && SvROK(*t) && (SvTYPE(SvRV(*t)) == SVt_PVAV))
              NVClass(comparison, nv, (AV*)(SvRV(*t)), klass, error);
-         else {
+         else
              *error = "The decision in a classifier must be a number or a reference to a classifier.";
-             return;
-         }
-     } else {
+     } else
          *error = "The first value in a classifier must be a number.";
-         return;
-     }
   }
   AV* to_array_classifier(SV* classifier, int* comparison, const char **error) {
       if (SvROK(classifier) && (SvTYPE(SvRV(classifier)) == SVt_PVAV)) {
@@ -1839,16 +1832,18 @@ void DontUseExceptions() {
                   *comparison = 2;
               else if (strcmp(c, ">=") == 0)
                   *comparison = 3;
-              else
+              else {
                   *error = "The first element in classifier object must be a comparison.";
+                  return NULL;
+              }
           }
           if (s && SvROK(*s) && (SvTYPE(SvRV(*s)) == SVt_PVAV))
               return (AV*)SvRV(*s);
           else
               *error = "The second element in classifier object must be an array reference.";
-      } else {
+      } else
           *error = NEED_ARRAY_REF;
-      }
+      return NULL;
   }
 
 
@@ -7567,6 +7562,48 @@ XS(_wrap_VSIStdoutUnsetRedirection) {
     {
       CPLErrorReset();
       VSIStdoutUnsetRedirection();
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    XSRETURN(argvi);
+  fail:
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_VSICurlClearCache) {
+  {
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 0) || (items > 0)) {
+      SWIG_croak("Usage: VSICurlClearCache();");
+    }
+    {
+      CPLErrorReset();
+      VSICurlClearCache();
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -29894,6 +29931,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::VSIFReadL", _wrap_VSIFReadL},
 {"Geo::GDALc::VSIStdoutSetRedirection", _wrap_VSIStdoutSetRedirection},
 {"Geo::GDALc::VSIStdoutUnsetRedirection", _wrap_VSIStdoutUnsetRedirection},
+{"Geo::GDALc::VSICurlClearCache", _wrap_VSICurlClearCache},
 {"Geo::GDALc::ParseCommandLine", _wrap_ParseCommandLine},
 {"Geo::GDALc::MajorObject_GetDescription", _wrap_MajorObject_GetDescription},
 {"Geo::GDALc::MajorObject_SetDescription", _wrap_MajorObject_SetDescription},
