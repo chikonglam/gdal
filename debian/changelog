@@ -1,4 +1,4 @@
-gdal (2.2.1~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.2.1~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
   * Disable PIE on Ubuntu where it's still problematic.
@@ -7,7 +7,7 @@ gdal (2.2.1~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Refresh patches.
   * Use pkg-info.mk variables instead of dpkg-parsechangelog output.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 23 Jun 2017 14:51:05 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 23 Jun 2017 14:57:10 +0200
 
 gdal (2.2.0+dfsg-1~exp1) experimental; urgency=medium
 
