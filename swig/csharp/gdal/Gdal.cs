@@ -350,6 +350,11 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
     return ret;
   }
 
+  public static void VSICurlClearCache() {
+    GdalPINVOKE.VSICurlClearCache();
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+  }
+
   public static string[] ParseCommandLine(string utf8_path) {
         /* %typemap(csout) char** CSL */
         IntPtr cPtr = GdalPINVOKE.ParseCommandLine(Gdal.StringToUtf8Bytes(utf8_path));

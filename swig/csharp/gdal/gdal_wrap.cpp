@@ -3662,6 +3662,32 @@ SWIGEXPORT int SWIGSTDCALL CSharp_VSIFWriteL(char * jarg1, int jarg2, int jarg3,
 }
 
 
+SWIGEXPORT void SWIGSTDCALL CSharp_VSICurlClearCache() {
+  {
+    CPLErrorReset();
+    VSICurlClearCache();
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
 SWIGEXPORT void * SWIGSTDCALL CSharp_ParseCommandLine(char * jarg1) {
   void * jresult ;
   char *arg1 = (char *) 0 ;

@@ -95,6 +95,7 @@ package Geo::GDAL;
 *VSIFReadL = *Geo::GDALc::VSIFReadL;
 *VSIStdoutSetRedirection = *Geo::GDALc::VSIStdoutSetRedirection;
 *VSIStdoutUnsetRedirection = *Geo::GDALc::VSIStdoutUnsetRedirection;
+*VSICurlClearCache = *Geo::GDALc::VSICurlClearCache;
 *ParseCommandLine = *Geo::GDALc::ParseCommandLine;
 *GDAL_GCP_GCPX_get = *Geo::GDALc::GDAL_GCP_GCPX_get;
 *GDAL_GCP_GCPX_set = *Geo::GDALc::GDAL_GCP_GCPX_set;
@@ -1055,8 +1056,8 @@ use Geo::GDAL::Const;
 # Note that the 1/100000 digits may be used to create more than one
 # CPAN release from one GDAL release.
 
-our $VERSION = '2.0200';
-our $GDAL_VERSION = '2.2.0';
+our $VERSION = '2.0201';
+our $GDAL_VERSION = '2.2.1';
 
 =pod
 

@@ -337,6 +337,9 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFWriteL")]
   public static extern int VSIFWriteL(string jarg1, int jarg2, int jarg3, IntPtr jarg4);
 
+  [DllImport("gdal_wrap", EntryPoint="CSharp_VSICurlClearCache")]
+  public static extern void VSICurlClearCache();
+
   [DllImport("gdal_wrap", EntryPoint="CSharp_ParseCommandLine")]
   public static extern IntPtr ParseCommandLine(byte[] jarg1);
 
