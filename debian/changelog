@@ -4,6 +4,7 @@ gdal (2.2.1~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Disable PIE on Ubuntu where it's still problematic.
   * Bump Standards-Version to 4.0.0, no changes.
   * Add autopkgtest to test installability.
+  * Refresh patches.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 23 Jun 2017 14:51:05 +0200
 
