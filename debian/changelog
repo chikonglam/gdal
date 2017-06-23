@@ -5,6 +5,7 @@ gdal (2.2.1~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Bump Standards-Version to 4.0.0, no changes.
   * Add autopkgtest to test installability.
   * Refresh patches.
+  * Use pkg-info.mk variables instead of dpkg-parsechangelog output.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 23 Jun 2017 14:51:05 +0200
 

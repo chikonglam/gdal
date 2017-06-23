@@ -18,7 +18,9 @@ ifeq ($(VENDOR_DERIVES_FROM_UBUNTU),yes)
 	export DEB_BUILD_MAINT_OPTIONS=hardening=+all,-pie
 endif
 
-UPSTREAM_VERSION = $(shell dpkg-parsechangelog | sed -ne 's/^Version: \(.*\)-.*/\1/p' | sed -e 's/\+.*//; s/^[0-9]://')
+include /usr/share/dpkg/pkg-info.mk
+
+UPSTREAM_VERSION = $(shell echo $(DEB_VERSION_UPSTREAM) | sed -e 's/\+.*//')
 
 PYVERS=$(shell pyversions -v -r debian/control) $(shell py3versions -v -r)
 PYDEF=$(shell pyversions -dv)
