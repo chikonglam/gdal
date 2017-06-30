@@ -1625,7 +1625,7 @@
  VSICalloc@Base 1.8.0
  VSICallocVerbose@Base 2.1.0
  VSICleanupFileManager@Base 1.8.0
- VSICurlClearCache@Base 2.2.1~rc1
+ VSICurlClearCache@Base 2.2.1
  VSIError@Base 2.1.0
  VSIErrorReset@Base 2.1.0
  VSIFClose@Base 1.8.0
