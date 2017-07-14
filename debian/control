@@ -287,7 +287,8 @@ Description: Python 3 bindings to the Geospatial Data Abstraction Library
 Package: libgdal-perl
 Architecture: any
 Section: perl
-Depends: ${perl:Depends},
+Depends: libjs-jquery,
+         ${perl:Depends},
          ${shlibs:Depends},
          ${misc:Depends}
 Description: Perl bindings to the Geospatial Data Abstraction Library
