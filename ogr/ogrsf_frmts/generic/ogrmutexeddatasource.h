@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmutexeddatasource.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrmutexeddatasource.h 36501 2016-11-25 14:09:24Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRLMutexedDataSource class
@@ -27,63 +27,91 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGRMUTEXEDDATASOURCELAYER_H_INCLUDED
-#define _OGRMUTEXEDDATASOURCELAYER_H_INCLUDED
+#ifndef OGRMUTEXEDDATASOURCELAYER_H_INCLUDED
+#define OGRMUTEXEDDATASOURCELAYER_H_INCLUDED
+
+#ifndef DOXYGEN_SKIP
 
 #include "ogrsf_frmts.h"
+#include "cpl_multiproc.h"
+#include "ogrmutexedlayer.h"
+#include <map>
 
 /** OGRMutexedDataSource class protects all virtual methods of OGRDataSource
  *  with a mutex.
  *  If the passed mutex is NULL, then no locking will be done.
  *
- *  Note that the constructors and destructors are not explictely protected
- *  by the mutex*
+ *  Note that the constructors and destructors are not explicitly protected
+ *  by the mutex.
  */
 class CPL_DLL OGRMutexedDataSource : public OGRDataSource
 {
   protected:
     OGRDataSource *m_poBaseDataSource;
     int            m_bHasOwnership;
-    void          *m_hGlobalMutex;
+    CPLMutex      *m_hGlobalMutex;
+    int            m_bWrapLayersInMutexedLayer;
+    std::map<OGRLayer*, OGRMutexedLayer* > m_oMapLayers;
+    std::map<OGRMutexedLayer*, OGRLayer* > m_oReverseMapLayers;
+
+    OGRLayer*           WrapLayerIfNecessary(OGRLayer* poLayer);
 
   public:
 
     /* The construction of the object isn't protected by the mutex */
                  OGRMutexedDataSource(OGRDataSource* poBaseDataSource,
                                       int bTakeOwnership,
-                                      void* hMutexIn);
+                                      CPLMutex* hMutexIn,
+                                      int bWrapLayersInMutexedLayer);
 
     /* The destruction of the object isn't protected by the mutex */
     virtual     ~OGRMutexedDataSource();
 
-    virtual const char  *GetName();
+    OGRDataSource*      GetBaseDataSource() { return m_poBaseDataSource; }
 
-    virtual int         GetLayerCount() ;
-    virtual OGRLayer    *GetLayer(int);
-    virtual OGRLayer    *GetLayerByName(const char *);
-    virtual OGRErr      DeleteLayer(int);
+    virtual const char  *GetName() override;
 
-    virtual int         TestCapability( const char * );
+    virtual int         GetLayerCount() override ;
+    virtual OGRLayer    *GetLayer(int) override;
+    virtual OGRLayer    *GetLayerByName(const char *) override;
+    virtual OGRErr      DeleteLayer(int) override;
 
-    virtual OGRLayer   *CreateLayer( const char *pszName, 
+    virtual int         TestCapability( const char * ) override;
+
+    virtual OGRLayer   *ICreateLayer( const char *pszName,
                                      OGRSpatialReference *poSpatialRef = NULL,
                                      OGRwkbGeometryType eGType = wkbUnknown,
-                                     char ** papszOptions = NULL );
-    virtual OGRLayer   *CopyLayer( OGRLayer *poSrcLayer, 
-                                   const char *pszNewName, 
-                                   char **papszOptions = NULL );
+                                     char ** papszOptions = NULL ) override;
+    virtual OGRLayer   *CopyLayer( OGRLayer *poSrcLayer,
+                                   const char *pszNewName,
+                                   char **papszOptions = NULL ) override;
 
-    virtual OGRStyleTable *GetStyleTable();
-    virtual void        SetStyleTableDirectly( OGRStyleTable *poStyleTable );
-                            
-    virtual void        SetStyleTable(OGRStyleTable *poStyleTable);
+    virtual OGRStyleTable *GetStyleTable() override;
+    virtual void        SetStyleTableDirectly( OGRStyleTable *poStyleTable ) override;
+
+    virtual void        SetStyleTable(OGRStyleTable *poStyleTable) override;
 
     virtual OGRLayer *  ExecuteSQL( const char *pszStatement,
                                     OGRGeometry *poSpatialFilter,
-                                    const char *pszDialect );
-    virtual void        ReleaseResultSet( OGRLayer * poResultsSet );
+                                    const char *pszDialect ) override;
+    virtual void        ReleaseResultSet( OGRLayer * poResultsSet ) override;
 
-    virtual OGRErr      SyncToDisk();
+    virtual void        FlushCache() override;
+
+    virtual OGRErr      StartTransaction(int bForce=FALSE) override;
+    virtual OGRErr      CommitTransaction() override;
+    virtual OGRErr      RollbackTransaction() override;
+
+    virtual char      **GetMetadata( const char * pszDomain = "" ) override;
+    virtual CPLErr      SetMetadata( char ** papszMetadata,
+                                     const char * pszDomain = "" ) override;
+    virtual const char *GetMetadataItem( const char * pszName,
+                                         const char * pszDomain = "" ) override;
+    virtual CPLErr      SetMetadataItem( const char * pszName,
+                                         const char * pszValue,
+                                         const char * pszDomain = "" ) override;
 };
 
-#endif // _OGRMUTEXEDDATASOURCELAYER_H_INCLUDED
+#endif /* #ifndef DOXYGEN_SKIP */
+
+#endif // OGRMUTEXEDDATASOURCELAYER_H_INCLUDED

@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrgeomediaselectlayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGeomediaSelectLayer class, layer access to the results
@@ -32,15 +31,15 @@
 #include "cpl_conv.h"
 #include "ogr_geomedia.h"
 
-CPL_CVSID("$Id: ogrgeomediaselectlayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrgeomediaselectlayer.cpp 35175 2016-08-22 03:12:11Z goatbar $");
 
 /************************************************************************/
 /*                        OGRGeomediaSelectLayer()                      */
 /************************************************************************/
 
 OGRGeomediaSelectLayer::OGRGeomediaSelectLayer( OGRGeomediaDataSource *poDSIn,
-                                        CPLODBCStatement * poStmtIn )
-
+                                                CPLODBCStatement * poStmtIn ) :
+    pszBaseStatement(CPLStrdup( poStmtIn->GetCommand() ))
 {
     poDS = poDSIn;
 
@@ -49,7 +48,6 @@ OGRGeomediaSelectLayer::OGRGeomediaSelectLayer( OGRGeomediaDataSource *poDSIn,
     poFeatureDefn = NULL;
 
     poStmt = poStmtIn;
-    pszBaseStatement = CPLStrdup( poStmtIn->GetCommand() );
 
     BuildFeatureDefn( "SELECT", poStmt );
 }
@@ -134,7 +132,7 @@ void OGRGeomediaSelectLayer::ResetReading()
 /*                             GetFeature()                             */
 /************************************************************************/
 
-OGRFeature *OGRGeomediaSelectLayer::GetFeature( long nFeatureId )
+OGRFeature *OGRGeomediaSelectLayer::GetFeature( GIntBig nFeatureId )
 
 {
     return OGRGeomediaLayer::GetFeature( nFeatureId );
@@ -159,7 +157,7 @@ int OGRGeomediaSelectLayer::TestCapability( const char * pszCap )
 /*      way of counting features matching a spatial query.              */
 /************************************************************************/
 
-int OGRGeomediaSelectLayer::GetFeatureCount( int bForce )
+GIntBig OGRGeomediaSelectLayer::GetFeatureCount( int bForce )
 
 {
     return OGRGeomediaLayer::GetFeatureCount( bForce );

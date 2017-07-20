@@ -1,8 +1,8 @@
 /******************************************************************************
- * $Id: rawdataset.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: rawdataset.h 36501 2016-11-25 14:09:24Z rouault $
  *
  * Project:  Raw Translator
- * Purpose:  Implementation of RawDataset class.  Intented to be subclassed
+ * Purpose:  Implementation of RawDataset class.  Intended to be subclassed
  *           by other raw formats.
  * Author:   Frank Warmerdam, warmerdam@pobox.com
  *
@@ -36,7 +36,7 @@
 
 /************************************************************************/
 /* ==================================================================== */
-/*				RawDataset				*/
+/*                              RawDataset                              */
 /* ==================================================================== */
 /************************************************************************/
 
@@ -52,11 +52,16 @@ class CPL_DLL RawDataset : public GDALPamDataset
   protected:
     virtual CPLErr      IRasterIO( GDALRWFlag, int, int, int, int,
                                    void *, int, int, GDALDataType,
-                                   int, int *, int, int, int );
+                                   int, int *,
+                                   GSpacing nPixelSpace, GSpacing nLineSpace,
+                                   GSpacing nBandSpace,
+                                   GDALRasterIOExtraArg* psExtraArg ) CPL_OVERRIDE;
   public:
                  RawDataset();
-                 ~RawDataset() = 0;
+         virtual ~RawDataset() = 0;
 
+  private:
+    CPL_DISALLOW_COPY_ASSIGN(RawDataset)
 };
 
 /************************************************************************/
@@ -80,13 +85,13 @@ protected:
     int         bIsVSIL;
 
     vsi_l_offset nImgOffset;
-    int		nPixelOffset;
-    int		nLineOffset;
+    int         nPixelOffset;
+    int         nLineOffset;
     int         nLineSize;
-    int		bNativeOrder;
+    int         bNativeOrder;
 
-    int		nLoadedScanline;
-    void	*pLineBuffer;
+    int         nLoadedScanline;
+    void        *pLineBuffer;
     void        *pLineStart;
     int         bDirty;
 
@@ -94,21 +99,22 @@ protected:
     GDALColorInterp eInterp;
 
     char           **papszCategoryNames;
-    
+
     int         bOwnsFP;
 
     int         Seek( vsi_l_offset, int );
     size_t      Read( void *, size_t, size_t );
     size_t      Write( void *, size_t, size_t );
 
-    CPLErr      AccessBlock( vsi_l_offset nBlockOff, int nBlockSize,
+    CPLErr      AccessBlock( vsi_l_offset nBlockOff, size_t nBlockSize,
                              void * pData );
     int         IsSignificantNumberOfLinesLoaded( int nLineOff, int nLines );
     void        Initialize();
 
     virtual CPLErr  IRasterIO( GDALRWFlag, int, int, int, int,
                               void *, int, int, GDALDataType,
-                              int, int );
+                              GSpacing nPixelSpace, GSpacing nLineSpace,
+                              GDALRasterIOExtraArg* psExtraArg ) CPL_OVERRIDE;
 
     int         CanUseDirectIO(int nXOff, int nYOff, int nXSize, int nYSize,
                                GDALDataType eBufType);
@@ -127,44 +133,47 @@ public:
                                 GDALDataType eDataType, int bNativeOrder,
                                 int nXSize, int nYSize, int bIsVSIL = FALSE, int bOwnsFP = FALSE );
 
-                 ~RawRasterBand() /* = 0 */ ;
+    virtual ~RawRasterBand() /* = 0 */ ;
 
-    // should override RasterIO eventually.
-    
-    virtual CPLErr  IReadBlock( int, int, void * );
-    virtual CPLErr  IWriteBlock( int, int, void * );
+    // should CPL_OVERRIDE RasterIO eventually.
 
-    virtual GDALColorTable *GetColorTable();
-    virtual GDALColorInterp GetColorInterpretation();
-    virtual CPLErr SetColorTable( GDALColorTable * ); 
-    virtual CPLErr SetColorInterpretation( GDALColorInterp );
+    virtual CPLErr  IReadBlock( int, int, void * ) CPL_OVERRIDE;
+    virtual CPLErr  IWriteBlock( int, int, void * ) CPL_OVERRIDE;
 
-    virtual char **GetCategoryNames();
-    virtual CPLErr SetCategoryNames( char ** );
+    virtual GDALColorTable *GetColorTable() CPL_OVERRIDE;
+    virtual GDALColorInterp GetColorInterpretation() CPL_OVERRIDE;
+    virtual CPLErr SetColorTable( GDALColorTable * ) CPL_OVERRIDE;
+    virtual CPLErr SetColorInterpretation( GDALColorInterp ) CPL_OVERRIDE;
 
-    virtual CPLErr  FlushCache();
+    virtual char **GetCategoryNames() CPL_OVERRIDE;
+    virtual CPLErr SetCategoryNames( char ** ) CPL_OVERRIDE;
+
+    virtual CPLErr  FlushCache() CPL_OVERRIDE;
 
     virtual CPLVirtualMem  *GetVirtualMemAuto( GDALRWFlag eRWFlag,
                                                int *pnPixelSpace,
                                                GIntBig *pnLineSpace,
-                                               char **papszOptions );
+                                               char **papszOptions ) CPL_OVERRIDE;
 
     CPLErr          AccessLine( int iLine );
 
     void            SetAccess( GDALAccess eAccess );
-    
-    // this is deprecated.
-    void	 StoreNoDataValue( double );
 
-    // Query methods for internal data. 
+    // this is deprecated.
+    void         StoreNoDataValue( double );
+
+    // Query methods for internal data.
     vsi_l_offset GetImgOffset() { return nImgOffset; }
     int          GetPixelOffset() { return nPixelOffset; }
     int          GetLineOffset() { return nLineOffset; }
     int          GetNativeOrder() { return bNativeOrder; }
     int          GetIsVSIL() { return bIsVSIL; }
-    FILE        *GetFP() { return (bIsVSIL) ? (FILE*)fpRawL : fpRaw; }
+    FILE        *GetFP() { return (bIsVSIL) ? reinterpret_cast<FILE *>( fpRawL ) : fpRaw; }
     VSILFILE    *GetFPL() { CPLAssert(bIsVSIL); return fpRawL; }
     int          GetOwnsFP() { return bOwnsFP; }
+
+  private:
+    CPL_DISALLOW_COPY_ASSIGN(RawRasterBand)
 };
 
 #endif // GDAL_FRMTS_RAW_RAWDATASET_H_INCLUDED

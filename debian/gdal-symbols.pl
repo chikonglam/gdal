@@ -30,7 +30,7 @@ use Term::Prompt;
 
 $|=1;
 
-my $package = 'libgdal1i';
+my $package = 'libgdal20';
 my $pkgdir  = 'binary-'.$package.'/';
 
 our $ua = LWP::UserAgent->new(agent => basename($0));
@@ -415,6 +415,10 @@ sub create_new_symbols {
 				# | libgdal1h #MINVER#, libgdal.so.1-1.10.1
 				# #include "libgdal1h.symbols.common"
 
+				# libgdal.so.20 libgdal20 #MINVER#
+				# | libgdal20 #MINVER#, gdal-abi-2-0-0
+				# #include "libgdal20.symbols.common"
+
 				my $data = '';
 
 				my $i = 0;
@@ -575,11 +579,11 @@ sub create_patch_file {
 			   . '+++ '. $old."\n"
 			   ;
 		}
-		# + VRTSourcedRasterBand::ComputeRasterMinMax(int, double*)@GDAL_1.8 1.10.1
+		# + VRTSourcedRasterBand::ComputeRasterMinMax(int, double*)@Base 1.10.1
 		elsif(/^\+ (.*?) (\d+\.\d+\.\d+\S*)\s*$/) {
 			$_ = '+ (c++)"'.$1.'" '.$2." 1\n";
 		}
-		# + VRTSourcedRasterBand::ComputeRasterMinMax(int, double*)@GDAL_1.8 1.10.1 1
+		# + VRTSourcedRasterBand::ComputeRasterMinMax(int, double*)@Base 1.10.1 1
 		elsif(/^\+ (.*?) (\d+\.\d+\.\d+\S*)(\s+\d+)\s*$/) {
 			$_ = '+ (c++)"'.$1.'" '.$2.$3."\n";
 		}
@@ -968,17 +972,17 @@ sub parse_symbols {
 	my %symbols = ();
 
 	foreach(read_file($args{file})) {
-		#  BSBClose@GDAL_1.8 1.8.0
+		#  BSBClose@Base 1.8.0
 		if(/^ (\S+)\s+(\d+\S+\d+)\s*$/) {
 			my $symbol  = $1;
 			my $version = $2;
 
 			$symbols{$symbol}{version} = $version;
 		}
-		# libgdal.so.1 libgdal1h #MINVER#
-		# | libgdal1h #MINVER#, libgdal.so.1-1.11.1
-		# #include "libgdal1h.symbols.common"
-		#  (c++)"PamGetProxy(char const*)@GDAL_1.8" 1.8.0 1
+		# libgdal.so.20 libgdal20 #MINVER#
+		# | libgdal20 #MINVER#, gdal-abi-2-0-0
+		# #include "libgdal20.symbols.common"
+		#  (c++)"PamGetProxy(char const*)@Base" 1.8.0 1
 		elsif(/^ (\S+)\s+(\d+\S+\d+)\s*(\d+)\s*$/) {
 			my $symbol   = $1;
 			my $version  = $2;
@@ -1126,15 +1130,22 @@ sub new_architecture_symbols {
 					# | libgdal1h #MINVER#, libgdal.so.1-1.10.1
 					# #include "libgdal1h.symbols.common"
 
+					# libgdal.so.20 libgdal20 #MINVER#
+					# | libgdal20 #MINVER#, gdal-abi-2-0-0
+					# #include "libgdal20.symbols.common"
+
 					my $data = '';
 
 					my $upstream_version = upstream_version($versions[-1]);
+
+					(my $abi = $upstream_version) =~ s/\./-/g;
+					$abi =~ s/\~\w+$//;
 
 					my $i = 0;
 					foreach(read_file($filt)) {
 						if($i == 0 && /^ /) {
 							$_ = "#include \"${pkg}.symbols.common\"\n" . $_;
-							$_ = "| ${pkg} #MINVER#, libgdal.so.1-$upstream_version\n" . $_;
+							$_ = "| ${pkg} #MINVER#, gdal-abi-$abi\n" . $_;
 
 							$i++;
 						}

@@ -1,5 +1,4 @@
 /**********************************************************************
- * $Id: gmlreadstate.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLReadState class.
@@ -15,43 +14,48 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#include "cpl_port.h"
 #include "gmlreaderp.h"
+
+#include <cstddef>
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "cpl_conv.h"
+#include "cpl_error.h"
 #include "cpl_string.h"
+
+CPL_CVSID("$Id: gmlreadstate.cpp 37182 2017-01-19 07:34:23Z goatbar $");
 
 /************************************************************************/
 /*                            GMLReadState()                            */
 /************************************************************************/
 
-GMLReadState::GMLReadState()
-
-{
-    m_poFeature = NULL;
-    m_poParentState = NULL;
-    m_nPathLength = 0;
-}
+GMLReadState::GMLReadState() :
+    m_poFeature(NULL),
+    m_poParentState(NULL),
+    m_nPathLength(0)
+{}
 
 /************************************************************************/
 /*                           ~GMLReadState()                            */
 /************************************************************************/
 
-GMLReadState::~GMLReadState()
-
-{
-}
+GMLReadState::~GMLReadState() {}
 
 /************************************************************************/
 /*                              Reset()                                 */
@@ -75,7 +79,7 @@ void GMLReadState::PushPath( const char *pszElement, int nLen )
 {
     if (m_nPathLength > 0)
         osPath.append(1, '|');
-    if (m_nPathLength < (int)aosPathComponents.size())
+    if (m_nPathLength < static_cast<int>(aosPathComponents.size()))
     {
         if (nLen >= 0)
         {
@@ -93,7 +97,7 @@ void GMLReadState::PushPath( const char *pszElement, int nLen )
         aosPathComponents.push_back(pszElement);
         osPath.append(pszElement);
     }
-    m_nPathLength ++;
+    m_nPathLength++;
 }
 
 /************************************************************************/
@@ -103,8 +107,9 @@ void GMLReadState::PushPath( const char *pszElement, int nLen )
 void GMLReadState::PopPath()
 
 {
-    CPLAssert( m_nPathLength > 0 );
+    CPLAssert(m_nPathLength > 0);
 
-    osPath.resize(osPath.size() - (aosPathComponents[m_nPathLength-1].size() + ((m_nPathLength > 1) ? 1 : 0)));
-    m_nPathLength --;
+    osPath.resize(osPath.size() - (aosPathComponents[m_nPathLength - 1].size() +
+                                   ((m_nPathLength > 1) ? 1 : 0)));
+    m_nPathLength--;
 }

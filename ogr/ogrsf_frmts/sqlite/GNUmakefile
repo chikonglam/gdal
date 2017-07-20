@@ -4,10 +4,15 @@ include ../../../GDALmake.opt
 
 OBJ	=	ogrsqlitedatasource.o ogrsqlitelayer.o ogrsqlitedriver.o \
 		ogrsqlitetablelayer.o ogrsqliteviewlayer.o ogrsqliteselectlayer.o ogrsqlitesinglefeaturelayer.o \
-		ogrsqlitevfs.o ogrsqlitevirtualogr.o ogrsqliteexecutesql.o ogrsqliteapiroutines.o
+		ogrsqlitevfs.o ogrsqlitevirtualogr.o ogrsqliteexecutesql.o ogrsqliteapiroutines.o \
+		rasterlite2.o ogrsqliteutility.o
 
 ifeq ($(HAVE_SPATIALITE),yes)
 CPPFLAGS +=  -DHAVE_SPATIALITE
+endif
+
+ifeq ($(HAVE_SPATIALITE),dlopen)
+CPPFLAGS +=  -DHAVE_SPATIALITE -DSPATIALITE_DLOPEN -DSPATIALITE_412_OR_LATER -DSPATIALITE_SONAME=\"$(SPATIALITE_SONAME)\"
 endif
 
 ifeq ($(SPATIALITE_AMALGAMATION),yes)
@@ -26,7 +31,11 @@ ifeq ($(SQLITE_HAS_COLUMN_METADATA),yes)
 CPPFLAGS +=  -DSQLITE_HAS_COLUMN_METADATA
 endif
 
-CPPFLAGS	:=	-I.. $(GDAL_INCLUDE) $(SQLITE_INC) $(SPATIALITE_INC) $(CPPFLAGS)
+ifeq ($(HAVE_RASTERLITE2),yes)
+CPPFLAGS +=  -DHAVE_RASTERLITE2 $(RASTERLITE2_CFLAGS)
+endif
+
+CPPFLAGS	:=	-I..  $(SQLITE_INC) $(SPATIALITE_INC) $(CPPFLAGS)
 
 default:	$(O_OBJ:.o=.$(OBJ_EXT))
 

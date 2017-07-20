@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili1readerp.h 26979 2014-02-23 21:55:20Z pka $
+ * $Id: ili1readerp.h 36501 2016-11-25 14:09:24Z rouault $
  *
  * Project:  Interlis 1 Reader
  * Purpose:  Private Declarations for Reader code.
@@ -27,12 +27,11 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _CPL_ILI1READERP_H_INCLUDED
-#define _CPL_ILI1READERP_H_INCLUDED
+#ifndef CPL_ILI1READERP_H_INCLUDED
+#define CPL_ILI1READERP_H_INCLUDED
 
 #include "ili1reader.h"
 #include "ogr_ili1.h"
-
 
 class ILI1Reader;
 class OGRILI1Layer;
@@ -48,7 +47,6 @@ private:
     int          nLayers;
     OGRILI1Layer **papoLayers;
     OGRILI1Layer *curLayer;
-    double       arcIncr;
     char         codeBlank;
     char         codeUndefined;
     char         codeContinue;
@@ -57,22 +55,19 @@ public:
                  ILI1Reader();
                 ~ILI1Reader();
 
-    void         SetArcDegrees(double arcDegrees);
-    int          OpenFile( const char *pszFilename );
-    int          ReadModel( ImdReader *poImdReader, const char *pszModelFilename, OGRILI1DataSource *poDS );
-    int          ReadFeatures();
+    int          OpenFile( const char *pszFilename ) override;
+    int          ReadModel( ImdReader *poImdReader, const char *pszModelFilename, OGRILI1DataSource *poDS ) override;
+    int          ReadFeatures() override;
     int          ReadTable(const char *layername);
     void         ReadGeom(char **stgeom, int geomIdx, OGRwkbGeometryType eType, OGRFeature *feature);
     char         **ReadParseLine();
 
     void         AddLayer( OGRILI1Layer * poNewLayer );
-    int          AddIliGeom(OGRFeature *feature, int iField, long fpos);
-    OGRILI1Layer *GetLayer( int );
-    OGRILI1Layer *GetLayerByName( const char* );
-    int          GetLayerCount();
+    OGRILI1Layer *GetLayer( int ) override;
+    OGRILI1Layer *GetLayerByName( const char* ) override;
+    int          GetLayerCount() override;
 
-    const char*  GetLayerNameString(const char* topicname, const char* tablename);
+    static const char*  GetLayerNameString(const char* topicname, const char* tablename);
 };
-
 
 #endif

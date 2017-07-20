@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: MajorObject.i 26569 2013-10-29 23:51:12Z rouault $
+ * $Id: MajorObject.i 34525 2016-07-03 02:53:47Z goatbar $
  *
  * Project:  GDAL SWIG Interfaces.
  * Purpose:  SWIG Definitions for GDALMajorObject.
@@ -26,6 +26,21 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  *****************************************************************************/
+
+/* For Python we don't import, but include MajorObject.i to avoid */
+/* cyclic dependency between gdal.py and ogr.py. Python2 is fine with that */
+/* but Python3 not */
+/* We should probably define a new module for MajorObject, or merge gdal and ogr */
+/* modules */
+#ifndef FROM_PYTHON_OGR_I
+#ifdef PERL_CPAN_NAMESPACE
+%module "Geo::GDAL"
+#elif defined(SWIGCSHARP)
+%module Gdal
+#else
+%module gdal
+#endif
+#endif /* FROM_PYTHON_OGR_I */
 
 %rename (MajorObject) GDALMajorObjectShadow;
 
@@ -77,7 +92,7 @@ public:
 /*
  * SetMetadata methods
  */
- 
+
 #ifdef SWIGJAVA
 %apply (char **options) { char ** papszMetadata };
   CPLErr SetMetadata( char ** papszMetadata, const char * pszDomain = "" ) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: gdal_ls.py 27044 2014-03-16 23:41:27Z rouault $
+# $Id: gdal_ls.py 31957 2015-12-02 12:44:54Z goatbar $
 #
 #  Project:  GDAL samples
 #  Purpose:  Display the list of files in a virtual directory, like /vsicurl or /vsizip
@@ -29,9 +29,10 @@
 #  DEALINGS IN THE SOFTWARE.
 ###############################################################################
 
-from osgeo import gdal
-import sys
 import os
+import sys
+
+from osgeo import gdal
 
 def needsVSICurl(filename):
     return filename.startswith('http://') or filename.startswith('https://') or filename.startswith('ftp://')

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogis_geometry_wkb_struct.h
+ * $Id: ogis_geometry_wkb_struct.h$
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Definition of GeometryWkb Structs
@@ -35,14 +35,14 @@
 /* Building Blocks : Point, LinearRing                                    */
 /**************************************************************************/
 
-#ifndef _OGIS_GEOMETRY_WKB_STRUCT_H
-#define _OGIS_GEOMETRY_WKB_STRUCT_H
+#ifndef OGIS_GEOMETRY_WKB_STRUCT_H
+#define OGIS_GEOMETRY_WKB_STRUCT_H
 
 #define CPL_LSBPTRPOINT(p) \
 {                                                                 \
-    CPL_LSBPTR32(&p.x);                                           \
-    CPL_LSBPTR32(&p.y);                                           \
-    CPL_LSBPTR32(&p.z);                                           \
+    CPL_LSBPTR64(&p.x);                                           \
+    CPL_LSBPTR64(&p.y);                                           \
+    CPL_LSBPTR64(&p.z);                                           \
 }
 
 #ifdef CPL_MSB
@@ -55,6 +55,8 @@
 #else
 #define CPL_LSBPTRPOINTS(p,n)
 #endif
+
+namespace OGRWALK {
 
 struct Point3D {
     double x;
@@ -83,11 +85,11 @@ typedef Point Vector;        //Space Vector    {dx, dy, dz}
 /* ones in the curve.                                                     */
 /* A LineString is a curve with linear interpolation between points. Each */
 /* consecutive pair of points defines a line segment.                     */
-/* Extention£ºLineString is composed of CurveSegment, but self-crossing   */
+/* Extension LineString is composed of CurveSegment, but self-crossing   */
 /* is not allowed.                                                        */
 /**************************************************************************/
 
-enum wkLineType {
+typedef enum {
     wkLineTypePoint        =0,   // Point
     wkLineTypeStraight    =1,    // Straightline
     wkLineTypeBezier    =2,      // Bezier
@@ -99,7 +101,7 @@ enum wkLineType {
     wkLineTypeRectCircle=8,      // Rectangular Circle; 2 points
     wkLineTypeBCurve    =9,      // B Curve
     wkLineTypeStrainCurve =10,   // Strain Curve
-};
+} wkLineType;
 
 struct CurveSegment {
     GUInt32 lineType;
@@ -184,7 +186,7 @@ struct WKBMultiLineString {
 /*    3. A MultiPolygon is defined as topologically closed.               */
 /*    4. A MultiPolygon may not have cut lines, spikes or punctures,      */
 /*       a MultiPolygon is a Regular, Closed point set:                   */
-/*    5. The interior of a MultiPolygon with more than 1 Polygon is not   */ 
+/*    5. The interior of a MultiPolygon with more than 1 Polygon is not   */
 /*       connected, the number of connected components of the interior    */
 /*       of a MultiPolygon is equal to the number of Polygons in the      */
 /*       MultiPolygon.                                                    */
@@ -192,7 +194,7 @@ struct WKBMultiLineString {
 /*       (LineStrings) corresponding to the boundaries of its element     */
 /*       Polygons. Each curve in the boundary of the MultiPolygon is in   */
 /*       the boundary of exactly 1 element Polygon, and every curve in    */
-/*       the boundary of an element Polygon is in the boundary of the     */ 
+/*       the boundary of an element Polygon is in the boundary of the     */
 /*       MultiPolygon.                                                    */
 /**************************************************************************/
 struct WKBMultiPolygon {
@@ -229,6 +231,20 @@ public:
     WKBGeometry () { wkbType=wkbUnknown; }
 };
 
+} /* namespace OGRWALK */
+
+using OGRWALK::wkLineType;
+using OGRWALK::Point;
+using OGRWALK::CurveSegment;
+using OGRWALK::LineString;
+using OGRWALK::WKBSimpleGeometry;
+using OGRWALK::WKBPoint;
+using OGRWALK::WKBLineString;
+using OGRWALK::WKBPolygon;
+using OGRWALK::WKBMultiPoint;
+using OGRWALK::WKBMultiLineString;
+using OGRWALK::WKBMultiPolygon;
+using OGRWALK::WKBGeometryCollection;
+using OGRWALK::WKBGeometry;
+
 #endif /* ndef OGIS_GEOMETRY_WKB_STRUCT_H */
-
-

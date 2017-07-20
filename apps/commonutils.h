@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: commonutils.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: commonutils.h 34815 2016-07-28 20:00:17Z goatbar $
  *
  * Project:  GDAL Utilities
  * Purpose:  Common utility routines
@@ -27,18 +27,18 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _COMMONUTILS_H_
-#define _COMMONUTILS_H_
+#ifndef COMMONUTILS_H_INCLUDED
+#define COMMONUTILS_H_INCLUDED
 
 #include "cpl_port.h"
 
 CPL_C_START
 
-void CheckExtensionConsistency(const char* pszDestFilename,
-                               const char* pszDriverName);
+void CPL_DLL CheckExtensionConsistency( const char* pszDestFilename,
+                                        const char* pszDriverName );
 
-void EarlySetConfigOptions( int argc, char ** argv );
+void CPL_DLL EarlySetConfigOptions( int argc, char ** argv );
 
 CPL_C_END
 
-#endif
+#endif /* COMMONUTILS_H_INCLUDED */

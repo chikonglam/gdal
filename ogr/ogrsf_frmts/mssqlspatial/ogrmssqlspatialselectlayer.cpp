@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialselectlayer.cpp 27760 2014-09-28 18:31:18Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialSelectLayer class, layer access to the results
@@ -30,8 +29,11 @@
 
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
+#ifdef SQLNCLI_VERSION
+#include <sqlncli.h>
+#endif
 
-CPL_CVSID("$Id: ogrmssqlspatialselectlayer.cpp 27760 2014-09-28 18:31:18Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatialselectlayer.cpp 35338 2016-09-05 21:49:05Z tamas $");
 /************************************************************************/
 /*                     OGRMSSQLSpatialSelectLayer()                     */
 /************************************************************************/
@@ -89,6 +91,29 @@ OGRMSSQLSpatialSelectLayer::OGRMSSQLSpatialSelectLayer( OGRMSSQLSpatialDataSourc
         {
             nGeomColumnType = MSSQLCOLTYPE_GEOGRAPHY;
             pszGeomColumn = CPLStrdup(poStmt->GetColName(iColumn));
+            break;
+        }
+        else if ( EQUAL(poStmt->GetColTypeName( iColumn ), "udt") )
+        {
+#ifdef SQL_CA_SS_UDT_TYPE_NAME
+            SQLCHAR     szUDTTypeName[256];
+            SQLSMALLINT nUDTTypeNameLength = 0;
+
+            SQLColAttribute(poStmt->GetStatement(), (SQLSMALLINT)(iColumn + 1), SQL_CA_SS_UDT_TYPE_NAME,
+                                     szUDTTypeName, sizeof(szUDTTypeName),
+                                     &nUDTTypeNameLength, NULL);
+
+            if ( EQUAL((char*)szUDTTypeName, "geometry") )
+            {
+                nGeomColumnType = MSSQLCOLTYPE_GEOMETRY;
+                pszGeomColumn = CPLStrdup(poStmt->GetColName(iColumn));
+            }
+            else if ( EQUAL((char*)szUDTTypeName, "geography") )
+            {
+                nGeomColumnType = MSSQLCOLTYPE_GEOGRAPHY;
+                pszGeomColumn = CPLStrdup(poStmt->GetColName(iColumn));
+            }
+#endif
             break;
         }
     }
@@ -186,7 +211,7 @@ void OGRMSSQLSpatialSelectLayer::ResetReading()
 /*                             GetFeature()                             */
 /************************************************************************/
 
-OGRFeature *OGRMSSQLSpatialSelectLayer::GetFeature( long nFeatureId )
+OGRFeature *OGRMSSQLSpatialSelectLayer::GetFeature( GIntBig nFeatureId )
 
 {
     return OGRMSSQLSpatialLayer::GetFeature( nFeatureId );
@@ -224,7 +249,7 @@ OGRErr OGRMSSQLSpatialSelectLayer::GetExtent(OGREnvelope *, int )
 /*      way of counting features matching a spatial query.              */
 /************************************************************************/
 
-int OGRMSSQLSpatialSelectLayer::GetFeatureCount( int bForce )
+GIntBig OGRMSSQLSpatialSelectLayer::GetFeatureCount( int bForce )
 
 {
     return OGRMSSQLSpatialLayer::GetFeatureCount( bForce );

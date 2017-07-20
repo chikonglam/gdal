@@ -16,12 +16,9 @@
 
 #include "cpl_port.h"
 
-typedef g2int integer;
-typedef g2float real;
-
-/* Subroutine */ int reduce(CPL_UNUSED integer *kfildo, integer *jmin, integer *jmax, 
+/* Subroutine */ int reduce(CPL_UNUSED integer *kfildo, integer *jmin, integer *jmax,
 	integer *lbit, integer *nov, integer *lx, integer *ndg, integer *ibit,
-	 integer *jbit, integer *kbit, integer *novref, integer *ibxx2, 
+	 integer *jbit, integer *kbit, integer *novref, integer *ibxx2,
 	integer *ier)
 {
     /* Initialized data */
@@ -158,12 +155,12 @@ typedef g2float real;
     ntotbt[*kbit - 1] = iorigb;
 /*           THIS IS THE VALUE OF TOTAL BITS FOR THE ORIGINAL LX */
 /*           GROUPS, WHICH REQUIRES KBITS TO PACK THE GROUP */
-/*           LENGHTS.  SETTING THIS HERE MAKES ONE LESS LOOPS */
+/*           LENGTHS.  SETTING THIS HERE MAKES ONE LESS LOOPS */
 /*           NECESSARY BELOW. */
 
 /*        COMPUTE BITS NOW USED FOR THE PARAMETERS DEFINED. */
 
-/*        DETERMINE OTHER POSSIBILITES BY INCREASING LX AND DECREASING */
+/*        DETERMINE OTHER POSSIBILITIES BY INCREASING LX AND DECREASING */
 /*        NOV( ) WITH VALUES GREATER THAN THRESHOLDS.  ASSUME A GROUP IS */
 /*        SPLIT INTO 2 OR MORE GROUPS SO THAT KBIT IS REDUCED WITHOUT */
 /*        CHANGING IBIT OR JBIT. */
@@ -171,7 +168,8 @@ typedef g2float real;
     jj = 0;
 
 /* Computing MIN */
-    i__1 = 30, i__2 = *kbit - 1;
+    i__1 = 30;
+    i__2 = *kbit - 1;
     /*for (j = min(i__1,i__2); j >= 2; --j) {*/
     for (j = (i__1 < i__2) ? i__1 : i__2; j >= 2; --j) {
 /*           VALUES GE KBIT WILL NOT REQUIRE SPLITS.  ONCE THE TOTAL */
@@ -222,7 +220,7 @@ L190:
 
 	/* nboxj[j - 1] = newboxt; */
 	ntotpr = ntotbt[j];
-	ntotbt[j - 1] = (*ibit + *jbit) * (*lx + newboxt) + j * (*lx + 
+	ntotbt[j - 1] = (*ibit + *jbit) * (*lx + newboxt) + j * (*lx +
 		newboxt);
 
 	if (ntotbt[j - 1] >= ntotpr) {
@@ -338,8 +336,8 @@ L250:
 	    }
 
 	    if (newboxp[l - 1] > 0) {
-		if ((movmin + *novref) * newboxp[l - 1] + *novref <= nov[l] + 
-			*novref && (movmin + *novref) * (newboxp[l - 1] + 1) 
+		if ((movmin + *novref) * newboxp[l - 1] + *novref <= nov[l] +
+			*novref && (movmin + *novref) * (newboxp[l - 1] + 1)
 			>= nov[l] + *novref) {
 		    goto L288;
 		} else {
@@ -387,7 +385,7 @@ L288:
 /*           LX IS NOW THE NEW NUMBER OF GROUPS. */
 	*kbit = jj;
 /*           KBIT IS NOW THE NEW NUMBER OF BITS REQUIRED FOR PACKING */
-/*           GROUP LENGHTS. */
+/*           GROUP LENGTHS. */
     }
 
 /*     WRITE(KFILDO,406)CFEED,LX */

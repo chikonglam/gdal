@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_segukooa.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_segukooa.h 36501 2016-11-25 14:09:24Z rouault $
  *
  * Project:  SEG-P1 / UKOOA P1-90 Translator
  * Purpose:  Definition of classes for OGR SEG-P1 / UKOOA P1-90 driver.
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_SEGUKOOA_H_INCLUDED
-#define _OGR_SEGUKOOA_H_INCLUDED
+#ifndef OGR_SEGUKOOA_H_INCLUDED
+#define OGR_SEGUKOOA_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 
@@ -40,17 +40,17 @@ class OGRSEGUKOOABaseLayer : public OGRLayer
 {
   protected:
     OGRFeatureDefn*    poFeatureDefn;
-    int                bEOF;
+    bool               bEOF;
     int                nNextFID;
 
     virtual OGRFeature *       GetNextRawFeature() = 0;
 
   public:
-    virtual OGRFeature *        GetNextFeature();
+    virtual OGRFeature *        GetNextFeature() override;
 
-    virtual OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
+    virtual OGRFeatureDefn *    GetLayerDefn() override { return poFeatureDefn; }
 
-    virtual int                 TestCapability( const char * ) { return FALSE; }
+    virtual int                 TestCapability( const char * ) override { return FALSE; }
 };
 
 /************************************************************************/
@@ -68,15 +68,14 @@ class OGRUKOOAP190Layer : public OGRSEGUKOOABaseLayer
     void               ParseHeaders();
 
   protected:
-    OGRFeature *       GetNextRawFeature();
+    OGRFeature *       GetNextRawFeature() override;
 
   public:
                         OGRUKOOAP190Layer(const char* pszFilename,
                                          VSILFILE* fp);
-                        ~OGRUKOOAP190Layer();
+                        virtual ~OGRUKOOAP190Layer();
 
-
-    virtual void                ResetReading();
+    virtual void                ResetReading() override;
 };
 
 /************************************************************************/
@@ -89,16 +88,15 @@ class OGRSEGUKOOALineLayer : public OGRSEGUKOOABaseLayer
     OGRFeature        *poNextBaseFeature;
 
   protected:
-    OGRFeature *       GetNextRawFeature();
+    OGRFeature *       GetNextRawFeature() override;
 
   public:
                         OGRSEGUKOOALineLayer(const char* pszFilename,
                                              OGRLayer *poBaseLayer);
-                        ~OGRSEGUKOOALineLayer();
+                        virtual ~OGRSEGUKOOALineLayer();
 
-    virtual void                ResetReading();
+    virtual void                ResetReading() override;
 };
-
 
 /************************************************************************/
 /*                         OGRSEGP1Layer                                */
@@ -114,15 +112,15 @@ class OGRSEGP1Layer: public OGRSEGUKOOABaseLayer
     int                bUseEastingNorthingAsGeometry;
 
   protected:
-    OGRFeature *       GetNextRawFeature();
+    OGRFeature *       GetNextRawFeature() override;
 
   public:
                         OGRSEGP1Layer(const char* pszFilename,
                                       VSILFILE* fp,
                                       int nLatitudeCol);
-                        ~OGRSEGP1Layer();
+                        virtual ~OGRSEGP1Layer();
 
-    virtual void                ResetReading();
+    virtual void                ResetReading() override;
 
 public:
     static char* ExpandTabs(const char* pszLine);
@@ -142,32 +140,16 @@ class OGRSEGUKOOADataSource : public OGRDataSource
 
   public:
                         OGRSEGUKOOADataSource();
-                        ~OGRSEGUKOOADataSource();
+                        virtual ~OGRSEGUKOOADataSource();
 
-    int                 Open( const char * pszFilename,
-                              int bUpdate );
+    int                 Open( const char * pszFilename );
 
-    virtual const char*         GetName() { return pszName; }
+    virtual const char*         GetName() override { return pszName; }
 
-    virtual int                 GetLayerCount() { return nLayers; }
-    virtual OGRLayer*           GetLayer( int );
+    virtual int                 GetLayerCount() override { return nLayers; }
+    virtual OGRLayer*           GetLayer( int ) override;
 
-    virtual int                 TestCapability( const char * );
+    virtual int                 TestCapability( const char * ) override;
 };
 
-/************************************************************************/
-/*                          OGRSEGUKOOADriver                           */
-/************************************************************************/
-
-class OGRSEGUKOOADriver : public OGRSFDriver
-{
-  public:
-                ~OGRSEGUKOOADriver();
-
-    virtual const char*         GetName();
-    virtual OGRDataSource*      Open( const char *, int );
-    virtual int                 TestCapability( const char * );
-};
-
-
-#endif /* ndef _OGR_SEGUKOOA_H_INCLUDED */
+#endif /* ndef OGR_SEGUKOOA_H_INCLUDED */

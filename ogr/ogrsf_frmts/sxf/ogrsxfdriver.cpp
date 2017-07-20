@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogr_sxfdriver.cpp  $
  *
  * Project:  SXF Translator
  * Purpose:  Definition of classes for OGR SXF driver.
@@ -33,10 +32,9 @@
 #include "cpl_conv.h"
 #include "ogr_sxf.h"
 
-CPL_CVSID("$Id: ogrsxfdriver.cpp  $");
+CPL_CVSID("$Id: ogrsxfdriver.cpp 35911 2016-10-24 15:03:26Z goatbar $");
 
-
-extern "C" void RegisterOGRSXF();  
+extern "C" void RegisterOGRSXF();
 
 /************************************************************************/
 /*                       ~OGRSXFDriver()                         */
@@ -71,7 +69,7 @@ OGRDataSource *OGRSXFDriver::Open( const char * pszFilename, int bUpdate )
     if (!EQUAL(CPLGetExtension(pszFilename), "sxf") ||
         VSIStatL(pszFilename, &sStatBuf) != 0 ||
         !VSI_ISREG(sStatBuf.st_mode))
-        return FALSE;
+        return NULL;
 
     OGRSXFDataSource   *poDS = new OGRSXFDataSource();
 
@@ -90,9 +88,8 @@ OGRDataSource *OGRSXFDriver::Open( const char * pszFilename, int bUpdate )
 
 OGRErr OGRSXFDriver::DeleteDataSource(const char* pszName)
 {
-    int iExt;
     //TODO: add more extensions if aplicable
-    static const char *apszExtensions[] = { "szf", "rsc", NULL }; 
+    static const char * const apszExtensions[] = { "szf", "rsc", "SZF", "RSC", NULL };
 
     VSIStatBufL sStatBuf;
     if (VSIStatL(pszName, &sStatBuf) != 0)
@@ -104,7 +101,7 @@ OGRErr OGRSXFDriver::DeleteDataSource(const char* pszName)
         return OGRERR_FAILURE;
     }
 
-    for (iExt = 0; apszExtensions[iExt] != NULL; iExt++)
+    for( int iExt = 0; apszExtensions[iExt] != NULL; iExt++ )
     {
         const char *pszFile = CPLResetExtension(pszName,
             apszExtensions[iExt]);
@@ -124,8 +121,8 @@ int OGRSXFDriver::TestCapability( const char * pszCap )
 {
     if (EQUAL(pszCap, ODrCDeleteDataSource))
         return TRUE;
-    else
-        return FALSE;
+
+    return FALSE;
 }
 
 /************************************************************************/
@@ -133,8 +130,12 @@ int OGRSXFDriver::TestCapability( const char * pszCap )
 /************************************************************************/
 void RegisterOGRSXF()
 {
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRSXFDriver );   
+    OGRSFDriver* poDriver = new OGRSXFDriver;
+
+    poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
+                               "Storage and eXchange Format" );
+    poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_sxf.html" );
+    poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "sxf" );
+
+    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver(poDriver);
 }
-
-
-

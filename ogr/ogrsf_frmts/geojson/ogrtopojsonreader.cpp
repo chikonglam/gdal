@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrtopojsonreader.cpp 27268 2014-05-01 10:46:20Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRTopoJSONReader class
@@ -30,18 +29,16 @@
 #include "ogrgeojsonreader.h"
 #include "ogrgeojsonutils.h"
 #include "ogr_geojson.h"
-#include <json.h> // JSON-C
+#include <json.h>  // JSON-C
 #include <ogr_api.h>
+
+CPL_CVSID("$Id: ogrtopojsonreader.cpp 38115 2017-04-23 07:24:41Z rouault $");
 
 /************************************************************************/
 /*                          OGRTopoJSONReader()                         */
 /************************************************************************/
 
-OGRTopoJSONReader::OGRTopoJSONReader()
-    : poGJObject_( NULL )
-{
-    // Take a deep breath and get to work.
-}
+OGRTopoJSONReader::OGRTopoJSONReader() : poGJObject_( NULL ) {}
 
 /************************************************************************/
 /*                         ~OGRTopoJSONReader()                         */
@@ -63,44 +60,32 @@ OGRTopoJSONReader::~OGRTopoJSONReader()
 
 OGRErr OGRTopoJSONReader::Parse( const char* pszText )
 {
-    if( NULL != pszText )
+    json_object *jsobj = NULL;
+    if( NULL != pszText && !OGRJSonParse(pszText, &jsobj, true) )
     {
-        json_tokener* jstok = NULL;
-        json_object* jsobj = NULL;
-
-        jstok = json_tokener_new();
-        jsobj = json_tokener_parse_ex(jstok, pszText, -1);
-        if( jstok->err != json_tokener_success)
-        {
-            CPLError( CE_Failure, CPLE_AppDefined,
-                      "TopoJSON parsing error: %s (at offset %d)",
-            	      json_tokener_error_desc(jstok->err), jstok->char_offset);
-            
-            json_tokener_free(jstok);
-            return OGRERR_CORRUPT_DATA;
-        }
-        json_tokener_free(jstok);
-
-        /* JSON tree is shared for while lifetime of the reader object
-         * and will be released in the destructor.
-         */
-        poGJObject_ = jsobj;
+        return OGRERR_CORRUPT_DATA;
     }
 
+    // JSON tree is shared for while lifetime of the reader object
+    // and will be released in the destructor.
+    poGJObject_ = jsobj;
     return OGRERR_NONE;
 }
 
 typedef struct
 {
-    double dfScale0, dfScale1;
-    double dfTranslate0, dfTranslate1;
+    double dfScale0;
+    double dfScale1;
+    double dfTranslate0;
+    double dfTranslate1;
+    bool bElementExists;
 } ScalingParams;
 
 /************************************************************************/
 /*                            ParsePoint()                              */
 /************************************************************************/
 
-static int ParsePoint(json_object* poPoint, double* pdfX, double* pdfY)
+static bool ParsePoint( json_object* poPoint, double* pdfX, double* pdfY )
 {
     if( poPoint != NULL && json_type_array == json_object_get_type(poPoint) &&
         json_object_array_length(poPoint) == 2 )
@@ -116,35 +101,45 @@ static int ParsePoint(json_object* poPoint, double* pdfX, double* pdfY)
         {
             *pdfX = json_object_get_double(poX);
             *pdfY = json_object_get_double(poY);
-            return TRUE;
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 
 /************************************************************************/
 /*                             ParseArc()                               */
 /************************************************************************/
 
-static void ParseArc(OGRLineString* poLS, json_object* poArcsDB, int nArcID,
-                     int bReverse, ScalingParams* psParams)
+static void ParseArc( OGRLineString* poLS, json_object* poArcsDB, int nArcID,
+                      bool bReverse, ScalingParams* psParams )
 {
     json_object* poArcDB = json_object_array_get_idx(poArcsDB, nArcID);
     if( poArcDB == NULL || json_type_array != json_object_get_type(poArcDB) )
         return;
     int nPoints = json_object_array_length(poArcDB);
-    double dfAccX = 0, dfAccY = 0;
+    double dfAccX = 0.0;
+    double dfAccY = 0.0;
     int nBaseIndice = poLS->getNumPoints();
-    for(int i=0; i<nPoints; i++)
+    for( int i = 0; i < nPoints; i++ )
     {
         json_object* poPoint = json_object_array_get_idx(poArcDB, i);
-        double dfX = 0.0, dfY = 0.0;
+        double dfX = 0.0;
+        double dfY = 0.0;
         if( ParsePoint( poPoint, &dfX, &dfY ) )
         {
-            dfAccX += dfX;
-            dfAccY += dfY;
-            double dfX = dfAccX * psParams->dfScale0 + psParams->dfTranslate0;
-            double dfY = dfAccY * psParams->dfScale1 + psParams->dfTranslate1;
+            if( psParams->bElementExists )
+            {
+                dfAccX += dfX;
+                dfAccY += dfY;
+                dfX = dfAccX * psParams->dfScale0 + psParams->dfTranslate0;
+                dfY = dfAccY * psParams->dfScale1 + psParams->dfTranslate1;
+            }
+            else
+            {
+                dfX = dfX * psParams->dfScale0 + psParams->dfTranslate0;
+                dfY = dfY * psParams->dfScale1 + psParams->dfTranslate1;
+            }
             if( i == 0 )
             {
                 if( !bReverse && poLS->getNumPoints() > 0 )
@@ -176,23 +171,23 @@ static void ParseArc(OGRLineString* poLS, json_object* poArcsDB, int nArcID,
 /*                        ParseLineString()                             */
 /************************************************************************/
 
-static void ParseLineString(OGRLineString* poLS, json_object* poRing,
-                            json_object* poArcsDB, ScalingParams* psParams)
+static void ParseLineString( OGRLineString* poLS, json_object* poRing,
+                             json_object* poArcsDB, ScalingParams* psParams )
 {
-    int nArcsDB = json_object_array_length(poArcsDB);
+    const int nArcsDB = json_object_array_length(poArcsDB);
 
-    int nArcsRing = json_object_array_length(poRing);
-    for(int j=0; j<nArcsRing; j++)
+    const int nArcsRing = json_object_array_length(poRing);
+    for( int j = 0; j < nArcsRing; j++ )
     {
         json_object* poArcId = json_object_array_get_idx(poRing, j);
         if( poArcId != NULL && json_type_int == json_object_get_type(poArcId) )
         {
             int nArcId = json_object_get_int(poArcId);
-            int bReverse = FALSE;
+            bool bReverse = false;
             if( nArcId < 0 )
             {
                 nArcId = - nArcId - 1;
-                bReverse = TRUE;
+                bReverse = true;
             }
             if( nArcId < nArcsDB )
             {
@@ -206,19 +201,29 @@ static void ParseLineString(OGRLineString* poLS, json_object* poRing,
 /*                          ParsePolygon()                              */
 /************************************************************************/
 
-static void ParsePolygon(OGRPolygon* poPoly, json_object* poArcsObj,
-                         json_object* poArcsDB, ScalingParams* psParams)
+static void ParsePolygon( OGRPolygon* poPoly, json_object* poArcsObj,
+                          json_object* poArcsDB, ScalingParams* psParams )
 {
-    int nRings = json_object_array_length(poArcsObj);
-    for(int i=0; i<nRings; i++)
+    const int nRings = json_object_array_length(poArcsObj);
+    for( int i = 0; i < nRings; i++ )
     {
         OGRLinearRing* poLR = new OGRLinearRing();
-        poPoly->addRingDirectly(poLR);
 
         json_object* poRing = json_object_array_get_idx(poArcsObj, i);
         if( poRing != NULL && json_type_array == json_object_get_type(poRing) )
         {
             ParseLineString(poLR, poRing, poArcsDB, psParams);
+        }
+        poLR->closeRings();
+        if( poLR->getNumPoints() < 4 )
+        {
+            CPLDebug("TopoJSON", "Discarding polygon ring made of %d points",
+                     poLR->getNumPoints());
+            delete poLR;
+        }
+        else
+        {
+            poPoly->addRingDirectly(poLR);
         }
     }
 }
@@ -227,11 +232,13 @@ static void ParsePolygon(OGRPolygon* poPoly, json_object* poArcsObj,
 /*                       ParseMultiLineString()                         */
 /************************************************************************/
 
-static void ParseMultiLineString(OGRMultiLineString* poMLS, json_object* poArcsObj,
-                                 json_object* poArcsDB, ScalingParams* psParams)
+static void ParseMultiLineString( OGRMultiLineString* poMLS,
+                                  json_object* poArcsObj,
+                                  json_object* poArcsDB,
+                                  ScalingParams* psParams )
 {
-    int nRings = json_object_array_length(poArcsObj);
-    for(int i=0; i<nRings; i++)
+    const int nRings = json_object_array_length(poArcsObj);
+    for( int i = 0; i < nRings; i++ )
     {
         OGRLineString* poLS = new OGRLineString();
         poMLS->addGeometryDirectly(poLS);
@@ -248,19 +255,29 @@ static void ParseMultiLineString(OGRMultiLineString* poMLS, json_object* poArcsO
 /*                       ParseMultiPolygon()                            */
 /************************************************************************/
 
-static void ParseMultiPolygon(OGRMultiPolygon* poMultiPoly, json_object* poArcsObj,
-                         json_object* poArcsDB, ScalingParams* psParams)
+static void ParseMultiPolygon( OGRMultiPolygon* poMultiPoly,
+                               json_object* poArcsObj,
+                               json_object* poArcsDB, ScalingParams* psParams )
 {
-    int nPolys = json_object_array_length(poArcsObj);
-    for(int i=0; i<nPolys; i++)
+    const int nPolys = json_object_array_length(poArcsObj);
+    for( int i = 0; i < nPolys; i++ )
     {
         OGRPolygon* poPoly = new OGRPolygon();
-        poMultiPoly->addGeometryDirectly(poPoly);
 
         json_object* poPolyArcs = json_object_array_get_idx(poArcsObj, i);
-        if( poPolyArcs != NULL && json_type_array == json_object_get_type(poPolyArcs) )
+        if( poPolyArcs != NULL &&
+            json_type_array == json_object_get_type(poPolyArcs) )
         {
             ParsePolygon(poPoly, poPolyArcs, poArcsDB, psParams);
+        }
+
+        if( poPoly->IsEmpty() )
+        {
+            delete poPoly;
+        }
+        else
+        {
+            poMultiPoly->addGeometryDirectly(poPoly);
         }
     }
 }
@@ -269,23 +286,28 @@ static void ParseMultiPolygon(OGRMultiPolygon* poMultiPoly, json_object* poArcsO
 /*                          ParseObject()                               */
 /************************************************************************/
 
-static void ParseObject(const char* pszId,
-                        json_object* poObj, OGRGeoJSONLayer* poLayer,
-                        json_object* poArcsDB, ScalingParams* psParams)
+static void ParseObject( const char* pszId,
+                         json_object* poObj, OGRGeoJSONLayer* poLayer,
+                         json_object* poArcsDB, ScalingParams* psParams )
 {
     json_object* poType = OGRGeoJSONFindMemberByName(poObj, "type");
+    if( poType == NULL || json_object_get_type(poType) != json_type_string )
+        return;
     const char* pszType = json_object_get_string(poType);
 
     json_object* poArcsObj = OGRGeoJSONFindMemberByName(poObj, "arcs");
-    json_object* poCoordinatesObj = OGRGeoJSONFindMemberByName(poObj, "coordinates");
+    json_object* poCoordinatesObj =
+        OGRGeoJSONFindMemberByName(poObj, "coordinates");
     if( strcmp(pszType, "Point") == 0 || strcmp(pszType, "MultiPoint") == 0 )
     {
-        if( poCoordinatesObj == NULL || json_type_array != json_object_get_type(poCoordinatesObj) )
+        if( poCoordinatesObj == NULL ||
+            json_type_array != json_object_get_type(poCoordinatesObj) )
             return;
     }
     else
     {
-        if( poArcsObj == NULL || json_type_array != json_object_get_type(poArcsObj) )
+        if( poArcsObj == NULL ||
+            json_type_array != json_object_get_type(poArcsObj) )
             return;
     }
 
@@ -305,20 +327,26 @@ static void ParseObject(const char* pszId,
         poFeature->SetField("id", pszId);
 
     json_object* poProperties = OGRGeoJSONFindMemberByName(poObj, "properties");
-    if( poProperties != NULL && json_type_object == json_object_get_type(poProperties) )
+    if( poProperties != NULL &&
+        json_type_object == json_object_get_type(poProperties) )
     {
-        json_object* poName = OGRGeoJSONFindMemberByName(poProperties, "name");
-        if( poName != NULL && json_type_string == json_object_get_type(poName) )
+        json_object_iter it;
+        it.key = NULL;
+        it.val = NULL;
+        it.entry = NULL;
+        json_object_object_foreachC( poProperties, it )
         {
-            const char* pszName = json_object_get_string(poName);
-            poFeature->SetField("name", pszName);
+            const int nField = poFeature->GetFieldIndex(it.key);
+            OGRGeoJSONReaderSetField(poLayer, poFeature, nField,
+                                     it.key, it.val, false, 0);
         }
     }
 
     OGRGeometry* poGeom = NULL;
     if( strcmp(pszType, "Point") == 0 )
     {
-        double dfX = 0.0, dfY = 0.0;
+        double dfX = 0.0;
+        double dfY = 0.0;
         if( ParsePoint( poCoordinatesObj, &dfX, &dfY ) )
         {
             dfX = dfX * psParams->dfScale0 + psParams->dfTranslate0;
@@ -326,17 +354,21 @@ static void ParseObject(const char* pszId,
             poGeom = new OGRPoint(dfX, dfY);
         }
         else
+        {
             poGeom = new OGRPoint();
+        }
     }
     else if( strcmp(pszType, "MultiPoint") == 0 )
     {
         OGRMultiPoint* poMP = new OGRMultiPoint();
         poGeom = poMP;
         int nTuples = json_object_array_length(poCoordinatesObj);
-        for(int i=0; i<nTuples; i++)
+        for( int i = 0; i < nTuples; i++ )
         {
-            json_object* poPair = json_object_array_get_idx(poCoordinatesObj, i);
-            double dfX = 0.0, dfY = 0.0;
+            json_object* poPair =
+                json_object_array_get_idx(poCoordinatesObj, i);
+            double dfX = 0.0;
+            double dfY = 0.0;
             if( ParsePoint( poPair, &dfX, &dfY ) )
             {
                 dfX = dfX * psParams->dfScale0 + psParams->dfTranslate0;
@@ -369,7 +401,7 @@ static void ParseObject(const char* pszId,
         poGeom = poMultiPoly;
         ParseMultiPolygon(poMultiPoly, poArcsObj, poArcsDB, psParams);
     }
-    
+
     if( poGeom != NULL )
         poFeature->SetGeometryDirectly(poGeom);
     poLayer->AddFeature(poFeature);
@@ -377,30 +409,63 @@ static void ParseObject(const char* pszId,
 }
 
 /************************************************************************/
+/*                        EstablishLayerDefn()                          */
+/************************************************************************/
+
+static void EstablishLayerDefn( OGRFeatureDefn* poDefn,
+                                json_object* poObj,
+                                std::set<int>& aoSetUndeterminedTypeFields )
+{
+    json_object* poObjProps = OGRGeoJSONFindMemberByName( poObj, "properties" );
+    if( NULL != poObjProps &&
+        json_object_get_type(poObjProps) == json_type_object )
+    {
+        json_object_iter it;
+        it.key = NULL;
+        it.val = NULL;
+        it.entry = NULL;
+
+        json_object_object_foreachC( poObjProps, it )
+        {
+            OGRGeoJSONReaderAddOrUpdateField(poDefn, it.key, it.val,
+                                             false, 0, false,
+                                             aoSetUndeterminedTypeFields);
+        }
+    }
+}
+
+/************************************************************************/
 /*                        ParseObjectMain()                             */
 /************************************************************************/
 
-static void ParseObjectMain(const char* pszId, json_object* poObj,
-                            OGRGeoJSONDataSource* poDS,
-                            OGRGeoJSONLayer **ppoMainLayer,
-                            json_object* poArcs,
-                            ScalingParams* psParams)
+static bool ParseObjectMain( const char* pszId, json_object* poObj,
+                             OGRGeoJSONDataSource* poDS,
+                             OGRGeoJSONLayer **ppoMainLayer,
+                             json_object* poArcs,
+                             ScalingParams* psParams,
+                             int nPassNumber,
+                             std::set<int>& aoSetUndeterminedTypeFields)
 {
+    bool bNeedSecondPass = false;
+
     if( poObj != NULL && json_type_object == json_object_get_type( poObj ) )
     {
         json_object* poType = OGRGeoJSONFindMemberByName(poObj, "type");
-        if( poType != NULL && json_type_string == json_object_get_type( poType ) )
+        if( poType != NULL &&
+            json_type_string == json_object_get_type( poType ) )
         {
             const char* pszType = json_object_get_string(poType);
-            if( strcmp(pszType, "GeometryCollection") == 0 )
+            if( nPassNumber == 1 && strcmp(pszType, "GeometryCollection") == 0 )
             {
-                json_object* poGeometries = OGRGeoJSONFindMemberByName(poObj, "geometries");
+                json_object* poGeometries =
+                    OGRGeoJSONFindMemberByName(poObj, "geometries");
                 if( poGeometries != NULL &&
                     json_type_array == json_object_get_type( poGeometries ) )
                 {
                     if( pszId == NULL )
                     {
-                        json_object* poId = OGRGeoJSONFindMemberByName(poObj, "id");
+                        json_object* poId =
+                            OGRGeoJSONFindMemberByName(poObj, "id");
                         if( poId != NULL &&
                             (json_type_string == json_object_get_type(poId) ||
                             json_type_int == json_object_get_type(poId)) )
@@ -412,24 +477,37 @@ static void ParseObjectMain(const char* pszId, json_object* poObj,
                     OGRGeoJSONLayer* poLayer = new OGRGeoJSONLayer(
                             pszId ? pszId : "TopoJSON", NULL,
                             wkbUnknown, poDS );
+                    OGRFeatureDefn* poDefn = poLayer->GetLayerDefn();
                     {
                         OGRFieldDefn fldDefn( "id", OFTString );
-                        poLayer->GetLayerDefn()->AddFieldDefn( &fldDefn );
-                    }
-                    {
-                        OGRFieldDefn fldDefn( "name", OFTString );
-                        poLayer->GetLayerDefn()->AddFieldDefn( &fldDefn );
+                        poDefn->AddFieldDefn( &fldDefn );
                     }
 
-                    int nGeometries = json_object_array_length(poGeometries);
-                    for(int i=0; i<nGeometries; i++)
+                    const int nGeometries =
+                        json_object_array_length(poGeometries);
+                    // First pass to establish schema.
+                    for( int i = 0; i < nGeometries; i++ )
                     {
                         json_object* poGeom =
                             json_object_array_get_idx(poGeometries, i);
                         if( poGeom != NULL &&
                             json_type_object == json_object_get_type( poGeom ) )
                         {
-                            ParseObject(NULL, poGeom, poLayer, poArcs, psParams);
+                            EstablishLayerDefn(poDefn, poGeom,
+                                               aoSetUndeterminedTypeFields);
+                        }
+                    }
+
+                    // Second pass to build objects.
+                    for( int i = 0; i < nGeometries; i++ )
+                    {
+                        json_object* poGeom =
+                            json_object_array_get_idx(poGeometries, i);
+                        if( poGeom != NULL &&
+                            json_type_object == json_object_get_type( poGeom ) )
+                        {
+                            ParseObject(NULL, poGeom, poLayer,
+                                        poArcs, psParams);
                         }
                     }
 
@@ -443,23 +521,29 @@ static void ParseObjectMain(const char* pszId, json_object* poObj,
                      strcmp(pszType, "Polygon") == 0 ||
                      strcmp(pszType, "MultiPolygon") == 0 )
             {
-                if( *ppoMainLayer == NULL )
+                if( nPassNumber == 1 )
                 {
-                    *ppoMainLayer = new OGRGeoJSONLayer(
-                        "TopoJSON", NULL, wkbUnknown, poDS );
+                    if( *ppoMainLayer == NULL )
                     {
-                        OGRFieldDefn fldDefn( "id", OFTString );
-                        (*ppoMainLayer)->GetLayerDefn()->AddFieldDefn( &fldDefn );
+                        *ppoMainLayer = new OGRGeoJSONLayer(
+                            "TopoJSON", NULL, wkbUnknown, poDS );
+                        {
+                            OGRFieldDefn fldDefn( "id", OFTString );
+                            (*ppoMainLayer)->
+                                GetLayerDefn()->AddFieldDefn( &fldDefn );
+                        }
                     }
-                    {
-                        OGRFieldDefn fldDefn( "name", OFTString );
-                        (*ppoMainLayer)->GetLayerDefn()->AddFieldDefn( &fldDefn );
-                    }
+                    OGRFeatureDefn* poDefn = (*ppoMainLayer)->GetLayerDefn();
+                    EstablishLayerDefn(poDefn, poObj,
+                                       aoSetUndeterminedTypeFields);
+                    bNeedSecondPass = true;
                 }
-                ParseObject(pszId, poObj, *ppoMainLayer, poArcs, psParams);
+                else
+                    ParseObject(pszId, poObj, *ppoMainLayer, poArcs, psParams);
             }
         }
     }
+    return bNeedSecondPass;
 }
 
 /************************************************************************/
@@ -471,7 +555,7 @@ void OGRTopoJSONReader::ReadLayers( OGRGeoJSONDataSource* poDS )
     if( NULL == poGJObject_ )
     {
         CPLDebug( "TopoJSON",
-                  "Missing parset TopoJSON data. Forgot to call Parse()?" );
+                  "Missing parsed TopoJSON data. Forgot to call Parse()?" );
         return;
     }
 
@@ -480,11 +564,16 @@ void OGRTopoJSONReader::ReadLayers( OGRGeoJSONDataSource* poDS )
     sParams.dfScale1 = 1.0;
     sParams.dfTranslate0 = 0.0;
     sParams.dfTranslate1 = 0.0;
-    json_object* poObjTransform = OGRGeoJSONFindMemberByName( poGJObject_, "transform" );
-    if( NULL != poObjTransform && json_type_object == json_object_get_type( poObjTransform ) )
+    sParams.bElementExists = false;
+    json_object* poObjTransform =
+        OGRGeoJSONFindMemberByName( poGJObject_, "transform" );
+    if( NULL != poObjTransform &&
+        json_type_object == json_object_get_type( poObjTransform ) )
     {
-        json_object* poObjScale = OGRGeoJSONFindMemberByName( poObjTransform, "scale" );
-        if( NULL != poObjScale && json_type_array == json_object_get_type( poObjScale ) &&
+        json_object* poObjScale =
+            OGRGeoJSONFindMemberByName( poObjTransform, "scale" );
+        if( NULL != poObjScale &&
+            json_type_array == json_object_get_type( poObjScale ) &&
             json_object_array_length( poObjScale ) == 2 )
         {
             json_object* poScale0 = json_object_array_get_idx(poObjScale, 0);
@@ -498,15 +587,20 @@ void OGRTopoJSONReader::ReadLayers( OGRGeoJSONDataSource* poDS )
             {
                 sParams.dfScale0 = json_object_get_double(poScale0);
                 sParams.dfScale1 = json_object_get_double(poScale1);
+                sParams.bElementExists = true;
             }
         }
 
-        json_object* poObjTranslate = OGRGeoJSONFindMemberByName( poObjTransform, "translate" );
-        if( NULL != poObjTranslate && json_type_array == json_object_get_type( poObjTranslate ) &&
+        json_object* poObjTranslate =
+            OGRGeoJSONFindMemberByName( poObjTransform, "translate" );
+        if( NULL != poObjTranslate &&
+            json_type_array == json_object_get_type( poObjTranslate ) &&
             json_object_array_length( poObjTranslate ) == 2 )
         {
-            json_object* poTranslate0 = json_object_array_get_idx(poObjTranslate, 0);
-            json_object* poTranslate1 = json_object_array_get_idx(poObjTranslate, 1);
+            json_object* poTranslate0 =
+                json_object_array_get_idx(poObjTranslate, 0);
+            json_object* poTranslate1 =
+                json_object_array_get_idx(poObjTranslate, 1);
             if( poTranslate0 != NULL &&
                 (json_object_get_type(poTranslate0) == json_type_double ||
                  json_object_get_type(poTranslate0) == json_type_int) &&
@@ -516,6 +610,7 @@ void OGRTopoJSONReader::ReadLayers( OGRGeoJSONDataSource* poDS )
             {
                 sParams.dfTranslate0 = json_object_get_double(poTranslate0);
                 sParams.dfTranslate1 = json_object_get_double(poTranslate1);
+                sParams.bElementExists = true;
             }
         }
     }
@@ -526,33 +621,61 @@ void OGRTopoJSONReader::ReadLayers( OGRGeoJSONDataSource* poDS )
 
     OGRGeoJSONLayer* poMainLayer = NULL;
 
-    json_object* poObjects = OGRGeoJSONFindMemberByName( poGJObject_, "objects" );
+    json_object* poObjects =
+        OGRGeoJSONFindMemberByName( poGJObject_, "objects" );
     if( poObjects == NULL )
         return;
 
+    std::set<int> aoSetUndeterminedTypeFields;
     if( json_type_object == json_object_get_type( poObjects ) )
     {
         json_object_iter it;
         it.key = NULL;
         it.val = NULL;
         it.entry = NULL;
+        bool bNeedSecondPass = false;
         json_object_object_foreachC( poObjects, it )
         {
             json_object* poObj = it.val;
-            ParseObjectMain(it.key, poObj, poDS, &poMainLayer, poArcs, &sParams);
+            bNeedSecondPass |= ParseObjectMain( it.key, poObj, poDS,
+                                                &poMainLayer, poArcs, &sParams,
+                                                1, aoSetUndeterminedTypeFields);
+        }
+        if( bNeedSecondPass )
+        {
+            it.key = NULL;
+            it.val = NULL;
+            it.entry = NULL;
+            json_object_object_foreachC( poObjects, it )
+            {
+                json_object* poObj = it.val;
+                ParseObjectMain(it.key, poObj, poDS, &poMainLayer, poArcs,
+                                &sParams, 2, aoSetUndeterminedTypeFields);
+            }
         }
     }
     else if( json_type_array == json_object_get_type( poObjects ) )
     {
-        int nObjects = json_object_array_length(poObjects);
-        for(int i=0; i<nObjects; i++)
+        const int nObjects = json_object_array_length(poObjects);
+        bool bNeedSecondPass = false;
+        for( int i = 0; i < nObjects; i++ )
         {
             json_object* poObj = json_object_array_get_idx(poObjects, i);
-            ParseObjectMain(NULL, poObj, poDS, &poMainLayer, poArcs, &sParams);
+            bNeedSecondPass |= ParseObjectMain(NULL, poObj, poDS, &poMainLayer,
+                                               poArcs, &sParams, 1,
+                                               aoSetUndeterminedTypeFields);
+        }
+        if( bNeedSecondPass )
+        {
+            for( int i = 0; i < nObjects; i++ )
+            {
+                json_object* poObj = json_object_array_get_idx(poObjects, i);
+                ParseObjectMain(NULL, poObj, poDS, &poMainLayer, poArcs,
+                                &sParams, 2, aoSetUndeterminedTypeFields);
+            }
         }
     }
 
     if( poMainLayer != NULL )
         poDS->AddLayer(poMainLayer);
-
 }

@@ -12,7 +12,20 @@
  */
 
 /* For S_IFDIR */
+#if defined(__sun__) && __STDC_VERSION__ >= 201112L
+#if _XOPEN_SOURCE < 600
+#ifdef _XOPEN_SOURCE
+#undef _XOPEN_SOURCE
+#endif
+#define _XOPEN_SOURCE 600
+#endif
+#else
+#ifdef _XOPEN_SOURCE
+#undef _XOPEN_SOURCE
+#endif
 #define _XOPEN_SOURCE 500
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -75,6 +88,7 @@
  *     same as fgets except it can expand as needed.
  *****************************************************************************
  */
+#if 0  // Unused with GDAL.
 #define MIN_STEPSIZE 80
 size_t reallocFGets (char **Ptr, size_t *LenBuff, FILE *fp)
 {
@@ -111,6 +125,7 @@ size_t reallocFGets (char **Ptr, size_t *LenBuff, FILE *fp)
 }
 
 #undef MIN_STEPSIZE
+#endif
 
 /*****************************************************************************
  * mySplit() --
@@ -136,6 +151,8 @@ size_t reallocFGets (char **Ptr, size_t *LenBuff, FILE *fp)
  * NOTES
  *****************************************************************************
  */
+
+#if 0  // Unused with GDAL.
 void mySplit (const char *data, char symbol, size_t *Argc, char ***Argv,
               char f_trim)
 {
@@ -163,7 +180,7 @@ void mySplit (const char *data, char symbol, size_t *Argc, char ***Argv,
          }
          argc++;
          head = ptr + 1;
-         /* The following head != NULL is in case data is not '\0' terminated 
+         /* The following head != NULL is in case data is not '\0' terminated
           */
          if ((head != NULL) && (*head == '\0')) {
             /* Handle a break character just before the \0 */
@@ -185,16 +202,18 @@ void mySplit (const char *data, char symbol, size_t *Argc, char ***Argv,
    *Argc = argc;
    *Argv = argv;
 }
+#endif
 
+#if 0  // Unused with GDAL.
 int myAtoI (const char *ptr, sInt4 *value)
 {
-   char *extra;         /* The data after the end of the double. */
+   char *extra = NULL;         /* The data after the end of the double. */
 
    myAssert (ptr != NULL);
    *value = 0;
    while (*ptr != '\0') {
       if (isdigit (*ptr) || (*ptr == '+') || (*ptr == '-')) {
-         *value = strtol (ptr, &extra, 10);
+         *value = (int)strtol (ptr, &extra, 10);
          myAssert (extra != NULL);
          if (*extra == '\0') {
             return 1;
@@ -228,6 +247,7 @@ int myAtoI (const char *ptr, sInt4 *value)
    }
    return 1;
 }
+#endif
 
 /*****************************************************************************
  * myAtoF() -- used to be myIsReal()
@@ -254,9 +274,11 @@ int myAtoI (const char *ptr, sInt4 *value)
  * NOTES
  *****************************************************************************
  */
+
+#if 0  // Unused with GDAL.
 int myAtoF (const char *ptr, double *value)
 {
-   char *extra;         /* The data after the end of the double. */
+   char *extra = NULL;         /* The data after the end of the double. */
 
    myAssert (ptr != NULL);
    *value = 0;
@@ -296,7 +318,9 @@ int myAtoF (const char *ptr, double *value)
    }
    return 1;
 }
+#endif
 
+#if 0  // Unused with GDAL.
 /* Change of name was to deprecate usage... Switch to myAtoF */
 int myIsReal_old (const char *ptr, double *value)
 {
@@ -324,6 +348,7 @@ int myIsReal_old (const char *ptr, double *value)
    *value = atof (ptr);
    return 1;
 }
+#endif
 
 /* Return:
  * 0 if 'can't stat the file' (most likely not a file)
@@ -339,6 +364,7 @@ int myIsReal_old (const char *ptr, double *value)
  * Could return mode: RDCF___rwxrwxrwx where R is 1/0 based on regular file
  * D is 1/0 based on directory, first rwx is user permissions...
  */
+#if 0  // Unused with GDAL.
 int myStat (char *filename, char *perm, sInt4 *size, double *mtime)
 {
    struct stat stbuf;
@@ -388,7 +414,7 @@ int myStat (char *filename, char *perm, sInt4 *size, double *mtime)
    if ((stbuf.st_mode & S_IFMT) == S_IFDIR) {
       /* Is a directory */
       if (size)
-         *size = stbuf.st_size;
+         *size = (sInt4)stbuf.st_size;
       if (mtime)
          *mtime = stbuf.st_mtime;
       if (perm) {
@@ -402,7 +428,7 @@ int myStat (char *filename, char *perm, sInt4 *size, double *mtime)
    } else if ((stbuf.st_mode & S_IFMT) == S_IFREG) {
       /* Is a file */
       if (size)
-         *size = stbuf.st_size;
+         *size = (sInt4)stbuf.st_size;
       if (mtime)
          *mtime = stbuf.st_mtime;
       if (perm) {
@@ -424,8 +450,9 @@ int myStat (char *filename, char *perm, sInt4 *size, double *mtime)
       return 3;
    }
 }
+#endif
 
-/** 
+/**
 static int FileMatch (const char *filename, const char *filter)
 {
    const char *ptr1;
@@ -458,7 +485,10 @@ static int FileMatch (const char *filename, const char *filter)
 }
 **/
 
-int myGlob (CPL_UNUSED const char *dirName, CPL_UNUSED const char *filter, CPL_UNUSED size_t *Argc,
+#if 0  // Unused with GDAL.
+int myGlob (CPL_UNUSED const char *dirName,
+            CPL_UNUSED const char *filter,
+            CPL_UNUSED size_t *Argc,
             CPL_UNUSED char ***Argv)
 {
 return 0; // TODO: reimplement for Win32
@@ -492,6 +522,7 @@ return 0; // TODO: reimplement for Win32
    return 0;
 */
 }
+#endif
 
 /*****************************************************************************
  * FileCopy() --
@@ -503,7 +534,7 @@ return 0; // TODO: reimplement for Win32
  *
  * ARGUMENTS
  *  fileIn = source file to read from. (Input)
- * fileOut = destation file to write to. (Input)
+ *  fileOut = destination file to write to. (Input)
  *
  * RETURNS: int
  *   0 = success.
@@ -517,6 +548,7 @@ return 0; // TODO: reimplement for Win32
  * NOTES
  *****************************************************************************
  */
+#if 0  // Unused with GDAL.
 int FileCopy (const char *fileIn, const char *fileOut)
 {
    FILE *ifp;           /* The file pointer to read from. */
@@ -543,6 +575,7 @@ int FileCopy (const char *fileIn, const char *fileOut)
    fclose (ofp);
    return 0;
 }
+#endif
 
 /*****************************************************************************
  * FileTail() --
@@ -565,6 +598,8 @@ int FileCopy (const char *fileIn, const char *fileOut)
  * NOTES
  *****************************************************************************
  */
+
+#if 0  // Unused with GDAL.
 void FileTail (const char *fileName, char **tail)
 {
    const char *ptr;     /* A pointer to last \ or // in fileName. */
@@ -586,6 +621,7 @@ void FileTail (const char *fileName, char **tail)
    *tail = (char *) malloc (strlen (ptr) + 1);
    strcpy (*tail, ptr);
 }
+#endif
 
 /*****************************************************************************
  * myRound() --
@@ -612,7 +648,7 @@ void FileTail (const char *fileName, char **tail)
  *     primarily as an example, but it can be used for some rounding.
  *****************************************************************************
  */
-double POWERS_ONE[] = {
+static const double POWERS_ONE[] = {
    1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9,
    1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17
 };
@@ -668,7 +704,14 @@ void strTrim (char *str)
 
    /* Remove the trailing white space before working on the leading ones. */
    len = strlen (str);
-   for (i = len - 1; (/* (i >= 0) && */ (isspace ((unsigned char)str[i]))); i--) {
+   if (len == 0) {
+       return;
+   }
+   for (i = len - 1; i > 0 && isspace ((unsigned char)str[i]); i--) {
+   }
+   if (i == 0 && str[i] == ' ') {
+       str[0] = '\0';
+       return;
    }
    len = i + 1;
    str[len] = '\0';
@@ -709,15 +752,19 @@ void strTrim (char *str)
 void strTrimRight (char *str, char c)
 {
    size_t i;            /* loop counter for traversing str. */
+   const size_t len = str == NULL ? 0 : strlen(str);
 
    /* str shouldn't be null, but if it is, we want to handle it. */
    myAssert (str != NULL);
-   if (str == NULL) {
+   if (len == 0) {
       return;
    }
 
    for (i = strlen (str) - 1;
-        (/* (i >= 0) && */ ((isspace ((unsigned char)str[i])) || (str[i] == c))); i--) {
+        i > 0 && (isspace ((unsigned char)str[i]) || str[i] == c); i--) {
+   }
+   if (i == 0 && (isspace ((unsigned char)str[i]) || str[i] == c)) {
+     str[i] = '\0';
    }
    str[i + 1] = '\0';
 }
@@ -783,6 +830,7 @@ void strCompact (char *str, char c)
  * NOTES
  *****************************************************************************
  */
+#if 0  // Unused with GDAL.
 void strReplace (char *str, char c1, char c2)
 {
    char *ptr = str;
@@ -799,6 +847,7 @@ void strReplace (char *str, char c1, char c2)
       }
    }
 }
+#endif
 
 /*****************************************************************************
  * strToUpper() --
@@ -819,6 +868,7 @@ void strReplace (char *str, char c1, char c2)
  * NOTES
  *****************************************************************************
  */
+#if 0  // Unused with GDAL.
 void strToUpper (char *str)
 {
    char *ptr = str;     /* Used to traverse str. */
@@ -832,6 +882,7 @@ void strToUpper (char *str)
    while ((*ptr++ = toupper (*str++)) != '\0') {
    }
 }
+#endif
 
 /*****************************************************************************
  * strToLower() --
@@ -852,6 +903,7 @@ void strToUpper (char *str)
  * NOTES
  *****************************************************************************
  */
+#if 0  // Unused with GDAL.
 void strToLower (char *str)
 {
    char *ptr = str;     /* Used to traverse str. */
@@ -865,6 +917,7 @@ void strToLower (char *str)
    while ((*ptr++ = tolower (*str++)) != '\0') {
    }
 }
+#endif
 
 /*
  * Returns: Length of the string.
@@ -904,6 +957,7 @@ int str2lw (char *s) {
  *   See K&R p 106
  *****************************************************************************
  */
+#if 0  // Unused with GDAL.
 int strcmpNoCase (const char *str1, const char *str2)
 {
    /* str1, str2 shouldn't be null, but if it is, we want to handle it. */
@@ -946,6 +1000,7 @@ int strcmpNoCase (const char *str1, const char *str2)
    return 0;
 */
 }
+#endif
 
  /*****************************************************************************
  * GetIndexFromStr() -- Review 12/2002
@@ -953,7 +1008,7 @@ int strcmpNoCase (const char *str1, const char *str2)
  * Arthur Taylor / MDL
  *
  * PURPOSE
- *   Looks through a list of strings (with a NULL value at the end) for a
+ *   Looks through a list of strings (with a NUL value at the end) for a
  * given string.  Returns the index where it found it.
  *
  * ARGUMENTS
@@ -973,7 +1028,7 @@ int strcmpNoCase (const char *str1, const char *str2)
  *   Why not const char **Opt?
  *****************************************************************************
  */
-int GetIndexFromStr (const char *str, char **Opt, int *Index)
+int GetIndexFromStr (const char *str, const char * const *Opt, int *Index)
 {
    int cnt = 0;         /* Current Count in Opt. */
 
@@ -1016,19 +1071,20 @@ int GetIndexFromStr (const char *str, char **Opt, int *Index)
  * NOTES
  *****************************************************************************
  */
+#if 0  // Unused with GDAL.
 static sChar Clock_GetTimeZone ()
 {
-   struct tm time;
+   struct tm l_time;
    time_t ansTime;
    struct tm *gmTime;
    static sChar timeZone = 127;
 
    if (timeZone == 127) {
       /* Cheap method of getting global time_zone variable. */
-      memset (&time, 0, sizeof (struct tm));
-      time.tm_year = 70;
-      time.tm_mday = 2;
-      ansTime = mktime (&time);
+      memset (&l_time, 0, sizeof (struct tm));
+      l_time.tm_year = 70;
+      l_time.tm_mday = 2;
+      ansTime = mktime (&l_time);
       gmTime = gmtime (&ansTime);
       timeZone = gmTime->tm_hour;
       if (gmTime->tm_mday != 2) {
@@ -1037,6 +1093,7 @@ static sChar Clock_GetTimeZone ()
    }
    return timeZone;
 }
+#endif
 
 /*****************************************************************************
  * myParseTime() --
@@ -1065,6 +1122,7 @@ static sChar Clock_GetTimeZone ()
  *   Use: int Clock_ScanDateNumber (double *clock, char *buffer) instead.
  *****************************************************************************
  */
+#if 0  // Unused with GDAL.
 int myParseTime3 (const char *is, time_t * AnsTime)
 {
    char buffer[5];      /* A temporary variable for parsing "is". */
@@ -1074,12 +1132,12 @@ int myParseTime3 (const char *is, time_t * AnsTime)
    uChar hour;          /* The hour. */
    uChar min;           /* The minute. */
    uChar sec;           /* The second. */
-   struct tm time;      /* A temporary variable to put the time info into. */
+   struct tm l_time;      /* A temporary variable to put the time info into. */
 
-   memset (&time, 0, sizeof (struct tm));
+   memset (&l_time, 0, sizeof (struct tm));
    myAssert (strlen (is) == 14);
    if (strlen (is) != 14) {
-      printf ("%s is not formated correctly\n", is);
+      printf ("%s is not formatted correctly\n", is);
       return 1;
    }
    strncpy (buffer, is, 4);
@@ -1102,15 +1160,16 @@ int myParseTime3 (const char *is, time_t * AnsTime)
       printf ("%d %d %d %d %d %d\n", year, mon, day, hour, min, sec);
       return 1;
    }
-   time.tm_year = year - 1900;
-   time.tm_mon = mon - 1;
-   time.tm_mday = day;
-   time.tm_hour = hour;
-   time.tm_min = min;
-   time.tm_sec = sec;
-   *AnsTime = mktime (&time) - (Clock_GetTimeZone () * 3600);
+   l_time.tm_year = year - 1900;
+   l_time.tm_mon = mon - 1;
+   l_time.tm_mday = day;
+   l_time.tm_hour = hour;
+   l_time.tm_min = min;
+   l_time.tm_sec = sec;
+   *AnsTime = mktime (&l_time) - (Clock_GetTimeZone () * 3600);
    return 0;
 }
+#endif
 
 #ifdef MYUTIL_TEST
 int main (int argc, char **argv)

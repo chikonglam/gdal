@@ -279,6 +279,8 @@
 #define setupMap gdal_setupMap
 #define swabHorAcc16 gdal_swabHorAcc16
 #define swabHorAcc32 gdal_swabHorAcc32
+#define swabHorDiff16 gdal_swabHorDiff16
+#define swabHorDiff32 gdal_swabHorDiff32
 #define tagCompare gdal_tagCompare
 #define tagNameCompare gdal_tagNameCompare
 #define td_lfind gdal_td_lfind
@@ -383,6 +385,7 @@
 #define TIFFLastDirectory gdal_TIFFLastDirectory
 #define TIFFLinkDirectory gdal_TIFFLinkDirectory
 #define _TIFFmalloc gdal__TIFFmalloc
+#define _TIFFcalloc gdal__TIFFcalloc
 #define _tiffMapProc gdal__tiffMapProc
 #define _TIFFmemcmp gdal__TIFFmemcmp
 #define _TIFFmemcpy gdal__TIFFmemcpy
@@ -510,6 +513,8 @@
 #define TIFFReadRGBAImageOriented gdal_TIFFReadRGBAImageOriented
 #define TIFFReadRGBAStrip gdal_TIFFReadRGBAStrip
 #define TIFFReadRGBATile gdal_TIFFReadRGBATile
+#define TIFFReadRGBAStripExt gdal_TIFFReadRGBAStripExt
+#define TIFFReadRGBATileExt gdal_TIFFReadRGBATileExt
 #define TIFFReadScanline gdal_TIFFReadScanline
 #define TIFFReadTile gdal_TIFFReadTile
 #define TIFFReadUInt64 gdal_TIFFReadUInt64

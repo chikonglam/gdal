@@ -1,5 +1,4 @@
 /**********************************************************************
- * $Id: cpl_virtualmem.cpp 27722 2014-09-22 15:37:31Z goatbar $
  *
  * Name:     cpl_virtualmem.cpp
  * Project:  CPL - Common Portability Library
@@ -15,16 +14,16 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
@@ -32,69 +31,127 @@
 #define _GNU_SOURCE
 #endif
 
+// to have off_t on 64bit possibly
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 64
+#endif
+
 #include "cpl_virtualmem.h"
+
+#include <cassert>
+// TODO(schwehr): Should ucontext.h be included?
+// #include <ucontext.h>
+
+#include "cpl_atomic_ops.h"
+#include "cpl_config.h"
+#include "cpl_conv.h"
 #include "cpl_error.h"
 #include "cpl_multiproc.h"
-#include "cpl_atomic_ops.h"
-#include "cpl_conv.h"
+
+CPL_CVSID("$Id: cpl_virtualmem.cpp 36935 2016-12-17 15:12:03Z goatbar $");
+
+#ifdef NDEBUG
+// Non NDEBUG: Ignore the result.
+#define IGNORE_OR_ASSERT_IN_DEBUG(expr) CPL_IGNORE_RET_VAL((expr))
+#else
+// Debug: Assert.
+#define IGNORE_OR_ASSERT_IN_DEBUG(expr) assert((expr))
+#endif
 
 #if defined(__linux) && defined(CPL_MULTIPROC_PTHREAD)
+#define HAVE_VIRTUAL_MEM_VMA
+#endif
 
-#include <sys/mman.h>   /* mmap, munmap, mremap */
-#include <sys/select.h> /* select */
-#include <sys/stat.h>   /* open() */
-#include <sys/types.h>  /* open() */
-#include <assert.h>
+#if defined(HAVE_MMAP) || defined(HAVE_VIRTUAL_MEM_VMA)
+#include <unistd.h>     // read, write, close, pipe, sysconf
+#include <sys/mman.h>   // mmap, munmap, mremap
+#endif
+
+typedef enum
+{
+    VIRTUAL_MEM_TYPE_FILE_MEMORY_MAPPED,
+    VIRTUAL_MEM_TYPE_VMA
+} CPLVirtualMemType;
+
+struct CPLVirtualMem
+{
+    CPLVirtualMemType eType;
+
+    struct CPLVirtualMem *pVMemBase;
+    int                   nRefCount;
+
+    CPLVirtualMemAccessMode eAccessMode;
+
+    size_t       nPageSize;
+    // Aligned on nPageSize.
+    void        *pData;
+    // Returned by mmap(), potentially lower than pData.
+    void        *pDataToFree;
+    // Requested size (unrounded).
+    size_t       nSize;
+
+    bool         bSingleThreadUsage;
+
+    void                         *pCbkUserData;
+    CPLVirtualMemFreeUserData     pfnFreeUserData;
+};
+
+#ifdef HAVE_VIRTUAL_MEM_VMA
+
+#include <sys/select.h> // select
+#include <sys/stat.h>   // open()
+#include <sys/types.h>  // open()
 #include <errno.h>
-#include <fcntl.h>      /* open() */
-#include <signal.h>     /* sigaction */
+#include <fcntl.h>      // open()
+#include <signal.h>     // sigaction
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>     /* read, write, close, pipe */
 #include <pthread.h>
 
-#define HAVE_5ARGS_MREMAP
+// FIXME? gcore/virtualmem.py tests fail/crash when HAVE_5ARGS_MREMAP
+// is not defined.
 
 #ifndef HAVE_5ARGS_MREMAP
 #include "cpl_atomic_ops.h"
 #endif
 
-/* Linux specific (i.e. non POSIX compliant) features used :
+/* Linux specific (i.e. non POSIX compliant) features used:
    - returning from a SIGSEGV handler is clearly a POSIX violation, but in
      practice most POSIX systems should be happy.
-   - mremap() with 5 args is Linux specific. It is used when the user callback is invited
-     to fill a page, we currently mmap() a writable page, let it filled it,
-     and afterwards mremap() that temporary page onto the location where the
-     fault occured.
+   - mremap() with 5 args is Linux specific. It is used when the user
+     callback is invited to fill a page, we currently mmap() a
+     writable page, let it filled it, and afterwards mremap() that
+     temporary page onto the location where the fault occurred.
      If we have no mremap(), the workaround is to pause other threads that
      consume the current view while we are updating the faulted page, otherwise
      a non-paused thread could access a page that is in the middle of being
      filled... The way we pause those threads is quite original : we send them
      a SIGUSR1 and wait that they are stuck in the temporary SIGUSR1 handler...
-   - MAP_ANONYMOUS isn't documented in Posix, but very commonly found (sometimes called MAP_ANON)
-   - dealing with the limitation of number of memory mapping regions, and the 65536 limit.
+   - MAP_ANONYMOUS isn't documented in POSIX, but very commonly found
+     (sometimes called MAP_ANON)
+   - dealing with the limitation of number of memory mapping regions,
+     and the 65536 limit.
    - other things I've not identified
 */
 
-
-#define ALIGN_DOWN(p,pagesize)  (void*)(((size_t)(p)) / (pagesize) * (pagesize))
-#define ALIGN_UP(p,pagesize)    (void*)(((size_t)(p) + (pagesize) - 1) / (pagesize) * (pagesize))
+#define ALIGN_DOWN(p,pagesize) (void*)(((GUIntptr_t)(p)) / (pagesize) * (pagesize))
+#define ALIGN_UP(p,pagesize) (void*)(((GUIntptr_t)(p) + (pagesize) - 1) / (pagesize) * (pagesize))
 
 #define DEFAULT_PAGE_SIZE       (256*256)
 #define MAXIMUM_PAGE_SIZE       (32*1024*1024)
 
-/* Linux Kernel limit */
+// Linux Kernel limit.
 #define MAXIMUM_COUNT_OF_MAPPINGS   65536
 
-#define BYEBYE_ADDR             ((void*)(~(size_t)0))
+#define BYEBYE_ADDR             ((void*)(~static_cast<size_t>(0)))
 
 #define MAPPING_FOUND           "yeah"
 #define MAPPING_NOT_FOUND       "doh!"
 
-#define SET_BIT(ar,bitnumber)       ar[(bitnumber)/8] |= 1 << ((bitnumber) % 8)
-#define UNSET_BIT(ar,bitnumber)     ar[(bitnumber)/8] &= ~(1 << ((bitnumber) % 8))
-#define TEST_BIT(ar,bitnumber)      (ar[(bitnumber)/8] & (1 << ((bitnumber) % 8)))
+#define SET_BIT(ar,bitnumber)   ar[(bitnumber)/8] |= 1 << ((bitnumber) % 8)
+#define UNSET_BIT(ar,bitnumber) ar[(bitnumber)/8] &= ~(1 << ((bitnumber) % 8))
+#define TEST_BIT(ar,bitnumber)  (ar[(bitnumber)/8] & (1 << ((bitnumber) % 8)))
 
 typedef enum
 {
@@ -104,53 +161,45 @@ typedef enum
     OP_UNKNOWN
 } OpType;
 
-struct CPLVirtualMem
+typedef struct
 {
-    struct CPLVirtualMem *pVMemBase;
-    int          nRefCount;
-
-    int          bFileMemoryMapped; /* if TRUE, only eAccessMode, pData, pDataToFree, nSize and nPageSize are valid */
-    CPLVirtualMemAccessMode eAccessMode;
-
-    size_t       nPageSize;
-    void        *pData;                  /* aligned on nPageSize */
-    void        *pDataToFree;            /* returned by mmap(), potentially lower than pData */
-    size_t       nSize;                  /* requested size (unrounded) */
+    CPLVirtualMem sBase;
 
     GByte       *pabitMappedPages;
     GByte       *pabitRWMappedPages;
 
-    int          nCacheMaxSizeInPages;   /* maximum size of page array */
-    int         *panLRUPageIndices;      /* array with indices of cached pages */
-    int          iLRUStart;              /* index in array where to write next page index */
-    int          nLRUSize;               /* current isze of the array */
+    int          nCacheMaxSizeInPages;   // Maximum size of page array.
+    int         *panLRUPageIndices;      // Array with indices of cached pages.
+    int          iLRUStart;              // Index in array where to
+                                         // write next page index.
+    int          nLRUSize;               // Current size of the array.
 
-    int          iLastPage;              /* last page accessed */
-    int          nRetry;                 /* number of consecutive retries to that last page */
-    
-    int          bSingleThreadUsage;
+    int          iLastPage;              // Last page accessed.
+    int          nRetry;                 // Number of consecutive
+                                         // retries to that last page.
 
-    CPLVirtualMemCachePageCbk     pfnCachePage;       /* called when a page is mapped */
-    CPLVirtualMemUnCachePageCbk   pfnUnCachePage;     /* called when a (writable) page is unmapped */
-    void                   *pCbkUserData;
-    CPLVirtualMemFreeUserData     pfnFreeUserData;
+    CPLVirtualMemCachePageCbk     pfnCachePage;    // Called when a page is
+                                                   // mapped.
+    CPLVirtualMemUnCachePageCbk   pfnUnCachePage;  // Called when a (writable)
+                                                   // page is unmapped.
+
 #ifndef HAVE_5ARGS_MREMAP
-    void                   *hMutexThreadArray;
+    CPLMutex               *hMutexThreadArray;
     int                     nThreads;
     pthread_t              *pahThreads;
 #endif
-};
+} CPLVirtualMemVMA;
 
 typedef struct
 {
-    /* hVirtualMemManagerMutex protects the 2 following variables */
-    CPLVirtualMem        **pasVirtualMem;
+    // hVirtualMemManagerMutex protects the 2 following variables.
+    CPLVirtualMemVMA **pasVirtualMem;
     int              nVirtualMemCount;
 
     int              pipefd_to_thread[2];
     int              pipefd_from_thread[2];
     int              pipefd_wait_thread[2];
-    void            *hHelperThread;
+    CPLJoinableThread *hHelperThread;
 
     struct sigaction oldact;
 } CPLVirtualMemManager;
@@ -162,10 +211,11 @@ typedef struct
     pthread_t        hRequesterThread;
 } CPLVirtualMemMsgToWorkerThread;
 
+// TODO: Singletons.
 static CPLVirtualMemManager* pVirtualMemManager = NULL;
-static void* hVirtualMemManagerMutex = NULL;
+static CPLMutex* hVirtualMemManagerMutex = NULL;
 
-static void CPLVirtualMemManagerInit();
+static bool CPLVirtualMemManagerInit();
 
 #ifdef DEBUG_VIRTUALMEM
 
@@ -173,22 +223,31 @@ static void CPLVirtualMemManagerInit();
 /*                           fprintfstderr()                            */
 /************************************************************************/
 
+// This function may be called from signal handlers where most functions
+// from the C library are unsafe to be called. fprintf() is clearly one
+// of those functions (see
+// http://stackoverflow.com/questions/4554129/linux-glibc-can-i-use-fprintf-in-signal-handler)
+// vsnprintf() is *probably* safer with respect to that (but there is no
+// guarantee though).
+// write() is async-signal-safe.
 static void fprintfstderr(const char* fmt, ...)
 {
-    char buffer[80];
+    char buffer[80] = {};
     va_list ap;
     va_start(ap, fmt);
     vsnprintf(buffer, sizeof(buffer), fmt, ap);
     va_end(ap);
     int offset = 0;
-    while(TRUE)
+    while( true )
     {
-        int ret = write(2, buffer + offset, strlen(buffer + offset));
+        const size_t nSizeToWrite = strlen(buffer + offset);
+        int ret = static_cast<int>(write(2, buffer + offset, nSizeToWrite));
         if( ret < 0 && errno == EINTR )
-            ;
+        {
+        }
         else
         {
-            if( ret == (int)strlen(buffer + offset) )
+            if( ret == static_cast<int>(nSizeToWrite) )
                 break;
             offset += ret;
         }
@@ -198,50 +257,57 @@ static void fprintfstderr(const char* fmt, ...)
 #endif
 
 /************************************************************************/
-/*                         CPLGetPageSize()                             */
-/************************************************************************/
-
-size_t CPLGetPageSize(void)
-{
-    return (size_t) sysconf(_SC_PAGESIZE);
-}
-
-/************************************************************************/
 /*              CPLVirtualMemManagerRegisterVirtualMem()                */
 /************************************************************************/
 
-static void CPLVirtualMemManagerRegisterVirtualMem(CPLVirtualMem* ctxt)
+static bool CPLVirtualMemManagerRegisterVirtualMem( CPLVirtualMemVMA* ctxt )
 {
-    CPLVirtualMemManagerInit();
+    if( !CPLVirtualMemManagerInit() )
+        return false;
 
-    assert(ctxt);
+    bool bSuccess = true;
+    IGNORE_OR_ASSERT_IN_DEBUG(ctxt);
     CPLAcquireMutex(hVirtualMemManagerMutex, 1000.0);
-    pVirtualMemManager->pasVirtualMem = (CPLVirtualMem**) CPLRealloc(
-        pVirtualMemManager->pasVirtualMem, sizeof(CPLVirtualMem*) * (pVirtualMemManager->nVirtualMemCount + 1) );
-    pVirtualMemManager->pasVirtualMem[pVirtualMemManager->nVirtualMemCount] = ctxt;
-    pVirtualMemManager->nVirtualMemCount ++;
+    CPLVirtualMemVMA** pasVirtualMemNew = static_cast<CPLVirtualMemVMA **>(
+        VSI_REALLOC_VERBOSE(
+            pVirtualMemManager->pasVirtualMem,
+            sizeof(CPLVirtualMemVMA *) *
+            (pVirtualMemManager->nVirtualMemCount + 1)));
+    if( pasVirtualMemNew == NULL )
+    {
+        bSuccess = false;
+    }
+    else
+    {
+        pVirtualMemManager->pasVirtualMem = pasVirtualMemNew;
+        pVirtualMemManager->
+            pasVirtualMem[pVirtualMemManager->nVirtualMemCount] = ctxt;
+        pVirtualMemManager->nVirtualMemCount++;
+    }
     CPLReleaseMutex(hVirtualMemManagerMutex);
+    return bSuccess;
 }
 
 /************************************************************************/
 /*               CPLVirtualMemManagerUnregisterVirtualMem()             */
 /************************************************************************/
 
-static void CPLVirtualMemManagerUnregisterVirtualMem(CPLVirtualMem* ctxt)
+static void CPLVirtualMemManagerUnregisterVirtualMem( CPLVirtualMemVMA* ctxt )
 {
-    int i;
     CPLAcquireMutex(hVirtualMemManagerMutex, 1000.0);
-    for(i=0;i<pVirtualMemManager->nVirtualMemCount;i++)
+    for( int i=0; i < pVirtualMemManager->nVirtualMemCount; i++ )
     {
         if( pVirtualMemManager->pasVirtualMem[i] == ctxt )
         {
             if( i < pVirtualMemManager->nVirtualMemCount - 1 )
             {
-                memmove( pVirtualMemManager->pasVirtualMem + i,
-                         pVirtualMemManager->pasVirtualMem + i + 1,
-                    sizeof(CPLVirtualMem*) * (pVirtualMemManager->nVirtualMemCount - i - 1) );
+                memmove(
+                    pVirtualMemManager->pasVirtualMem + i,
+                    pVirtualMemManager->pasVirtualMem + i + 1,
+                    sizeof(CPLVirtualMem*) *
+                    (pVirtualMemManager->nVirtualMemCount - i - 1) );
             }
-            pVirtualMemManager->nVirtualMemCount --;
+            pVirtualMemManager->nVirtualMemCount--;
             break;
         }
     }
@@ -252,27 +318,23 @@ static void CPLVirtualMemManagerUnregisterVirtualMem(CPLVirtualMem* ctxt)
 /*                           CPLVirtualMemNew()                         */
 /************************************************************************/
 
-CPLVirtualMem* CPLVirtualMemNew(size_t nSize,
-                                size_t nCacheSize,
-                                size_t nPageSizeHint,
-                                int bSingleThreadUsage,
-                                CPLVirtualMemAccessMode eAccessMode,
-                                CPLVirtualMemCachePageCbk pfnCachePage,
-                                CPLVirtualMemUnCachePageCbk pfnUnCachePage,
-                                CPLVirtualMemFreeUserData pfnFreeUserData,
-                                void *pCbkUserData)
+static void CPLVirtualMemFreeFileMemoryMapped( CPLVirtualMemVMA* ctxt );
+
+CPLVirtualMem* CPLVirtualMemNew( size_t nSize,
+                                 size_t nCacheSize,
+                                 size_t nPageSizeHint,
+                                 int bSingleThreadUsage,
+                                 CPLVirtualMemAccessMode eAccessMode,
+                                 CPLVirtualMemCachePageCbk pfnCachePage,
+                                 CPLVirtualMemUnCachePageCbk pfnUnCachePage,
+                                 CPLVirtualMemFreeUserData pfnFreeUserData,
+                                 void *pCbkUserData )
 {
-    CPLVirtualMem* ctxt;
-    void* pData;
     size_t nMinPageSize = CPLGetPageSize();
     size_t nPageSize = DEFAULT_PAGE_SIZE;
-    size_t nCacheMaxSizeInPages;
-    size_t nRoundedMappingSize;
-    FILE* f;
-    int nMappings = 0;
 
-    assert(nSize > 0);
-    assert(pfnCachePage != NULL);
+    IGNORE_OR_ASSERT_IN_DEBUG(nSize > 0);
+    IGNORE_OR_ASSERT_IN_DEBUG(pfnCachePage != NULL);
 
     if( nPageSizeHint >= nMinPageSize && nPageSizeHint <= MAXIMUM_PAGE_SIZE )
     {
@@ -281,14 +343,14 @@ CPLVirtualMem* CPLVirtualMemNew(size_t nSize,
         else
         {
             int nbits = 0;
-            nPageSize = (size_t)nPageSizeHint;
-            while(nPageSize > 0)
+            nPageSize = static_cast<size_t>(nPageSizeHint);
+            do
             {
                 nPageSize >>= 1;
-                nbits ++;
-            }
-            nPageSize = (size_t)1 << (nbits - 1);
-            if( nPageSize < (size_t)nPageSizeHint )
+                nbits++;
+            } while( nPageSize > 0 );
+            nPageSize = static_cast<size_t>(1) << (nbits - 1);
+            if( nPageSize < static_cast<size_t>(nPageSizeHint) )
                 nPageSize <<= 1;
         }
     }
@@ -301,311 +363,152 @@ CPLVirtualMem* CPLVirtualMemNew(size_t nSize,
     else if( nCacheSize == 0 )
         nCacheSize = 1;
 
-    /* Linux specific */
-    /* Count the number of existing memory mappings */
-    f = fopen("/proc/self/maps", "rb");
+    int nMappings = 0;
+
+    // Linux specific:
+    // Count the number of existing memory mappings.
+    FILE* f = fopen("/proc/self/maps", "rb");
     if( f != NULL )
     {
-        char buffer[80];
+        char buffer[80] = {};
         while( fgets(buffer, sizeof(buffer), f) != NULL )
-            nMappings ++;
+            nMappings++;
         fclose(f);
     }
 
-    while(TRUE)
+    size_t nCacheMaxSizeInPages = 0;
+    while( true )
     {
-        /* /proc/self/maps must not have more than 65K lines */
+        // /proc/self/maps must not have more than 65K lines.
         nCacheMaxSizeInPages = (nCacheSize + 2 * nPageSize - 1) / nPageSize;
         if( nCacheMaxSizeInPages >
-                    (size_t)((MAXIMUM_COUNT_OF_MAPPINGS * 9 / 10) - nMappings) )
+            static_cast<size_t>((MAXIMUM_COUNT_OF_MAPPINGS * 9 / 10) -
+                                nMappings) )
             nPageSize <<= 1;
         else
             break;
     }
-    nRoundedMappingSize = ((nSize + 2 * nPageSize - 1) / nPageSize) * nPageSize;
-    pData = mmap(NULL, nRoundedMappingSize, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    size_t nRoundedMappingSize =
+        ((nSize + 2 * nPageSize - 1) / nPageSize) * nPageSize;
+    void* pData = mmap(NULL, nRoundedMappingSize, PROT_NONE,
+                       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if( pData == MAP_FAILED )
     {
         perror("mmap");
         return NULL;
     }
-    ctxt = (CPLVirtualMem* )CPLCalloc(1, sizeof(CPLVirtualMem));
-    ctxt->nRefCount = 1;
-    ctxt->bFileMemoryMapped = FALSE;
-    ctxt->eAccessMode = eAccessMode;
-    ctxt->pDataToFree = pData;
-    ctxt->pData = ALIGN_UP(pData, nPageSize);
-    ctxt->nPageSize = nPageSize;
-    ctxt->pabitMappedPages = (GByte*)CPLCalloc(1, (nRoundedMappingSize / nPageSize + 7) / 8);
-    assert(ctxt->pabitMappedPages);
-    ctxt->pabitRWMappedPages = (GByte*)CPLCalloc(1, (nRoundedMappingSize / nPageSize + 7) / 8);
-    assert(ctxt->pabitRWMappedPages);
-    /* we need at least 2 pages in case for a rep movs instruction */
-    /* that operate in the view */
-    ctxt->nCacheMaxSizeInPages = nCacheMaxSizeInPages;
-    ctxt->panLRUPageIndices = (int*)CPLMalloc(ctxt->nCacheMaxSizeInPages * sizeof(int));
-    assert(ctxt->panLRUPageIndices);
-    ctxt->nSize = nSize;
+    CPLVirtualMemVMA* ctxt = static_cast<CPLVirtualMemVMA *>(
+        VSI_CALLOC_VERBOSE(1, sizeof(CPLVirtualMemVMA)));
+    if( ctxt == NULL )
+        return NULL;
+    ctxt->sBase.nRefCount = 1;
+    ctxt->sBase.eType = VIRTUAL_MEM_TYPE_VMA;
+    ctxt->sBase.eAccessMode = eAccessMode;
+    ctxt->sBase.pDataToFree = pData;
+    ctxt->sBase.pData = ALIGN_UP(pData, nPageSize);
+    ctxt->sBase.nPageSize = nPageSize;
+    ctxt->sBase.nSize = nSize;
+    ctxt->sBase.bSingleThreadUsage = CPL_TO_BOOL(bSingleThreadUsage);
+    ctxt->sBase.pfnFreeUserData = pfnFreeUserData;
+    ctxt->sBase.pCbkUserData = pCbkUserData;
+
+    ctxt->pabitMappedPages = static_cast<GByte *>(
+        VSI_CALLOC_VERBOSE(1, (nRoundedMappingSize / nPageSize + 7) / 8));
+    if( ctxt->pabitMappedPages == NULL )
+    {
+        CPLVirtualMemFreeFileMemoryMapped(ctxt);
+        CPLFree(ctxt);
+        return NULL;
+    }
+    ctxt->pabitRWMappedPages = static_cast<GByte*>(
+        VSI_CALLOC_VERBOSE(1, (nRoundedMappingSize / nPageSize + 7) / 8));
+    if( ctxt->pabitRWMappedPages == NULL )
+    {
+        CPLVirtualMemFreeFileMemoryMapped(ctxt);
+        CPLFree(ctxt);
+        return NULL;
+    }
+    // Need at least 2 pages in case for a rep movs instruction
+    // that operate in the view.
+    ctxt->nCacheMaxSizeInPages = static_cast<int>(nCacheMaxSizeInPages);
+    ctxt->panLRUPageIndices = static_cast<int*>(
+        VSI_MALLOC_VERBOSE(ctxt->nCacheMaxSizeInPages * sizeof(int)));
+    if( ctxt->panLRUPageIndices == NULL )
+    {
+        CPLVirtualMemFreeFileMemoryMapped(ctxt);
+        CPLFree(ctxt);
+        return NULL;
+    }
     ctxt->iLRUStart = 0;
     ctxt->nLRUSize = 0;
     ctxt->iLastPage = -1;
     ctxt->nRetry = 0;
-    ctxt->bSingleThreadUsage = bSingleThreadUsage;
     ctxt->pfnCachePage = pfnCachePage;
     ctxt->pfnUnCachePage = pfnUnCachePage;
-    ctxt->pfnFreeUserData = pfnFreeUserData;
-    ctxt->pCbkUserData = pCbkUserData;
+
 #ifndef HAVE_5ARGS_MREMAP
-    if( !ctxt->bSingleThreadUsage )
+    if( !ctxt->sBase.bSingleThreadUsage )
     {
         ctxt->hMutexThreadArray = CPLCreateMutex();
-        assert(ctxt->hMutexThreadArray != NULL);
+        IGNORE_OR_ASSERT_IN_DEBUG(ctxt->hMutexThreadArray != NULL);
         CPLReleaseMutex(ctxt->hMutexThreadArray);
         ctxt->nThreads = 0;
         ctxt->pahThreads = NULL;
     }
 #endif
 
-    CPLVirtualMemManagerRegisterVirtualMem(ctxt);
-
-    return ctxt;
-}
-
-/************************************************************************/
-/*                   CPLIsVirtualMemFileMapAvailable()                  */
-/************************************************************************/
-
-int CPLIsVirtualMemFileMapAvailable(void)
-{
-    return TRUE;
-}
-
-/************************************************************************/
-/*                       CPLVirtualMemFileMapNew()                      */
-/************************************************************************/
-
-CPLVirtualMem *CPLVirtualMemFileMapNew( VSILFILE* fp,
-                                        vsi_l_offset nOffset,
-                                        vsi_l_offset nLength,
-                                        CPLVirtualMemAccessMode eAccessMode,
-                                        CPLVirtualMemFreeUserData pfnFreeUserData,
-                                        void *pCbkUserData )
-{
-#if SIZEOF_VOIDP == 4
-    if( nLength != (size_t)nLength )
+    if( !CPLVirtualMemManagerRegisterVirtualMem(ctxt) )
     {
-        CPLError(CE_Failure, CPLE_AppDefined,
-                 "nLength = " CPL_FRMT_GUIB " incompatible with 32 bit architecture",
-                 nLength);
-        return NULL;
-    }
-#endif
-
-    int fd = (int) (size_t) VSIFGetNativeFileDescriptorL(fp);
-    if( fd == 0 )
-    {
-        CPLError(CE_Failure, CPLE_AppDefined, "Cannot operate on a virtual file");
-        return NULL;
-    }
-
-    off_t nAlignedOffset = (nOffset / CPLGetPageSize()) * CPLGetPageSize();
-    size_t nAligment = nOffset - nAlignedOffset;
-    size_t nMappingSize = nLength + nAligment;
-
-    /* We need to ensure that the requested extent fits into the file size */
-    /* otherwise SIGBUS errors will occur when using the mapping */
-    vsi_l_offset nCurPos = VSIFTellL(fp);
-    VSIFSeekL(fp, 0, SEEK_END);
-    vsi_l_offset nFileSize = VSIFTellL(fp);
-    if( nFileSize < nOffset + nLength )
-    {
-        if( eAccessMode != VIRTUALMEM_READWRITE )
-        {
-            CPLError(CE_Failure, CPLE_AppDefined, "Trying to map an extent outside of the file");
-            VSIFSeekL(fp, nCurPos, SEEK_SET);
-            return NULL;
-        }
-        else
-        {
-            char ch = 0;
-            if( VSIFSeekL(fp, nOffset + nLength - 1, SEEK_SET) != 0 ||
-                VSIFWriteL(&ch, 1, 1, fp) != 1 )
-            {
-                CPLError(CE_Failure, CPLE_AppDefined, "Cannot extend file to mapping size");
-                VSIFSeekL(fp, nCurPos, SEEK_SET);
-                return NULL;
-            }
-        }
-    }
-    VSIFSeekL(fp, nCurPos, SEEK_SET);
-
-    void* addr = mmap(NULL, nMappingSize,
-                      (eAccessMode == VIRTUALMEM_READWRITE) ? PROT_READ | PROT_WRITE : PROT_READ,
-                      MAP_SHARED, fd, nAlignedOffset);
-    if( addr == MAP_FAILED )
-    {
-        int myerrno = errno;
-        CPLError(CE_Failure, CPLE_AppDefined,
-                 "mmap() failed : %s", strerror(myerrno));
-        return NULL;
-    }
-
-    CPLVirtualMem* ctxt = (CPLVirtualMem* )CPLCalloc(1, sizeof(CPLVirtualMem));
-    ctxt->nRefCount = 1;
-    ctxt->eAccessMode = eAccessMode;
-    ctxt->bFileMemoryMapped = TRUE;
-    ctxt->pData = (GByte*) addr + nAligment;
-    ctxt->pDataToFree = addr;
-    ctxt->nSize = nLength;
-    ctxt->nPageSize = CPLGetPageSize();
-    ctxt->bSingleThreadUsage = FALSE;
-    ctxt->pfnFreeUserData = pfnFreeUserData;
-    ctxt->pCbkUserData = pCbkUserData;
-
-    return ctxt;
-}
-
-/************************************************************************/
-/*                       CPLVirtualMemDerivedNew()                      */
-/************************************************************************/
-
-CPLVirtualMem *CPLVirtualMemDerivedNew(CPLVirtualMem* pVMemBase,
-                                       vsi_l_offset nOffset,
-                                       vsi_l_offset nSize,
-                                       CPLVirtualMemFreeUserData pfnFreeUserData,
-                                       void *pCbkUserData)
-{
-    if( nOffset + nSize > pVMemBase->nSize )
-        return NULL;
-
-    CPLVirtualMem* ctxt = (CPLVirtualMem* )CPLCalloc(1, sizeof(CPLVirtualMem));
-    ctxt->nRefCount = 1;
-    ctxt->pVMemBase = pVMemBase;
-    pVMemBase->nRefCount ++;
-    ctxt->eAccessMode = pVMemBase->eAccessMode;
-    ctxt->bFileMemoryMapped = pVMemBase->bFileMemoryMapped;
-    ctxt->pData = (GByte*) pVMemBase->pData + nOffset;
-    ctxt->pDataToFree = NULL;
-    ctxt->nSize = nSize;
-    ctxt->nPageSize = pVMemBase->nPageSize;
-    ctxt->bSingleThreadUsage = pVMemBase->bSingleThreadUsage;
-    ctxt->pfnFreeUserData = pfnFreeUserData;
-    ctxt->pCbkUserData = pCbkUserData;
-
-    return ctxt;
-}
-
-/************************************************************************/
-/*                        CPLVirtualMemFree()                           */
-/************************************************************************/
-
-void CPLVirtualMemFree(CPLVirtualMem* ctxt)
-{
-    size_t nRoundedMappingSize;
-
-    if( ctxt == NULL || --(ctxt->nRefCount) > 0 )
-        return;
-
-    if( ctxt->pVMemBase != NULL )
-    {
-        CPLVirtualMemFree(ctxt->pVMemBase);
-        if( ctxt->pfnFreeUserData != NULL )
-            ctxt->pfnFreeUserData(ctxt->pCbkUserData);
+        CPLVirtualMemFreeFileMemoryMapped(ctxt);
         CPLFree(ctxt);
-        return;
+        return NULL;
     }
 
-    if( ctxt->bFileMemoryMapped )
-    {
-        size_t nMappingSize = ctxt->nSize + (GByte*)ctxt->pData - (GByte*)ctxt->pDataToFree;
-        assert(munmap(ctxt->pDataToFree, nMappingSize) == 0);
-        if( ctxt->pfnFreeUserData != NULL )
-            ctxt->pfnFreeUserData(ctxt->pCbkUserData);
-        CPLFree(ctxt);
-        return;
-    }
+    return (CPLVirtualMem*) ctxt;
+}
 
+/************************************************************************/
+/*                  CPLVirtualMemFreeFileMemoryMapped()                 */
+/************************************************************************/
+
+static void CPLVirtualMemFreeFileMemoryMapped(CPLVirtualMemVMA* ctxt)
+{
     CPLVirtualMemManagerUnregisterVirtualMem(ctxt);
 
-    nRoundedMappingSize = ((ctxt->nSize + 2 * ctxt->nPageSize - 1) /
-                                            ctxt->nPageSize) * ctxt->nPageSize;
-    if( ctxt->eAccessMode == VIRTUALMEM_READWRITE &&
+    size_t nRoundedMappingSize =
+        ((ctxt->sBase.nSize + 2 * ctxt->sBase.nPageSize - 1) /
+         ctxt->sBase.nPageSize) * ctxt->sBase.nPageSize;
+    if( ctxt->sBase.eAccessMode == VIRTUALMEM_READWRITE &&
+        ctxt->pabitRWMappedPages != NULL &&
         ctxt->pfnUnCachePage != NULL )
     {
-        size_t i;
-        for(i = 0; i < nRoundedMappingSize / ctxt->nPageSize; i++)
+        for( size_t i = 0;
+             i < nRoundedMappingSize / ctxt->sBase.nPageSize;
+             i++ )
         {
             if( TEST_BIT(ctxt->pabitRWMappedPages, i) )
             {
-                void* addr = (char*)ctxt->pData + i * ctxt->nPageSize;
-                ctxt->pfnUnCachePage(ctxt,
-                                 i * ctxt->nPageSize,
+                void* addr = (char*)ctxt->sBase.pData + i * ctxt->sBase.nPageSize;
+                ctxt->pfnUnCachePage((CPLVirtualMem*)ctxt,
+                                 i * ctxt->sBase.nPageSize,
                                  addr,
-                                 ctxt->nPageSize,
-                                 ctxt->pCbkUserData);
+                                 ctxt->sBase.nPageSize,
+                                 ctxt->sBase.pCbkUserData);
             }
         }
     }
-    assert(munmap(ctxt->pDataToFree, nRoundedMappingSize) == 0);
+    int nRet = munmap(ctxt->sBase.pDataToFree, nRoundedMappingSize);
+    IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
     CPLFree(ctxt->pabitMappedPages);
     CPLFree(ctxt->pabitRWMappedPages);
     CPLFree(ctxt->panLRUPageIndices);
 #ifndef HAVE_5ARGS_MREMAP
-    if( !ctxt->bSingleThreadUsage )
+    if( !ctxt->sBase.bSingleThreadUsage )
     {
         CPLFree(ctxt->pahThreads);
         CPLDestroyMutex(ctxt->hMutexThreadArray);
     }
 #endif
-    if( ctxt->pfnFreeUserData != NULL )
-        ctxt->pfnFreeUserData(ctxt->pCbkUserData);
-
-    CPLFree(ctxt);
-}
-
-/************************************************************************/
-/*                      CPLVirtualMemGetAddr()                          */
-/************************************************************************/
-
-void* CPLVirtualMemGetAddr(CPLVirtualMem* ctxt)
-{
-    return ctxt->pData;
-}
-
-/************************************************************************/
-/*                     CPLVirtualMemIsFileMapping()                     */
-/************************************************************************/
-
-int CPLVirtualMemIsFileMapping(CPLVirtualMem* ctxt)
-{
-    return ctxt->bFileMemoryMapped;
-}
-
-/************************************************************************/
-/*                     CPLVirtualMemGetAccessMode()                     */
-/************************************************************************/
-
-CPLVirtualMemAccessMode CPLVirtualMemGetAccessMode(CPLVirtualMem* ctxt)
-{
-    return ctxt->eAccessMode;
-}
-
-/************************************************************************/
-/*                      CPLVirtualMemGetPageSize()                      */
-/************************************************************************/
-
-size_t CPLVirtualMemGetPageSize(CPLVirtualMem* ctxt)
-{
-    return ctxt->nPageSize;
-}
-
-/************************************************************************/
-/*                        CPLVirtualMemGetSize()                        */
-/************************************************************************/
-
-size_t CPLVirtualMemGetSize(CPLVirtualMem* ctxt)
-{
-    return ctxt->nSize;
 }
 
 #ifndef HAVE_5ARGS_MREMAP
@@ -617,49 +520,45 @@ static volatile int nWaitHelperThread = 0;
 /*                   CPLVirtualMemSIGUSR1Handler()                      */
 /************************************************************************/
 
-static void CPLVirtualMemSIGUSR1Handler(int signum_unused, 
-                                     siginfo_t* the_info_unused,
-                                     void* the_ctxt_unused)
+static void CPLVirtualMemSIGUSR1Handler( int /* signum_unused */,
+                                         siginfo_t* /* the_info_unused */,
+                                         void* /* the_ctxt_unused */)
 {
-    /* fprintfstderr("entering CPLVirtualMemSIGUSR1Handler %X\n", pthread_self()); */
-    (void)signum_unused;
-    (void)the_info_unused;
-    (void)the_ctxt_unused;
-    /* I guess this is only POSIX correct if it is implemented by an intrinsic */
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+    fprintfstderr("entering CPLVirtualMemSIGUSR1Handler %X\n", pthread_self());
+#endif
+    // Rouault guesses this is only POSIX correct if it is implemented by an
+    // intrinsic.
     CPLAtomicInc(&nCountThreadsInSigUSR1);
     while( nWaitHelperThread )
-        usleep(1); /* not explicitely indicated as signal-async-safe, but hopefully ok */
+        // Not explicitly indicated as signal-async-safe, but hopefully ok.
+        usleep(1);
     CPLAtomicDec(&nCountThreadsInSigUSR1);
-    /* fprintfstderr("leaving CPLVirtualMemSIGUSR1Handler %X\n", pthread_self()); */
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+    fprintfstderr("leaving CPLVirtualMemSIGUSR1Handler %X\n", pthread_self());
+#endif
 }
 #endif
-
-/************************************************************************/
-/*                   CPLVirtualMemIsAccessThreadSafe()                  */
-/************************************************************************/
-
-int CPLVirtualMemIsAccessThreadSafe(CPLVirtualMem* ctxt)
-{
-    return !ctxt->bSingleThreadUsage;
-}
 
 /************************************************************************/
 /*                      CPLVirtualMemDeclareThread()                    */
 /************************************************************************/
 
-void CPLVirtualMemDeclareThread(CPLVirtualMem* ctxt)
+void CPLVirtualMemDeclareThread( CPLVirtualMem* ctxt )
 {
-    if( ctxt->bFileMemoryMapped )
+    if( ctxt->eType == VIRTUAL_MEM_TYPE_FILE_MEMORY_MAPPED )
         return;
 #ifndef HAVE_5ARGS_MREMAP
-    assert( !ctxt->bSingleThreadUsage );
-    CPLAcquireMutex(ctxt->hMutexThreadArray, 1000.0);
-    ctxt->pahThreads = (pthread_t*) CPLRealloc(ctxt->pahThreads,
-                                (ctxt->nThreads + 1) * sizeof(pthread_t));
-    ctxt->pahThreads[ctxt->nThreads] = pthread_self();
-    ctxt->nThreads ++;
+    CPLVirtualMemVMA* ctxtVMA = (CPLVirtualMemVMA* )ctxt;
+    IGNORE_OR_ASSERT_IN_DEBUG( !ctxt->bSingleThreadUsage );
+    CPLAcquireMutex(ctxtVMA->hMutexThreadArray, 1000.0);
+    ctxtVMA->pahThreads = static_cast<pthread_t *>(
+        CPLRealloc(ctxtVMA->pahThreads,
+                   (ctxtVMA->nThreads + 1) * sizeof(pthread_t)));
+    ctxtVMA->pahThreads[ctxtVMA->nThreads] = pthread_self();
+    ctxtVMA->nThreads++;
 
-    CPLReleaseMutex(ctxt->hMutexThreadArray);
+    CPLReleaseMutex(ctxtVMA->hMutexThreadArray);
 #endif
 }
 
@@ -667,47 +566,50 @@ void CPLVirtualMemDeclareThread(CPLVirtualMem* ctxt)
 /*                     CPLVirtualMemUnDeclareThread()                   */
 /************************************************************************/
 
-void CPLVirtualMemUnDeclareThread(CPLVirtualMem* ctxt)
+void CPLVirtualMemUnDeclareThread( CPLVirtualMem* ctxt )
 {
-    if( ctxt->bFileMemoryMapped )
+    if( ctxt->eType == VIRTUAL_MEM_TYPE_FILE_MEMORY_MAPPED )
         return;
 #ifndef HAVE_5ARGS_MREMAP
-    int i;
+    CPLVirtualMemVMA* ctxtVMA = (CPLVirtualMemVMA* )ctxt;
     pthread_t self = pthread_self();
-    assert( !ctxt->bSingleThreadUsage );
-    CPLAcquireMutex(ctxt->hMutexThreadArray, 1000.0);
-    for(i = 0; i < ctxt->nThreads; i++)
+    IGNORE_OR_ASSERT_IN_DEBUG( !ctxt->bSingleThreadUsage );
+    CPLAcquireMutex(ctxtVMA->hMutexThreadArray, 1000.0);
+    for( int i = 0; i < ctxtVMA->nThreads; i++ )
     {
-        if( ctxt->pahThreads[i] == self )
+        if( ctxtVMA->pahThreads[i] == self )
         {
-            if( i < ctxt->nThreads - 1 )
-                memmove(ctxt->pahThreads + i + 1,
-                        ctxt->pahThreads + i,
-                        (ctxt->nThreads - 1 - i) * sizeof(pthread_t));
-            ctxt->nThreads --;
+            if( i < ctxtVMA->nThreads - 1 )
+                memmove(ctxtVMA->pahThreads + i + 1,
+                        ctxtVMA->pahThreads + i,
+                        (ctxtVMA->nThreads - 1 - i) * sizeof(pthread_t));
+            ctxtVMA->nThreads--;
             break;
         }
     }
 
-    CPLReleaseMutex(ctxt->hMutexThreadArray);
+    CPLReleaseMutex(ctxtVMA->hMutexThreadArray);
 #endif
 }
-
 
 /************************************************************************/
 /*                     CPLVirtualMemGetPageToFill()                     */
 /************************************************************************/
 
-/* Must be paired with CPLVirtualMemAddPage */
+// Must be paired with CPLVirtualMemAddPage.
 static
-void* CPLVirtualMemGetPageToFill(CPLVirtualMem* ctxt, void* start_page_addr)
+void* CPLVirtualMemGetPageToFill( CPLVirtualMemVMA* ctxt,
+                                  void* start_page_addr )
 {
-    void* pPageToFill;
+    void* pPageToFill = NULL;
 
-    if( ctxt->bSingleThreadUsage )
+    if( ctxt->sBase.bSingleThreadUsage )
     {
         pPageToFill = start_page_addr;
-        assert(mprotect(pPageToFill, ctxt->nPageSize, PROT_READ | PROT_WRITE) == 0);
+        const int nRet =
+            mprotect( pPageToFill, ctxt->sBase.nPageSize,
+                      PROT_READ | PROT_WRITE );
+        IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
     }
     else
     {
@@ -716,17 +618,20 @@ void* CPLVirtualMemGetPageToFill(CPLVirtualMem* ctxt, void* start_page_addr)
         if( ctxt->nThreads == 1 )
         {
             pPageToFill = start_page_addr;
-            assert(mprotect(pPageToFill, ctxt->nPageSize, PROT_READ | PROT_WRITE) == 0);
+            const int nRet =
+                mprotect( pPageToFill, ctxt->sBase.nPageSize,
+                          PROT_READ | PROT_WRITE );
+            IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
         }
         else
 #endif
         {
-            /* Allocate a temporary writable page that the user */
-            /* callback can fill */
-            pPageToFill = mmap(NULL, ctxt->nPageSize,
+            // Allocate a temporary writable page that the user
+            // callback can fill.
+            pPageToFill = mmap(NULL, ctxt->sBase.nPageSize,
                                 PROT_READ | PROT_WRITE,
                                 MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-            assert(pPageToFill != MAP_FAILED);
+            IGNORE_OR_ASSERT_IN_DEBUG(pPageToFill != MAP_FAILED);
         }
     }
     return pPageToFill;
@@ -737,56 +642,66 @@ void* CPLVirtualMemGetPageToFill(CPLVirtualMem* ctxt, void* start_page_addr)
 /************************************************************************/
 
 static
-void CPLVirtualMemAddPage(CPLVirtualMem* ctxt, void* target_addr, void* pPageToFill,
-                       OpType opType, pthread_t hRequesterThread)
+void CPLVirtualMemAddPage( CPLVirtualMemVMA* ctxt, void* target_addr,
+                           void* pPageToFill,
+                           OpType opType, pthread_t hRequesterThread )
 {
-    size_t iPage = (int)(((char*)target_addr - (char*)ctxt->pData) / ctxt->nPageSize);
+    const int iPage = static_cast<int>(
+       ((char*)target_addr - (char*)ctxt->sBase.pData) / ctxt->sBase.nPageSize);
     if( ctxt->nLRUSize == ctxt->nCacheMaxSizeInPages )
     {
-        /* fprintfstderr("uncaching page %d\n", iPage); */
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+        fprintfstderr("uncaching page %d\n", iPage);
+#endif
         int nOldPage = ctxt->panLRUPageIndices[ctxt->iLRUStart];
-        void* addr = (char*)ctxt->pData + nOldPage * ctxt->nPageSize;
-        if( ctxt->eAccessMode == VIRTUALMEM_READWRITE &&
+        void* addr = (char*)ctxt->sBase.pData + nOldPage * ctxt->sBase.nPageSize;
+        if( ctxt->sBase.eAccessMode == VIRTUALMEM_READWRITE &&
             ctxt->pfnUnCachePage != NULL &&
             TEST_BIT(ctxt->pabitRWMappedPages, nOldPage) )
         {
-            size_t nToBeEvicted = ctxt->nPageSize;
-            if( (char*)addr + nToBeEvicted >= (char*) ctxt->pData + ctxt->nSize )
-                nToBeEvicted = (char*) ctxt->pData + ctxt->nSize - (char*)addr;
+            size_t nToBeEvicted = ctxt->sBase.nPageSize;
+            if( (char*)addr + nToBeEvicted >=
+                (char*)ctxt->sBase.pData + ctxt->sBase.nSize )
+                nToBeEvicted =
+                    (char*)ctxt->sBase.pData + ctxt->sBase.nSize - (char*)addr;
 
-            ctxt->pfnUnCachePage(ctxt,
-                                 nOldPage * ctxt->nPageSize,
+            ctxt->pfnUnCachePage((CPLVirtualMem*)ctxt,
+                                 nOldPage * ctxt->sBase.nPageSize,
                                  addr,
                                  nToBeEvicted,
-                                 ctxt->pCbkUserData);
+                                 ctxt->sBase.pCbkUserData);
         }
-        /* "Free" the least recently used page */
+        // "Free" the least recently used page.
         UNSET_BIT(ctxt->pabitMappedPages, nOldPage);
         UNSET_BIT(ctxt->pabitRWMappedPages, nOldPage);
-        /* Free the old page */
-        /* Not sure how portable it is to do that that way... */
-        assert(mmap(addr, ctxt->nPageSize, PROT_NONE,
-                    MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS, -1, 0) == addr);
+        // Free the old page.
+        // Not sure how portable it is to do that that way.
+        const void * const pRet = mmap(addr, ctxt->sBase.nPageSize, PROT_NONE,
+                    MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        IGNORE_OR_ASSERT_IN_DEBUG(pRet == addr);
     }
     ctxt->panLRUPageIndices[ctxt->iLRUStart] = iPage;
     ctxt->iLRUStart = (ctxt->iLRUStart + 1) % ctxt->nCacheMaxSizeInPages;
     if( ctxt->nLRUSize < ctxt->nCacheMaxSizeInPages )
     {
-        ctxt->nLRUSize ++;
+        ctxt->nLRUSize++;
     }
     SET_BIT(ctxt->pabitMappedPages, iPage);
 
-    if( ctxt->bSingleThreadUsage )
+    if( ctxt->sBase.bSingleThreadUsage )
     {
-        if( opType == OP_STORE && ctxt->eAccessMode == VIRTUALMEM_READWRITE )
+        if( opType == OP_STORE &&
+            ctxt->sBase.eAccessMode == VIRTUALMEM_READWRITE )
         {
-            /* let (and mark) the page writable since the instruction that triggered */
-            /* the fault is a store */
+            // Let (and mark) the page writable since the instruction that
+            // triggered the fault is a store.
             SET_BIT(ctxt->pabitRWMappedPages, iPage);
         }
-        else if( ctxt->eAccessMode != VIRTUALMEM_READONLY )
+        else if( ctxt->sBase.eAccessMode != VIRTUALMEM_READONLY )
         {
-            assert(mprotect(target_addr, ctxt->nPageSize, PROT_READ) == 0);
+            const int nRet =
+                mprotect(target_addr, ctxt->sBase.nPageSize, PROT_READ);
+            IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
         }
     }
     else
@@ -794,27 +709,31 @@ void CPLVirtualMemAddPage(CPLVirtualMem* ctxt, void* target_addr, void* pPageToF
 #ifdef HAVE_5ARGS_MREMAP
         (void)hRequesterThread;
 
-        if( opType == OP_STORE && ctxt->eAccessMode == VIRTUALMEM_READWRITE )
+        if( opType == OP_STORE &&
+            ctxt->sBase.eAccessMode == VIRTUALMEM_READWRITE )
         {
-            /* let (and mark) the page writable since the instruction that triggered */
-            /* the fault is a store */
+            // Let (and mark) the page writable since the instruction that
+            // triggered the fault is a store.
             SET_BIT(ctxt->pabitRWMappedPages, iPage);
         }
-        else if( ctxt->eAccessMode != VIRTUALMEM_READONLY )
+        else if( ctxt->sBase.eAccessMode != VIRTUALMEM_READONLY )
         {
-            /* Turn the temporary page read-only before remapping it. We will only turn it */
-            /* writtable when a new fault occurs (and that the mapping is writable) */
-            assert(mprotect(pPageToFill, ctxt->nPageSize, PROT_READ) == 0);
+            // Turn the temporary page read-only before remapping it.
+            // Only turn it writtable when a new fault occurs (and the
+            // mapping is writable).
+            const int nRet =
+                mprotect(pPageToFill, ctxt->sBase.nPageSize, PROT_READ);
+            IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
         }
         /* Can now remap the pPageToFill onto the target page */
-        assert(mremap(pPageToFill, ctxt->nPageSize, ctxt->nPageSize,
-                    MREMAP_MAYMOVE | MREMAP_FIXED, target_addr) == target_addr);
+        const void * const pRet =
+            mremap( pPageToFill, ctxt->sBase.nPageSize, ctxt->sBase.nPageSize,
+                    MREMAP_MAYMOVE | MREMAP_FIXED, target_addr );
+        IGNORE_OR_ASSERT_IN_DEBUG(pRet == target_addr);
 
 #else
-        if (ctxt->nThreads > 1 )
+        if( ctxt->nThreads > 1 )
         {
-            int i;
-
             /* Pause threads that share this mem view */
             CPLAtomicInc(&nWaitHelperThread);
 
@@ -824,16 +743,19 @@ void CPLVirtualMemAddPage(CPLVirtualMem* ctxt, void* target_addr, void* pPageToF
             sigemptyset (&act.sa_mask);
             /* We don't want the sigsegv handler to be called when we are */
             /* running the sigusr1 handler */
-            assert(sigaddset(&act.sa_mask, SIGSEGV) == 0);
+            IGNORE_OR_ASSERT_IN_DEBUG(sigaddset(&act.sa_mask, SIGSEGV) == 0);
             act.sa_flags = 0;
-            assert(sigaction(SIGUSR1, &act, &oldact) == 0);
+            IGNORE_OR_ASSERT_IN_DEBUG(sigaction(SIGUSR1, &act, &oldact) == 0);
 
-            for(i = 0; i < ctxt->nThreads; i++)
+            for( int i = 0; i < ctxt->nThreads; i++)
             {
                 if( ctxt->pahThreads[i] != hRequesterThread )
                 {
-                    /* fprintfstderr("stopping thread %X\n", ctxt->pahThreads[i]); */
-                    assert(pthread_kill( ctxt->pahThreads[i], SIGUSR1 ) == 0);
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+                    fprintfstderr("stopping thread %X\n", ctxt->pahThreads[i]);
+#endif
+                    IGNORE_OR_ASSERT_IN_DEBUG(
+                        pthread_kill( ctxt->pahThreads[i], SIGUSR1 ) == 0);
                 }
             }
 
@@ -842,21 +764,27 @@ void CPLVirtualMemAddPage(CPLVirtualMem* ctxt, void* target_addr, void* pPageToF
                 usleep(1);
 
             /* Restore old SIGUSR1 signal handler */
-            assert(sigaction(SIGUSR1, &oldact, NULL) == 0);
+            IGNORE_OR_ASSERT_IN_DEBUG(sigaction(SIGUSR1, &oldact, NULL) == 0);
 
-            assert(mprotect(target_addr, ctxt->nPageSize, PROT_READ | PROT_WRITE) == 0);
-            /*fprintfstderr("memcpying page %d\n", iPage);*/
-            memcpy(target_addr, pPageToFill, ctxt->nPageSize);
-            
-            if( opType == OP_STORE && ctxt->eAccessMode == VIRTUALMEM_READWRITE )
+            int nRet = mprotect( target_addr, ctxt->sBase.nPageSize,
+                                 PROT_READ | PROT_WRITE );
+            IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+            fprintfstderr("memcpying page %d\n", iPage);
+#endif
+            memcpy(target_addr, pPageToFill, ctxt->sBase.nPageSize);
+
+            if( opType == OP_STORE &&
+                ctxt->sBase.eAccessMode == VIRTUALMEM_READWRITE )
             {
-                /* let (and mark) the page writable since the instruction that triggered */
-                /* the fault is a store */
+                // Let (and mark) the page writable since the instruction that
+                // triggered the fault is a store.
                 SET_BIT(ctxt->pabitRWMappedPages, iPage);
             }
             else
             {
-                assert(mprotect(target_addr, ctxt->nPageSize, PROT_READ) == 0);
+                nRet = mprotect(target_addr, ctxt->sBase.nPageSize, PROT_READ);
+                IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
             }
 
             /* Wake up sleeping threads */
@@ -864,19 +792,23 @@ void CPLVirtualMemAddPage(CPLVirtualMem* ctxt, void* target_addr, void* pPageToF
             while( nCountThreadsInSigUSR1 != 0 )
                 usleep(1);
 
-            assert(munmap(pPageToFill, ctxt->nPageSize) == 0);
+            IGNORE_OR_ASSERT_IN_DEBUG(
+                munmap(pPageToFill, ctxt->sBase.nPageSize) == 0);
         }
         else
         {
-            if( opType == OP_STORE && ctxt->eAccessMode == VIRTUALMEM_READWRITE )
+            if( opType == OP_STORE &&
+                ctxt->sBase.eAccessMode == VIRTUALMEM_READWRITE )
             {
-                /* let (and mark) the page writable since the instruction that triggered */
-                /* the fault is a store */
+                // Let (and mark) the page writable since the instruction that
+                // triggered the fault is a store.
                 SET_BIT(ctxt->pabitRWMappedPages, iPage);
             }
-            else if( ctxt->eAccessMode != VIRTUALMEM_READONLY )
+            else if( ctxt->sBase.eAccessMode != VIRTUALMEM_READONLY )
             {
-                assert(mprotect(target_addr, ctxt->nPageSize, PROT_READ) == 0);
+                const int nRet2 =
+                    mprotect(target_addr, ctxt->sBase.nPageSize, PROT_READ);
+                IGNORE_OR_ASSERT_IN_DEBUG(nRet2 == 0);
             }
         }
 
@@ -894,22 +826,22 @@ static OpType CPLVirtualMemGetOpTypeImm(GByte val_rip)
 {
     OpType opType = OP_UNKNOWN;
     if( (/*val_rip >= 0x00 &&*/ val_rip <= 0x07) ||
-        (val_rip >= 0x40 && val_rip <= 0x47) ) /* add $,(X) */
+        (val_rip >= 0x40 && val_rip <= 0x47) )  // add $, (X)
         opType = OP_STORE;
     if( (val_rip >= 0x08 && val_rip <= 0x0f) ||
-        (val_rip >= 0x48 && val_rip <= 0x4f) ) /* or $,(X) */
+        (val_rip >= 0x48 && val_rip <= 0x4f) )  // or $, (X)
         opType = OP_STORE;
     if( (val_rip >= 0x20 && val_rip <= 0x27) ||
-        (val_rip >= 0x60 && val_rip <= 0x67) ) /* and $,(X) */
+        (val_rip >= 0x60 && val_rip <= 0x67) )  // and $, (X)
         opType = OP_STORE;
     if( (val_rip >= 0x28 && val_rip <= 0x2f) ||
-        (val_rip >= 0x68 && val_rip <= 0x6f) ) /* sub $,(X) */
+        (val_rip >= 0x68 && val_rip <= 0x6f) )  // sub $, (X)
         opType = OP_STORE;
     if( (val_rip >= 0x30 && val_rip <= 0x37) ||
-        (val_rip >= 0x70 && val_rip <= 0x77) ) /* xor $,(X) */
+        (val_rip >= 0x70 && val_rip <= 0x77) )  // xor $, (X)
         opType = OP_STORE;
     if( (val_rip >= 0x38 && val_rip <= 0x3f) ||
-        (val_rip >= 0x78 && val_rip <= 0x7f) ) /* cmp $,(X) */
+        (val_rip >= 0x78 && val_rip <= 0x7f) )  // cmp $, (X)
         opType = OP_LOAD;
     return opType;
 }
@@ -919,16 +851,17 @@ static OpType CPLVirtualMemGetOpTypeImm(GByte val_rip)
 /*                      CPLVirtualMemGetOpType()                        */
 /************************************************************************/
 
-/* We don't need exhaustivity. It is just a hint for an optimization : */
-/* if the fault occurs on a store operation, then we can directly put */
-/* the page in writable mode if the mapping allows it */
+// Don't need exhaustivity. It is just a hint for an optimization:
+// If the fault occurs on a store operation, then we can directly put
+// the page in writable mode if the mapping allows it.
 
-static OpType CPLVirtualMemGetOpType(const GByte* rip)
+#if defined(__x86_64__) || defined(__i386__)
+static OpType CPLVirtualMemGetOpType( const GByte* rip )
 {
     OpType opType = OP_UNKNOWN;
 
 #if defined(__x86_64__) || defined(__i386__)
-    switch(rip[0])
+    switch( rip[0] )
     {
         case 0x00: /* add %al,(%rax) */
         case 0x01: /* add %eax,(%rax) */
@@ -950,7 +883,7 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
 
         case 0x0f:
         {
-            switch(rip[1])
+            switch( rip[1] )
             {
                 case 0xb6: /* movzbl (%rax),%eax */
                 case 0xb7: /* movzwl (%rax),%eax */
@@ -1001,7 +934,7 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
             break;
         case 0x40:
         {
-            switch(rip[1])
+            switch( rip[1] )
             {
                 case 0x00: /* add %spl,(%rax) */
                     opType = OP_STORE;
@@ -1035,7 +968,7 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
         case 0x46: /* reg=%r8b/%r8w, X = %rax,%r8,1 */
         case 0x47: /* reg=%r8b/%r8w, X = %r8,%r8,1 */
         {
-            switch(rip[1])
+            switch( rip[1] )
             {
                 case 0x00: /* add regb,(X) */
                 case 0x01: /* add regl,(X) */
@@ -1047,7 +980,7 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
                     break;
                 case 0x0f:
                 {
-                    switch(rip[2])
+                    switch( rip[2] )
                     {
                         case 0xb6: /* movzbl (X),regl */
                         case 0xb7: /* movzwl (X),regl */
@@ -1068,8 +1001,8 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
                 case 0x2b: /* sub (X),regl */
                     opType = OP_LOAD;
                     break;
-                case 0x38: /* cmp  regb,(X) */
-                case 0x39: /* cmp  regl,(X) */
+                case 0x38: /* cmp regb,(X) */
+                case 0x39: /* cmp regl,(X) */
                     opType = OP_LOAD;
                     break;
                 case 0x80: /* cmpb,... $,(X) */
@@ -1115,7 +1048,7 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
         case 0x4e: /* reg=%r8, X=%rax,%r8,1 */
         case 0x4f: /* reg=%r8, X=%r8,%r8,1 */
         {
-            switch(rip[1])
+            switch( rip[1] )
             {
                 case 0x01: /* add reg,(X) */
                     opType = OP_STORE;
@@ -1132,7 +1065,7 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
                     break;
                 case 0x0f:
                 {
-                    switch(rip[2])
+                    switch( rip[2] )
                     {
                         case 0xc3: /* movnti reg,(X) */
                             opType = OP_STORE;
@@ -1203,7 +1136,7 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
 #endif
         case 0x66:
         {
-            switch(rip[1])
+            switch( rip[1] )
             {
                 case 0x01: /* add %ax,(%rax) */
                     opType = OP_STORE;
@@ -1213,7 +1146,7 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
                     break;
                 case 0x0f:
                 {
-                    switch(rip[2])
+                    switch( rip[2] )
                     {
                         case 0x2e: /* ucomisd (%rax),%xmm0 */
                             opType = OP_LOAD;
@@ -1253,7 +1186,7 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
                 case 0x46: /* reg = %r8w (or %xmm8), X = %rax,%r8,1 */
                 case 0x47: /* reg = %r8w (or %xmm8), X = %r8,%r8,1 */
                 {
-                    switch(rip[2])
+                    switch( rip[2] )
                     {
                         case 0x01: /* add reg,(X) */
                             opType = OP_STORE;
@@ -1263,7 +1196,7 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
                             break;
                         case 0x0f:
                         {
-                            switch(rip[3])
+                            switch( rip[3] )
                             {
                                 case 0x2e: /* ucomisd (X),reg */
                                     opType = OP_LOAD;
@@ -1397,11 +1330,11 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
         }
         case 0xf2: /* SSE 2 */
         {
-            switch(rip[1])
+            switch( rip[1] )
             {
                 case 0x0f:
                 {
-                    switch(rip[2])
+                    switch( rip[2] )
                     {
                         case 0x10: /* movsd (%rax),%xmm0 */
                             opType = OP_LOAD;
@@ -1435,11 +1368,11 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
                 case 0x46: /* reg=%xmm8, X=%rax,%r8,1 */
                 case 0x47: /* reg=%xmm8, X=%r8,%r8,1 */
                 {
-                    switch(rip[2])
+                    switch( rip[2] )
                     {
                         case 0x0f:
                         {
-                            switch(rip[3])
+                            switch( rip[3] )
                             {
                                 case 0x10: /* movsd (X),reg */
                                     opType = OP_LOAD;
@@ -1477,11 +1410,11 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
         }
         case 0xf3:
         {
-            switch(rip[1])
+            switch( rip[1] )
             {
                 case 0x0f: /* SSE 2 */
                 {
-                    switch(rip[2])
+                    switch( rip[2] )
                     {
                         case 0x10: /* movss (%rax),%xmm0 */
                             opType = OP_LOAD;
@@ -1509,11 +1442,11 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
                 case 0x46: /* reg=%xmm8, X = %rax,%r8,1 */
                 case 0x47: /* reg=%xmm8, X = %r8,%r8,1 */
                 {
-                    switch(rip[2])
+                    switch( rip[2] )
                     {
                         case 0x0f: /* SSE 2 */
                         {
-                            switch(rip[3])
+                            switch( rip[3] )
                             {
                                 case 0x10: /* movss (X),reg */
                                     opType = OP_LOAD;
@@ -1539,7 +1472,7 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
                 }
                 case 0x48:
                 {
-                    switch(rip[2])
+                    switch( rip[2] )
                     {
                         case 0xa5: /* rep movsq %ds:(%rsi),%es:(%rdi) */
                             opType = OP_MOVS_RSI_RDI;
@@ -1577,49 +1510,60 @@ static OpType CPLVirtualMemGetOpType(const GByte* rip)
 #endif
     return opType;
 }
+#endif
 
 /************************************************************************/
 /*                    CPLVirtualMemManagerPinAddrInternal()             */
 /************************************************************************/
 
-static int CPLVirtualMemManagerPinAddrInternal(CPLVirtualMemMsgToWorkerThread* msg)
+static int
+CPLVirtualMemManagerPinAddrInternal( CPLVirtualMemMsgToWorkerThread* msg )
 {
-    char wait_ready;
-    char response_buf[4];
+    char wait_ready = '\0';
+    char response_buf[4] = {};
 
-    /* Wait for the helper thread to be ready to process another request */
-    while(TRUE)
+    // Wait for the helper thread to be ready to process another request.
+    while( true )
     {
-        int ret = read(pVirtualMemManager->pipefd_wait_thread[0], &wait_ready, 1);
+        const int ret =
+            static_cast<int>(read( pVirtualMemManager->pipefd_wait_thread[0],
+                                   &wait_ready, 1 ));
         if( ret < 0 && errno == EINTR )
-            ;
+        {
+            // NOP
+        }
         else
         {
-            assert(ret == 1);
+            IGNORE_OR_ASSERT_IN_DEBUG(ret == 1);
             break;
         }
     }
 
-    /* Pass the address that caused the fault to the helper thread */
-    assert(write(pVirtualMemManager->pipefd_to_thread[1], msg, sizeof(*msg))
-            == sizeof(*msg));
+    // Pass the address that caused the fault to the helper thread.
+    const ssize_t nRetWrite =
+        write(pVirtualMemManager->pipefd_to_thread[1], msg, sizeof(*msg));
+    IGNORE_OR_ASSERT_IN_DEBUG(nRetWrite == sizeof(*msg));
 
-    /* Wait that the helper thread has fixed the fault */
-    while(TRUE)
+    // Wait that the helper thread has fixed the fault.
+    while( true )
     {
-        int ret = read(pVirtualMemManager->pipefd_from_thread[0], response_buf, 4);
+        const int ret =
+            static_cast<int>(read(pVirtualMemManager->pipefd_from_thread[0],
+                                  response_buf, 4));
         if( ret < 0 && errno == EINTR )
-            ;
+        {
+            // NOP
+        }
         else
         {
-            assert(ret == 4);
+            IGNORE_OR_ASSERT_IN_DEBUG(ret == 4);
             break;
         }
     }
 
-    /* In case the helper thread did not recognize the address as being */
-    /* one that it should take care of, just rely on the previous SIGSEGV */
-    /* handler (with might abort the process) */
+    // In case the helper thread did not recognize the address as being
+    // one that it should take care of, just rely on the previous SIGSEGV
+    // handler (with might abort the process).
     return( memcmp(response_buf, MAPPING_FOUND, 4) == 0 );
 }
 
@@ -1627,22 +1571,22 @@ static int CPLVirtualMemManagerPinAddrInternal(CPLVirtualMemMsgToWorkerThread* m
 /*                      CPLVirtualMemPin()                              */
 /************************************************************************/
 
-void CPLVirtualMemPin(CPLVirtualMem* ctxt,
-                      void* pAddr, size_t nSize, int bWriteOp)
+void CPLVirtualMemPin( CPLVirtualMem* ctxt,
+                       void* pAddr, size_t nSize, int bWriteOp )
 {
-    if( ctxt->bFileMemoryMapped )
+    if( ctxt->eType == VIRTUAL_MEM_TYPE_FILE_MEMORY_MAPPED )
         return;
 
     CPLVirtualMemMsgToWorkerThread msg;
-    size_t i = 0, n;
 
     memset(&msg, 0, sizeof(msg));
     msg.hRequesterThread = pthread_self();
     msg.opType = (bWriteOp) ? OP_STORE : OP_LOAD;
 
     char* pBase = (char*)ALIGN_DOWN(pAddr, ctxt->nPageSize);
-    n = ((char*)pAddr - pBase + nSize + ctxt->nPageSize - 1) / ctxt->nPageSize;
-    for(i=0; i<n; i++)
+    const size_t n =
+        ((char*)pAddr - pBase + nSize + ctxt->nPageSize - 1) / ctxt->nPageSize;
+    for( size_t i = 0; i < n; i++ )
     {
         msg.pFaultAddr = (char*) pBase + i * ctxt->nPageSize;
         CPLVirtualMemManagerPinAddrInternal(&msg);
@@ -1663,12 +1607,12 @@ void CPLVirtualMemPin(CPLVirtualMem* ctxt,
 #define REG_DI      REG_EDI
 #endif
 
-/* We must take care of only using "asynchronous-signal-safe" functions in a signal handler */
-/* pthread_self(), read() and write() are such. See */
-/* https://www.securecoding.cert.org/confluence/display/seccode/SIG30-C.+Call+only+asynchronous-safe+functions+within+signal+handlers */
-static void CPLVirtualMemManagerSIGSEGVHandler(int the_signal,
-                                             siginfo_t* the_info,
-                                             void* the_ctxt)
+// Must take care of only using "asynchronous-signal-safe" functions in a signal
+// handler pthread_self(), read() and write() are such.  See:
+// https://www.securecoding.cert.org/confluence/display/seccode/SIG30-C.+Call+only+asynchronous-safe+functions+within+signal+handlers
+static void CPLVirtualMemManagerSIGSEGVHandler( int the_signal,
+                                                siginfo_t* the_info,
+                                                void* the_ctxt )
 {
     CPLVirtualMemMsgToWorkerThread msg;
 
@@ -1678,35 +1622,43 @@ static void CPLVirtualMemManagerSIGSEGVHandler(int the_signal,
     msg.opType = OP_UNKNOWN;
 
 #if defined(__x86_64__) || defined(__i386__)
-    ucontext_t* the_ucontext = (ucontext_t* )the_ctxt;
+    ucontext_t* the_ucontext = static_cast<ucontext_t *>(the_ctxt);
     const GByte* rip = (const GByte*)the_ucontext->uc_mcontext.gregs[REG_IP];
     msg.opType = CPLVirtualMemGetOpType(rip);
-    /*fprintfstderr("at rip %p, bytes: %02x %02x %02x %02x\n",
-                          rip, rip[0], rip[1], rip[2], rip[3]);*/
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+    fprintfstderr("at rip %p, bytes: %02x %02x %02x %02x\n",
+                  rip, rip[0], rip[1], rip[2], rip[3]);
+#endif
     if( msg.opType == OP_MOVS_RSI_RDI )
     {
         void* rsi = (void*)the_ucontext->uc_mcontext.gregs[REG_SI];
         void* rdi = (void*)the_ucontext->uc_mcontext.gregs[REG_DI];
 
-        /*fprintfstderr("fault=%p rsi=%p rsi=%p\n", msg.pFaultAddr, rsi, rdi);*/
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+        fprintfstderr("fault=%p rsi=%p rsi=%p\n", msg.pFaultAddr, rsi, rdi);
+#endif
         if( msg.pFaultAddr == rsi )
         {
-            /*fprintfstderr("load\n");*/
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+            fprintfstderr("load\n");
+#endif
             msg.opType = OP_LOAD;
         }
         else if( msg.pFaultAddr == rdi )
         {
-            /*fprintfstderr("store\n");*/
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+            fprintfstderr("store\n");
+#endif
             msg.opType = OP_STORE;
         }
     }
 #ifdef DEBUG_VIRTUALMEM
     else if( msg.opType == OP_UNKNOWN )
     {
-        static int bHasWarned = FALSE;
+        static bool bHasWarned = false;
         if( !bHasWarned )
         {
-            bHasWarned = TRUE;
+            bHasWarned = true;
             fprintfstderr("at rip %p, unknown bytes: %02x %02x %02x %02x\n",
                           rip, rip[0], rip[1], rip[2], rip[3]);
         }
@@ -1714,7 +1666,10 @@ static void CPLVirtualMemManagerSIGSEGVHandler(int the_signal,
 #endif
 #endif
 
-    /*fprintfstderr("entering handler for %X (addr=%p)\n", pthread_self(), the_info->si_addr); */
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+    fprintfstderr("entering handler for %X (addr=%p)\n",
+                  pthread_self(), the_info->si_addr);
+#endif
 
     if( the_info->si_code != SEGV_ACCERR )
     {
@@ -1724,52 +1679,57 @@ static void CPLVirtualMemManagerSIGSEGVHandler(int the_signal,
 
     if( !CPLVirtualMemManagerPinAddrInternal(&msg) )
     {
-        /* In case the helper thread did not recognize the address as being */
-        /* one that it should take care of, just rely on the previous SIGSEGV */
-        /* handler (with might abort the process) */
+        // In case the helper thread did not recognize the address as being
+        // one that it should take care of, just rely on the previous SIGSEGV
+        // handler (with might abort the process).
         pVirtualMemManager->oldact.sa_sigaction(the_signal, the_info, the_ctxt);
     }
 
-    /*fprintfstderr("leaving handler for %X (addr=%p)\n", pthread_self(), the_info->si_addr);*/
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+    fprintfstderr("leaving handler for %X (addr=%p)\n",
+                  pthread_self(), the_info->si_addr);
+#endif
 }
 
 /************************************************************************/
 /*                      CPLVirtualMemManagerThread()                    */
 /************************************************************************/
 
-static void CPLVirtualMemManagerThread(void* unused_param)
+static void CPLVirtualMemManagerThread( void* /* unused_param */ )
 {
-    (void)unused_param;
-
-    while(TRUE)
+    while( true )
     {
         char i_m_ready = 1;
-        int i;
-        CPLVirtualMem* ctxt = NULL;
-        int bMappingFound = FALSE;
+        CPLVirtualMemVMA* ctxt = NULL;
+        bool bMappingFound = false;
         CPLVirtualMemMsgToWorkerThread msg;
 
-        /* Signal that we are ready to process a new request */
-        assert(write(pVirtualMemManager->pipefd_wait_thread[1], &i_m_ready, 1) == 1);
+        // Signal that we are ready to process a new request.
+        ssize_t nRetWrite =
+            write(pVirtualMemManager->pipefd_wait_thread[1], &i_m_ready, 1);
+        IGNORE_OR_ASSERT_IN_DEBUG(nRetWrite == 1);
 
-        /* Fetch the address to process */
-        assert(read(pVirtualMemManager->pipefd_to_thread[0], &msg,
-                    sizeof(msg)) == sizeof(msg));
+        // Fetch the address to process.
+        const ssize_t nRetRead =
+            read(pVirtualMemManager->pipefd_to_thread[0], &msg,
+                 sizeof(msg));
+        IGNORE_OR_ASSERT_IN_DEBUG(nRetRead == sizeof(msg));
 
-        /* If CPLVirtualMemManagerTerminate() is called, it will use BYEBYE_ADDR as a */
-        /* means to ask for our termination */
+        // If CPLVirtualMemManagerTerminate() is called, it will use BYEBYE_ADDR
+        // as a means to ask for our termination.
         if( msg.pFaultAddr == BYEBYE_ADDR )
             break;
 
         /* Lookup for a mapping that contains addr */
         CPLAcquireMutex(hVirtualMemManagerMutex, 1000.0);
-        for(i=0;i<pVirtualMemManager->nVirtualMemCount;i++)
+        for( int i=0; i < pVirtualMemManager->nVirtualMemCount; i++ )
         {
             ctxt = pVirtualMemManager->pasVirtualMem[i];
-            if( (char*)msg.pFaultAddr >= (char*) ctxt->pData &&
-                (char*)msg.pFaultAddr < (char*) ctxt->pData + ctxt->nSize )
+            if( (char*)msg.pFaultAddr >= (char*) ctxt->sBase.pData &&
+                (char*)msg.pFaultAddr <
+                (char*)ctxt->sBase.pData + ctxt->sBase.nSize )
             {
-                bMappingFound = TRUE;
+                bMappingFound = true;
                 break;
             }
         }
@@ -1777,40 +1737,51 @@ static void CPLVirtualMemManagerThread(void* unused_param)
 
         if( bMappingFound )
         {
-            char* start_page_addr = (char*)ALIGN_DOWN(msg.pFaultAddr, ctxt->nPageSize);
-            int iPage = (int)
-                (((char*)start_page_addr - (char*)ctxt->pData) / ctxt->nPageSize);
+            char * const start_page_addr =
+                reinterpret_cast<char*>(
+                    ALIGN_DOWN(msg.pFaultAddr, ctxt->sBase.nPageSize));
+            const int iPage = static_cast<int>(
+                ((char*)start_page_addr -
+                 (char*)ctxt->sBase.pData) / ctxt->sBase.nPageSize);
 
             if( iPage == ctxt->iLastPage )
             {
-                /* In case 2 threads try to access the same page */
-                /* concurrently it is possible that we are asked to mapped */
-                /* the page again whereas it is always mapped. However */
-                /* if that number of successive retries is too high, this */
-                /* is certainly a sign that something else happen, like */
-                /* trying to write-access a read-only page */
-                /* 100 is a bit of magic number. I believe it must be */
-                /* at least the number of concurrent threads. 100 seems */
-                /* to be really safe ! */
-                ctxt->nRetry ++;
-                /* fprintfstderr("retry on page %d : %d\n", (int)iPage, ctxt->nRetry); */
+                // In case 2 threads try to access the same page concurrently it
+                // is possible that we are asked to mapped the page again
+                // whereas it is always mapped. However, if that number of
+                // successive retries is too high, this is certainly a sign that
+                // something else happen, like trying to write-access a
+                // read-only page 100 is a bit of magic number. Rouault believes
+                // it must be at least the number of concurrent threads. 100
+                // seems to be really safe!
+                ctxt->nRetry++;
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+                fprintfstderr("retry on page %d : %d\n",
+                              iPage, ctxt->nRetry);
+#endif
                 if( ctxt->nRetry >= 100 )
                 {
                     CPLError(CE_Failure, CPLE_AppDefined,
                              "CPLVirtualMemManagerThread: trying to "
                              "write into read-only mapping");
-                    assert(write(pVirtualMemManager->pipefd_from_thread[1],
-                                    MAPPING_NOT_FOUND, 4) == 4);
+                    nRetWrite = write(pVirtualMemManager->pipefd_from_thread[1],
+                                    MAPPING_NOT_FOUND, 4);
+                    IGNORE_OR_ASSERT_IN_DEBUG(nRetWrite == 4);
                     break;
                 }
                 else if( msg.opType != OP_LOAD &&
-                         ctxt->eAccessMode == VIRTUALMEM_READWRITE &&
+                         ctxt->sBase.eAccessMode == VIRTUALMEM_READWRITE &&
                          !TEST_BIT(ctxt->pabitRWMappedPages, iPage) )
                 {
-                    /* fprintfstderr("switching page %d to write mode\n", (int)iPage); */
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+                    fprintfstderr("switching page %d to write mode\n",
+                                  iPage);
+#endif
                     SET_BIT(ctxt->pabitRWMappedPages, iPage);
-                    assert(mprotect(start_page_addr, ctxt->nPageSize,
-                                    PROT_READ | PROT_WRITE) == 0);
+                    const int nRet =
+                        mprotect(start_page_addr, ctxt->sBase.nPageSize,
+                                 PROT_READ | PROT_WRITE);
+                    IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
                 }
             }
             else
@@ -1821,58 +1792,70 @@ static void CPLVirtualMemManagerThread(void* unused_param)
                 if( TEST_BIT(ctxt->pabitMappedPages, iPage) )
                 {
                     if( msg.opType != OP_LOAD &&
-                        ctxt->eAccessMode == VIRTUALMEM_READWRITE &&
+                        ctxt->sBase.eAccessMode == VIRTUALMEM_READWRITE &&
                         !TEST_BIT(ctxt->pabitRWMappedPages, iPage) )
                     {
-                        /*fprintfstderr("switching page %d to write mode\n",
-                                iPage);*/
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+                        fprintfstderr("switching page %d to write mode\n",
+                                      iPage);
+#endif
                         SET_BIT(ctxt->pabitRWMappedPages, iPage);
-                        assert(mprotect(start_page_addr, ctxt->nPageSize,
-                                        PROT_READ | PROT_WRITE) == 0);
+                        const int nRet =
+                            mprotect(start_page_addr, ctxt->sBase.nPageSize,
+                                     PROT_READ | PROT_WRITE);
+                        IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
                     }
                     else
                     {
-                        /*fprintfstderr("unexpected case for page %d\n",
-                                iPage);*/
+#if defined DEBUG_VIRTUALMEM && defined DEBUG_VERBOSE
+                        fprintfstderr("unexpected case for page %d\n",
+                                      iPage);
+#endif
                     }
                 }
                 else
                 {
-                    void* pPageToFill;
-                    size_t nToFill;
-                    pPageToFill = CPLVirtualMemGetPageToFill(ctxt, start_page_addr);
+                    void * const pPageToFill =
+                        CPLVirtualMemGetPageToFill(ctxt, start_page_addr);
 
-                    nToFill = ctxt->nPageSize;
-                    if( start_page_addr + nToFill >= (char*) ctxt->pData + ctxt->nSize )
-                        nToFill = (char*) ctxt->pData + ctxt->nSize - start_page_addr;
+                    size_t nToFill = ctxt->sBase.nPageSize;
+                    if( start_page_addr + nToFill >=
+                        (char*) ctxt->sBase.pData + ctxt->sBase.nSize )
+                    {
+                        nToFill =
+                            (char*) ctxt->sBase.pData +
+                            ctxt->sBase.nSize - start_page_addr;
+                    }
 
                     ctxt->pfnCachePage(
-                            ctxt,
-                            start_page_addr - (char*) ctxt->pData,
+                            (CPLVirtualMem*)ctxt,
+                            start_page_addr - (char*) ctxt->sBase.pData,
                             pPageToFill,
                             nToFill,
-                            ctxt->pCbkUserData);
+                            ctxt->sBase.pCbkUserData);
 
-                    /* Now remap this page to its target address and */
-                    /* register it in the LRU */
+                    // Now remap this page to its target address and
+                    // register it in the LRU.
                     CPLVirtualMemAddPage(ctxt, start_page_addr, pPageToFill,
                                       msg.opType, msg.hRequesterThread);
                 }
             }
 
-            /* Warn the segfault handler that we have finished our job */
-            assert(write(pVirtualMemManager->pipefd_from_thread[1],
-                            MAPPING_FOUND, 4) == 4);
+            // Warn the segfault handler that we have finished our job.
+            nRetWrite = write(pVirtualMemManager->pipefd_from_thread[1],
+                            MAPPING_FOUND, 4);
+            IGNORE_OR_ASSERT_IN_DEBUG(nRetWrite == 4);
         }
         else
         {
-            /* Warn the segfault handler that we have finished our job */
-            /* but that the fault didn't occur in a memory range that is under */
-            /* our responsability */
+            // Warn the segfault handler that we have finished our job
+            // but that the fault didn't occur in a memory range that
+            // is under our responsibility.
             CPLError(CE_Failure, CPLE_AppDefined,
                      "CPLVirtualMemManagerThread: no mapping found");
-            assert(write(pVirtualMemManager->pipefd_from_thread[1],
-                         MAPPING_NOT_FOUND, 4) == 4);
+            nRetWrite = write(pVirtualMemManager->pipefd_from_thread[1],
+                         MAPPING_NOT_FOUND, 4);
+            IGNORE_OR_ASSERT_IN_DEBUG(nRetWrite == 4);
         }
     }
 }
@@ -1881,30 +1864,43 @@ static void CPLVirtualMemManagerThread(void* unused_param)
 /*                       CPLVirtualMemManagerInit()                     */
 /************************************************************************/
 
-static void CPLVirtualMemManagerInit(void)
+static bool CPLVirtualMemManagerInit()
 {
     CPLMutexHolderD(&hVirtualMemManagerMutex);
     if( pVirtualMemManager != NULL )
-        return;
+        return true;
 
     struct sigaction act;
-    pVirtualMemManager = (CPLVirtualMemManager*) CPLMalloc(sizeof(CPLVirtualMemManager));
+    pVirtualMemManager = static_cast<CPLVirtualMemManager *>(
+        VSI_MALLOC_VERBOSE(sizeof(CPLVirtualMemManager)) );
+    if( pVirtualMemManager == NULL )
+        return false;
     pVirtualMemManager->pasVirtualMem = NULL;
     pVirtualMemManager->nVirtualMemCount = 0;
-    assert(pipe(pVirtualMemManager->pipefd_to_thread) == 0);
-    assert(pipe(pVirtualMemManager->pipefd_from_thread) == 0);
-    assert(pipe(pVirtualMemManager->pipefd_wait_thread) == 0);
+    int nRet = pipe(pVirtualMemManager->pipefd_to_thread);
+    IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
+    nRet = pipe(pVirtualMemManager->pipefd_from_thread);
+    IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
+    nRet = pipe(pVirtualMemManager->pipefd_wait_thread);
+    IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
 
-    /* Install our custom SIGSEGV handler */
+    // Install our custom SIGSEGV handler.
     act.sa_sigaction = CPLVirtualMemManagerSIGSEGVHandler;
     sigemptyset (&act.sa_mask);
     act.sa_flags = SA_SIGINFO;
-    assert(sigaction(SIGSEGV, &act, &pVirtualMemManager->oldact) == 0);
+    nRet = sigaction(SIGSEGV, &act, &pVirtualMemManager->oldact);
+    IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
 
-    /* Starts the helper thread */
+    // Starts the helper thread.
     pVirtualMemManager->hHelperThread =
             CPLCreateJoinableThread(CPLVirtualMemManagerThread, NULL);
-    assert(pVirtualMemManager->hHelperThread != NULL);
+    if( pVirtualMemManager->hHelperThread == NULL )
+    {
+        VSIFree(pVirtualMemManager);
+        pVirtualMemManager = NULL;
+        return false;
+    }
+    return true;
 }
 
 /************************************************************************/
@@ -1913,29 +1909,33 @@ static void CPLVirtualMemManagerInit(void)
 
 void CPLVirtualMemManagerTerminate(void)
 {
-    char wait_ready;
-    CPLVirtualMemMsgToWorkerThread msg;
-
     if( pVirtualMemManager == NULL )
         return;
 
+    CPLVirtualMemMsgToWorkerThread msg;
     msg.pFaultAddr = BYEBYE_ADDR;
     msg.opType = OP_UNKNOWN;
     memset(&msg.hRequesterThread, 0, sizeof(msg.hRequesterThread));
 
-    /* Wait for the helper thread to be ready */
-    assert(read(pVirtualMemManager->pipefd_wait_thread[0],
-                &wait_ready, 1) == 1);
+    // Wait for the helper thread to be ready.
+    char wait_ready;
+    const ssize_t nRetRead =
+        read(pVirtualMemManager->pipefd_wait_thread[0], &wait_ready, 1);
+    IGNORE_OR_ASSERT_IN_DEBUG(nRetRead == 1);
 
-    /* Ask it to terminate */
-    assert(write(pVirtualMemManager->pipefd_to_thread[1], &msg, sizeof(msg)) == sizeof(msg));
+    // Ask it to terminate.
+    const ssize_t nRetWrite =
+        write(pVirtualMemManager->pipefd_to_thread[1], &msg, sizeof(msg));
+    IGNORE_OR_ASSERT_IN_DEBUG(nRetWrite == sizeof(msg));
 
-    /* Wait for its termination */
+    // Wait for its termination.
     CPLJoinThread(pVirtualMemManager->hHelperThread);
 
-    /* Cleanup everything */
-    while(pVirtualMemManager->nVirtualMemCount > 0)
-        CPLVirtualMemFree(pVirtualMemManager->pasVirtualMem[pVirtualMemManager->nVirtualMemCount - 1]);
+    // Cleanup everything.
+    while( pVirtualMemManager->nVirtualMemCount > 0 )
+        CPLVirtualMemFree(
+            (CPLVirtualMem*)pVirtualMemManager->
+                pasVirtualMem[pVirtualMemManager->nVirtualMemCount - 1]);
     CPLFree(pVirtualMemManager->pasVirtualMem);
 
     close(pVirtualMemManager->pipefd_to_thread[0]);
@@ -1945,7 +1945,7 @@ void CPLVirtualMemManagerTerminate(void)
     close(pVirtualMemManager->pipefd_wait_thread[0]);
     close(pVirtualMemManager->pipefd_wait_thread[1]);
 
-    /* Restore previous handler */
+    // Restore previous handler.
     sigaction(SIGSEGV, &pVirtualMemManager->oldact, NULL);
 
     CPLFree(pVirtualMemManager);
@@ -1955,105 +1955,326 @@ void CPLVirtualMemManagerTerminate(void)
     hVirtualMemManagerMutex = NULL;
 }
 
-#else /* defined(__linux) && defined(CPL_MULTIPROC_PTHREAD) */
+#else  // HAVE_VIRTUAL_MEM_VMA
 
-size_t CPLGetPageSize(void)
-{
-    return 0;
-}
-
-CPLVirtualMem *CPLVirtualMemNew(CPL_UNUSED size_t nSize,
-                                CPL_UNUSED size_t nCacheSize,
-                                CPL_UNUSED size_t nPageSizeHint,
-                                CPL_UNUSED int bSingleThreadUsage,
-                                CPL_UNUSED CPLVirtualMemAccessMode eAccessMode,
-                                CPL_UNUSED CPLVirtualMemCachePageCbk pfnCachePage,
-                                CPL_UNUSED CPLVirtualMemUnCachePageCbk pfnUnCachePage,
-                                CPL_UNUSED CPLVirtualMemFreeUserData pfnFreeUserData,
-                                CPL_UNUSED void *pCbkUserData)
+CPLVirtualMem *CPLVirtualMemNew(
+    size_t /* nSize */,
+    size_t /* nCacheSize */,
+    size_t /* nPageSizeHint */,
+    int /* bSingleThreadUsage */,
+    CPLVirtualMemAccessMode /* eAccessMode */,
+    CPLVirtualMemCachePageCbk /* pfnCachePage */,
+    CPLVirtualMemUnCachePageCbk /* pfnUnCachePage */,
+    CPLVirtualMemFreeUserData /* pfnFreeUserData */,
+    void * /* pCbkUserData */ )
 {
     CPLError(CE_Failure, CPLE_NotSupported,
-             "CPLVirtualMemNew() unsupported on this operating system / configuration");
+             "CPLVirtualMemNew() unsupported on "
+             "this operating system / configuration");
     return NULL;
 }
 
-int CPLIsVirtualMemFileMapAvailable(void)
+void CPLVirtualMemDeclareThread( CPLVirtualMem* /* ctxt */ ) {}
+
+void CPLVirtualMemUnDeclareThread( CPLVirtualMem* /* ctxt */ ) {}
+
+void CPLVirtualMemPin( CPLVirtualMem* /* ctxt */,
+                       void* /* pAddr */,
+                       size_t /* nSize */,
+                       int /* bWriteOp */)
+{}
+
+void CPLVirtualMemManagerTerminate( void ) {}
+
+#endif  // HAVE_VIRTUAL_MEM_VMA
+
+#ifdef HAVE_MMAP
+
+/************************************************************************/
+/*                     CPLVirtualMemFreeFileMemoryMapped()              */
+/************************************************************************/
+
+static void CPLVirtualMemFreeFileMemoryMapped( CPLVirtualMem* ctxt )
 {
-    return FALSE;
+    const size_t nMappingSize =
+        ctxt->nSize + (GByte*)ctxt->pData - (GByte*)ctxt->pDataToFree;
+    const int nRet = munmap(ctxt->pDataToFree, nMappingSize);
+    IGNORE_OR_ASSERT_IN_DEBUG(nRet == 0);
 }
 
-CPLVirtualMem *CPLVirtualMemFileMapNew(CPL_UNUSED VSILFILE* fp,
-                                       CPL_UNUSED vsi_l_offset nOffset,
-                                       CPL_UNUSED vsi_l_offset nLength,
-                                       CPL_UNUSED CPLVirtualMemAccessMode eAccessMode,
-                                       CPL_UNUSED CPLVirtualMemFreeUserData pfnFreeUserData,
-                                       CPL_UNUSED void *pCbkUserData)
+/************************************************************************/
+/*                       CPLVirtualMemFileMapNew()                      */
+/************************************************************************/
+
+CPLVirtualMem *
+CPLVirtualMemFileMapNew( VSILFILE* fp,
+                         vsi_l_offset nOffset,
+                         vsi_l_offset nLength,
+                         CPLVirtualMemAccessMode eAccessMode,
+                         CPLVirtualMemFreeUserData pfnFreeUserData,
+                         void *pCbkUserData )
+{
+#if SIZEOF_VOIDP == 4
+    if( nLength != static_cast<size_t>(nLength) )
+    {
+        CPLError(
+            CE_Failure, CPLE_AppDefined,
+            "nLength = " CPL_FRMT_GUIB " incompatible with 32 bit architecture",
+            nLength);
+        return NULL;
+    }
+    if( nOffset + CPLGetPageSize() !=
+        static_cast<vsi_l_offset>(
+            static_cast<off_t>(nOffset + CPLGetPageSize())) )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                 "nOffset = " CPL_FRMT_GUIB
+                 " incompatible with 32 bit architecture",
+                 nOffset);
+        return NULL;
+    }
+#endif
+
+    int fd = static_cast<int>((GUIntptr_t) VSIFGetNativeFileDescriptorL(fp));
+    if( fd == 0 )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                 "Cannot operate on a virtual file");
+        return NULL;
+    }
+
+    const off_t nAlignedOffset =
+        static_cast<off_t>((nOffset / CPLGetPageSize()) * CPLGetPageSize());
+    size_t nAligment = static_cast<size_t>(nOffset - nAlignedOffset);
+    size_t nMappingSize = static_cast<size_t>(nLength + nAligment);
+
+    // Need to ensure that the requested extent fits into the file size
+    // otherwise SIGBUS errors will occur when using the mapping.
+    vsi_l_offset nCurPos = VSIFTellL(fp);
+    if( VSIFSeekL(fp, 0, SEEK_END) != 0 )
+        return NULL;
+    vsi_l_offset nFileSize = VSIFTellL(fp);
+    if( nFileSize < nOffset + nLength )
+    {
+        if( eAccessMode != VIRTUALMEM_READWRITE )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Trying to map an extent outside of the file");
+            CPL_IGNORE_RET_VAL(VSIFSeekL(fp, nCurPos, SEEK_SET));
+            return NULL;
+        }
+        else
+        {
+            char ch = 0;
+            if( VSIFSeekL(fp, nOffset + nLength - 1, SEEK_SET) != 0 ||
+                VSIFWriteL(&ch, 1, 1, fp) != 1 )
+            {
+                CPLError(CE_Failure, CPLE_AppDefined,
+                         "Cannot extend file to mapping size");
+                CPL_IGNORE_RET_VAL(VSIFSeekL(fp, nCurPos, SEEK_SET));
+                return NULL;
+            }
+        }
+    }
+    if( VSIFSeekL(fp, nCurPos, SEEK_SET) != 0 )
+        return NULL;
+
+    CPLVirtualMem* ctxt = static_cast<CPLVirtualMem *>(
+        VSI_CALLOC_VERBOSE(1, sizeof(CPLVirtualMem)));
+    if( ctxt == NULL )
+        return NULL;
+
+    void* addr = mmap(NULL, nMappingSize,
+                      eAccessMode == VIRTUALMEM_READWRITE
+                      ? PROT_READ | PROT_WRITE : PROT_READ,
+                      MAP_SHARED, fd, nAlignedOffset);
+    if( addr == MAP_FAILED )
+    {
+        int myerrno = errno;
+        CPLError(CE_Failure, CPLE_AppDefined,
+                 "mmap() failed : %s", strerror(myerrno));
+        VSIFree(ctxt);
+        // cppcheck thinks we are leaking addr.
+        // cppcheck-suppress memleak
+        return NULL;
+    }
+
+    ctxt->eType = VIRTUAL_MEM_TYPE_FILE_MEMORY_MAPPED;
+    ctxt->nRefCount = 1;
+    ctxt->eAccessMode = eAccessMode;
+    ctxt->pData = static_cast<GByte *>(addr) + nAligment;
+    ctxt->pDataToFree = addr;
+    ctxt->nSize = static_cast<size_t>(nLength);
+    ctxt->nPageSize = CPLGetPageSize();
+    ctxt->bSingleThreadUsage = false;
+    ctxt->pfnFreeUserData = pfnFreeUserData;
+    ctxt->pCbkUserData = pCbkUserData;
+
+    return ctxt;
+}
+
+#else  // HAVE_MMAP
+
+CPLVirtualMem *CPLVirtualMemFileMapNew(
+    VSILFILE* /* fp */,
+    vsi_l_offset /* nOffset */,
+    vsi_l_offset /* nLength */,
+    CPLVirtualMemAccessMode /* eAccessMode */,
+    CPLVirtualMemFreeUserData /* pfnFreeUserData */,
+    void * /* pCbkUserData */ )
 {
     CPLError(CE_Failure, CPLE_NotSupported,
-             "CPLVirtualMemFileMapNew() unsupported on this operating system / configuration");
+             "CPLVirtualMemFileMapNew() unsupported on this "
+             "operating system / configuration");
     return NULL;
 }
 
-CPLVirtualMem *CPLVirtualMemDerivedNew(CPL_UNUSED CPLVirtualMem* pVMemBase,
-                                       CPL_UNUSED vsi_l_offset nOffset,
-                                       CPL_UNUSED vsi_l_offset nSize,
-                                       CPL_UNUSED CPLVirtualMemFreeUserData pfnFreeUserData,
-                                       CPL_UNUSED void *pCbkUserData)
-{
-    CPLError(CE_Failure, CPLE_NotSupported,
-             "CPLVirtualMemDerivedNew() unsupported on this operating system / configuration");
-    return NULL;
-}
+#endif  // HAVE_MMAP
 
-void CPLVirtualMemFree(CPL_UNUSED CPLVirtualMem* ctxt)
-{
-}
+/************************************************************************/
+/*                         CPLGetPageSize()                             */
+/************************************************************************/
 
-void* CPLVirtualMemGetAddr(CPL_UNUSED CPLVirtualMem* ctxt)
+size_t CPLGetPageSize( void )
 {
-    return NULL;
-}
-
-size_t CPLVirtualMemGetSize(CPL_UNUSED CPLVirtualMem* ctxt)
-{
+#if defined(HAVE_MMAP) || defined(HAVE_VIRTUAL_MEM_VMA)
+    return static_cast<size_t>( sysconf(_SC_PAGESIZE) );
+#else
     return 0;
+#endif
 }
 
-int CPLVirtualMemIsFileMapping(CPL_UNUSED CPLVirtualMem* ctxt)
+/************************************************************************/
+/*                   CPLIsVirtualMemFileMapAvailable()                  */
+/************************************************************************/
+
+int CPLIsVirtualMemFileMapAvailable( void )
 {
+#ifdef HAVE_MMAP
+    return TRUE;
+#else
     return FALSE;
+#endif
 }
 
-CPLVirtualMemAccessMode CPLVirtualMemGetAccessMode(CPL_UNUSED CPLVirtualMem* ctxt)
+/************************************************************************/
+/*                        CPLVirtualMemFree()                           */
+/************************************************************************/
+
+void CPLVirtualMemFree( CPLVirtualMem* ctxt )
 {
-    return VIRTUALMEM_READONLY;
+    if( ctxt == NULL || --(ctxt->nRefCount) > 0 )
+        return;
+
+    if( ctxt->pVMemBase != NULL )
+    {
+        CPLVirtualMemFree(ctxt->pVMemBase);
+        if( ctxt->pfnFreeUserData != NULL )
+            ctxt->pfnFreeUserData(ctxt->pCbkUserData);
+        CPLFree(ctxt);
+        return;
+    }
+
+#ifdef HAVE_MMAP
+    if( ctxt->eType == VIRTUAL_MEM_TYPE_FILE_MEMORY_MAPPED )
+        CPLVirtualMemFreeFileMemoryMapped(ctxt);
+#endif
+#ifdef HAVE_VIRTUAL_MEM_VMA
+    if( ctxt->eType == VIRTUAL_MEM_TYPE_VMA )
+      CPLVirtualMemFreeFileMemoryMapped(
+          reinterpret_cast<CPLVirtualMemVMA*>(ctxt));
+#endif
+
+    if( ctxt->pfnFreeUserData != NULL )
+        ctxt->pfnFreeUserData(ctxt->pCbkUserData);
+    CPLFree(ctxt);
 }
 
-size_t CPLVirtualMemGetPageSize(CPL_UNUSED CPLVirtualMem* ctxt)
+/************************************************************************/
+/*                      CPLVirtualMemGetAddr()                          */
+/************************************************************************/
+
+void* CPLVirtualMemGetAddr( CPLVirtualMem* ctxt )
 {
-    return 0;
+    return ctxt->pData;
 }
 
-int CPLVirtualMemIsAccessThreadSafe(CPL_UNUSED CPLVirtualMem* ctxt)
+/************************************************************************/
+/*                     CPLVirtualMemIsFileMapping()                     */
+/************************************************************************/
+
+int CPLVirtualMemIsFileMapping( CPLVirtualMem* ctxt )
 {
-    return FALSE;
+    return ctxt->eType == VIRTUAL_MEM_TYPE_FILE_MEMORY_MAPPED;
 }
 
-void CPLVirtualMemDeclareThread(CPL_UNUSED CPLVirtualMem* ctxt)
+/************************************************************************/
+/*                     CPLVirtualMemGetAccessMode()                     */
+/************************************************************************/
+
+CPLVirtualMemAccessMode CPLVirtualMemGetAccessMode( CPLVirtualMem* ctxt )
 {
+    return ctxt->eAccessMode;
 }
 
-void CPLVirtualMemUnDeclareThread(CPL_UNUSED CPLVirtualMem* ctxt)
+/************************************************************************/
+/*                      CPLVirtualMemGetPageSize()                      */
+/************************************************************************/
+
+size_t CPLVirtualMemGetPageSize( CPLVirtualMem* ctxt )
 {
+    return ctxt->nPageSize;
 }
 
-void CPLVirtualMemPin(CPL_UNUSED CPLVirtualMem* ctxt,
-                      CPL_UNUSED void* pAddr, CPL_UNUSED size_t nSize, CPL_UNUSED int bWriteOp)
+/************************************************************************/
+/*                        CPLVirtualMemGetSize()                        */
+/************************************************************************/
+
+size_t CPLVirtualMemGetSize( CPLVirtualMem* ctxt )
 {
+    return ctxt->nSize;
 }
 
-void CPLVirtualMemManagerTerminate(void)
+/************************************************************************/
+/*                   CPLVirtualMemIsAccessThreadSafe()                  */
+/************************************************************************/
+
+int CPLVirtualMemIsAccessThreadSafe( CPLVirtualMem* ctxt )
 {
+    return !ctxt->bSingleThreadUsage;
 }
 
-#endif /* defined(__linux) && defined(CPL_MULTIPROC_PTHREAD) */
+/************************************************************************/
+/*                       CPLVirtualMemDerivedNew()                      */
+/************************************************************************/
+
+CPLVirtualMem *CPLVirtualMemDerivedNew(
+    CPLVirtualMem* pVMemBase,
+    vsi_l_offset nOffset,
+    vsi_l_offset nSize,
+    CPLVirtualMemFreeUserData pfnFreeUserData,
+    void *pCbkUserData )
+{
+    if( nOffset + nSize > pVMemBase->nSize )
+        return NULL;
+
+    CPLVirtualMem* ctxt = static_cast<CPLVirtualMem *>(
+        VSI_CALLOC_VERBOSE(1, sizeof(CPLVirtualMem)));
+    if( ctxt == NULL )
+        return NULL;
+
+    ctxt->eType = pVMemBase->eType;
+    ctxt->nRefCount = 1;
+    ctxt->pVMemBase = pVMemBase;
+    pVMemBase->nRefCount++;
+    ctxt->eAccessMode = pVMemBase->eAccessMode;
+    ctxt->pData = static_cast<GByte *>(pVMemBase->pData) + nOffset;
+    ctxt->pDataToFree = NULL;
+    ctxt->nSize = static_cast<size_t>(nSize);
+    ctxt->nPageSize = pVMemBase->nPageSize;
+    ctxt->bSingleThreadUsage = CPL_TO_BOOL(pVMemBase->bSingleThreadUsage);
+    ctxt->pfnFreeUserData = pfnFreeUserData;
+    ctxt->pCbkUserData = pCbkUserData;
+
+    return ctxt;
+}

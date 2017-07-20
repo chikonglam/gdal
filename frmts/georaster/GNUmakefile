@@ -9,11 +9,10 @@ endif
 OBJ		=	georaster_dataset.o \
 			georaster_rasterband.o \
 			oci_wrapper.o \
-			georaster_wrapper.o
+			georaster_wrapper.o \
+			cpl_vsil_ocilob.o
 
-CPPFLAGS	:=	$(XTRA_OPT) $(GDAL_INCLUDE) $(OCI_INCLUDE) $(CPPFLAGS) -fPIC
-
-PLUGIN_SO	= gdal_GEOR.so
+CPPFLAGS	:=	$(GDAL_INCLUDE) $(OCI_INCLUDE) $(XTRA_OPT) $(CPPFLAGS) -fPIC
 
 ifneq ($(JPEG_SETTING),no)
 CPPFLAGS	:=	$(CPPFLAGS) -DJPEG_SUPPORTED
@@ -29,6 +28,8 @@ clean:
 	rm -f *.o $(O_OBJ) *.so *.lo
 
 install-obj:	$(O_OBJ:.o=.$(OBJ_EXT))
+
+PLUGIN_SO	= gdal_GEOR.so
 
 plugin: $(PLUGIN_SO)
 

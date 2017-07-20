@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogropenfilegdbdriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements Open FileGDB OGR driver.
@@ -29,43 +28,25 @@
 
 #include "ogr_openfilegdb.h"
 
-CPL_CVSID("$Id");
+CPL_CVSID("$Id: ogropenfilegdbdriver.cpp 35911 2016-10-24 15:03:26Z goatbar $");
 
-// g++ -O2 -Wall -Wextra -g -shared -fPIC ogr/ogrsf_frmts/openfilegdb/*.cpp -o ogr_OpenFileGDB.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/mem -Iogr/ogrsf_frmts/openfilegdb -L. -lgdal
+// g++ -O2 -Wall -Wextra -g -shared -fPIC ogr/ogrsf_frmts/openfilegdb/*.cpp
+// -o ogr_OpenFileGDB.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts
+// -Iogr/ogrsf_frmts/mem -Iogr/ogrsf_frmts/openfilegdb -L. -lgdal
 
 extern "C" void RegisterOGROpenFileGDB();
-
-/************************************************************************/
-/*                     ~OGROpenFileGDBDriver()                          */
-/************************************************************************/
-OGROpenFileGDBDriver::~OGROpenFileGDBDriver()
-
-{
-}
-
-/************************************************************************/
-/*                              GetName()                               */
-/************************************************************************/
-
-const char *OGROpenFileGDBDriver::GetName()
-
-{
-    return "OpenFileGDB";
-}
-
-/************************************************************************/
-/*                                Open()                                */
-/************************************************************************/
 
 #define ENDS_WITH(str, strLen, end) \
     (strLen >= strlen(end) && EQUAL(str + strLen - strlen(end), end))
 
-OGRDataSource *OGROpenFileGDBDriver::Open( const char* pszFilename, int bUpdate )
+/************************************************************************/
+/*                         OGROpenFileGDBDriverIdentify()               */
+/************************************************************************/
 
+static GDALIdentifyEnum OGROpenFileGDBDriverIdentifyInternal( GDALOpenInfo* poOpenInfo,
+                                                 const char*& pszFilename )
 {
-    VSIStatBufL stat;
-    if( bUpdate )
-        return NULL;
+    // FUSIL is a fuzzer
 #ifdef FOR_FUSIL
     CPLString osOrigFilename(pszFilename);
 #endif
@@ -75,21 +56,25 @@ OGRDataSource *OGROpenFileGDBDriver::Open( const char* pszFilename, int bUpdate 
     if( ENDS_WITH(pszFilename, nLen, ".gdb") ||
         ENDS_WITH(pszFilename, nLen, ".gdb/") )
     {
-        /* Check that the filename is really a directory, to avoid confusion with */
-        /* Garmin MapSource - gdb format which can be a problem when the */
-        /* driver is loaded as a plugin, and loaded before the GPSBabel driver */
-        /* (http://trac.osgeo.org/osgeo4w/ticket/245) */
-        if( strncmp(pszFilename, "/vsicurl/https://github.com/",
-                    strlen("/vsicurl/https://github.com/")) == 0 ||
-            VSIStatL( pszFilename, &stat ) != 0 || !VSI_ISDIR(stat.st_mode) )
+        // Check that the filename is really a directory, to avoid confusion
+        // with Garmin MapSource - gdb format which can be a problem when the
+        // driver is loaded as a plugin, and loaded before the GPSBabel driver
+        // (http://trac.osgeo.org/osgeo4w/ticket/245)
+        if( STARTS_WITH(pszFilename, "/vsicurl/https://github.com/") ||
+            !poOpenInfo->bStatOK ||
+            !poOpenInfo->bIsDirectory )
         {
-            /* In case we don't manage to list the directory, try to stat one file */
-            if( !(strncmp(pszFilename, "/vsicurl/", strlen("/vsicurl/")) == 0 &&
-                  VSIStatL( CPLFormFilename(pszFilename, "a00000001", "gdbtable"), &stat ) == 0) )
+            // In case we do not manage to list the directory, try to stat one
+            // file.
+            VSIStatBufL stat;
+            if( !(STARTS_WITH(pszFilename, "/vsicurl/") &&
+                  VSIStatL( CPLFormFilename(
+                      pszFilename, "a00000001", "gdbtable"), &stat ) == 0) )
             {
-                return NULL;
+                return GDAL_IDENTIFY_FALSE;
             }
         }
+        return GDAL_IDENTIFY_TRUE;
     }
     /* We also accept zipped GDB */
     else if( ENDS_WITH(pszFilename, nLen, ".gdb.zip") ||
@@ -99,12 +84,12 @@ OGRDataSource *OGROpenFileGDBDriver::Open( const char* pszFilename, int bUpdate 
               (strstr(pszFilename, "_gdb") != NULL ||
                strstr(pszFilename, "_GDB") != NULL)) )
     {
-
+        return GDAL_IDENTIFY_TRUE;
     }
     /* We also accept tables themselves */
     else if( ENDS_WITH(pszFilename, nLen, ".gdbtable") )
     {
-
+        return GDAL_IDENTIFY_TRUE;
     }
 #ifdef FOR_FUSIL
     /* To be able to test fuzzer on any auxiliary files used (indexes, etc.) */
@@ -114,19 +99,70 @@ OGRDataSource *OGROpenFileGDBDriver::Open( const char* pszFilename, int bUpdate 
         pszFilename = CPLFormFilename(CPLGetPath(pszFilename),
                                       CPLGetBasename(pszFilename),
                                       "gdbtable");
+        return GDAL_IDENTIFY_TRUE;
     }
     else if( strlen(CPLGetBasename(CPLGetBasename(pszFilename))) == 9 &&
              CPLGetBasename(CPLGetBasename(pszFilename))[0] == 'a' )
     {
-        pszFilename = CPLFormFilename(CPLGetPath(pszFilename),
-                                      CPLGetBasename(CPLGetBasename(pszFilename)),
-                                      "gdbtable");
+        pszFilename =
+            CPLFormFilename( CPLGetPath(pszFilename),
+                             CPLGetBasename(CPLGetBasename(pszFilename)),
+                             "gdbtable");
+        return GDAL_IDENTIFY_TRUE;
     }
 #endif
+
+#ifdef DEBUG
+    /* For AFL, so that .cur_input is detected as the archive filename */
+    else if( EQUAL(CPLGetFilename(pszFilename), ".cur_input") )
+    {
+        // This file may be recognized or not by this driver,
+        // but there were not enough elements to judge.
+        return GDAL_IDENTIFY_UNKNOWN;
+    }
+#endif
+
+    else if( EQUAL(pszFilename, ".") )
+    {
+        GDALIdentifyEnum eRet = GDAL_IDENTIFY_FALSE;
+        char* pszCurrentDir = CPLGetCurrentDir();
+        if( pszCurrentDir )
+        {
+            const char* pszTmp = pszCurrentDir;
+            eRet = OGROpenFileGDBDriverIdentifyInternal(poOpenInfo, pszTmp);
+            CPLFree(pszCurrentDir);
+        }
+        return eRet;
+    }
+
     else
     {
-        return NULL;
+        return GDAL_IDENTIFY_FALSE;
     }
+}
+
+static int OGROpenFileGDBDriverIdentify( GDALOpenInfo* poOpenInfo )
+{
+    const char* pszFilename = poOpenInfo->pszFilename;
+    return OGROpenFileGDBDriverIdentifyInternal( poOpenInfo, pszFilename );
+}
+
+/************************************************************************/
+/*                                Open()                                */
+/************************************************************************/
+
+static GDALDataset* OGROpenFileGDBDriverOpen( GDALOpenInfo* poOpenInfo )
+
+{
+    if( poOpenInfo->eAccess == GA_Update )
+        return NULL;
+
+    const char* pszFilename = poOpenInfo->pszFilename;
+#ifdef FOR_FUSIL
+    CPLString osOrigFilename(pszFilename);
+#endif
+    if( OGROpenFileGDBDriverIdentifyInternal( poOpenInfo, pszFilename ) == GDAL_IDENTIFY_FALSE )
+        return NULL;
 
 #ifdef FOR_FUSIL
     const char* pszSrcDir = CPLGetConfigOption("FUSIL_SRC_DIR", NULL);
@@ -141,12 +177,28 @@ OGRDataSource *OGROpenFileGDBDriver::Open( const char* pszFilename, int bUpdate 
         {
             if( strcmp(papszFiles[i], CPLGetFilename(osOrigFilename)) != 0 )
             {
-                CPLCopyFile(CPLFormFilename(CPLGetPath(osOrigFilename), papszFiles[i], NULL),
-                            CPLFormFilename(pszSrcDir, papszFiles[i], NULL));
+                CPLCopyFile(
+                    CPLFormFilename(CPLGetPath(osOrigFilename), papszFiles[i],
+                                    NULL),
+                    CPLFormFilename(pszSrcDir, papszFiles[i], NULL) );
             }
         }
         CSLDestroy(papszFiles);
         pszFilename = CPLFormFilename("", osSave.c_str(), NULL);
+    }
+#endif
+
+#ifdef DEBUG
+    /* For AFL, so that .cur_input is detected as the archive filename */
+    if( poOpenInfo->fpL != NULL &&
+        !STARTS_WITH(poOpenInfo->pszFilename, "/vsitar/") &&
+        EQUAL(CPLGetFilename(poOpenInfo->pszFilename), ".cur_input") )
+    {
+        GDALOpenInfo oOpenInfo(
+            (CPLString("/vsitar/") + poOpenInfo->pszFilename).c_str(),
+            poOpenInfo->nOpenFlags );
+        oOpenInfo.papszOpenOptions = poOpenInfo->papszOpenOptions;
+        return OGROpenFileGDBDriverOpen(&oOpenInfo);
     }
 #endif
 
@@ -155,21 +207,9 @@ OGRDataSource *OGROpenFileGDBDriver::Open( const char* pszFilename, int bUpdate 
     {
         return poDS;
     }
-    else
-    {
-        delete poDS;
-        return NULL;
-    }
-}
 
-/***********************************************************************/
-/*                         TestCapability()                            */
-/***********************************************************************/
-
-int OGROpenFileGDBDriver::TestCapability( const char * pszCap )
-{
-    (void)pszCap;
-    return FALSE;
+    delete poDS;
+    return NULL;
 }
 
 /***********************************************************************/
@@ -179,7 +219,23 @@ int OGROpenFileGDBDriver::TestCapability( const char * pszCap )
 void RegisterOGROpenFileGDB()
 
 {
-    if (! GDAL_CHECK_VERSION("OGR OpenFileGDB"))
+    if( !GDAL_CHECK_VERSION("OGR OpenFileGDB") )
         return;
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGROpenFileGDBDriver );
+
+    if( GDALGetDriverByName( "OpenFileGDB" ) != NULL )
+        return;
+
+    GDALDriver *poDriver = new GDALDriver();
+
+    poDriver->SetDescription( "OpenFileGDB" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VECTOR, "YES" );
+    poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, "ESRI FileGDB" );
+    poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "gdb" );
+    poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_openfilegdb.html" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+
+    poDriver->pfnOpen = OGROpenFileGDBDriverOpen;
+    poDriver->pfnIdentify = OGROpenFileGDBDriverIdentify;
+
+    GetGDALDriverManager()->RegisterDriver( poDriver );
 }

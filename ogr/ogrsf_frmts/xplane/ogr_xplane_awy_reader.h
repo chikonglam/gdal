@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_xplane_awy_reader.cpp
+ * $Id: ogr_xplane_awy_reader.cpp$
  *
  * Project:  X-Plane awy.dat file reader header
  * Purpose:  Definition of classes for X-Plane awy.dat file reader
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_XPLANE_AWY_READER_H_INCLUDED
-#define _OGR_XPLANE_AWY_READER_H_INCLUDED
+#ifndef OGR_XPLANE_AWY_READER_H_INCLUDED
+#define OGR_XPLANE_AWY_READER_H_INCLUDED
 
 #include "ogr_xplane.h"
 #include "ogr_xplane_reader.h"
@@ -38,7 +38,6 @@
 /************************************************************************/
 /*                   OGRXPlaneAirwaySegmentLayer                        */
 /************************************************************************/
-
 
 class OGRXPlaneAirwaySegmentLayer : public OGRXPlaneLayer
 {
@@ -67,13 +66,13 @@ class OGRXPlaneAirwayIntersectionLayer : public OGRXPlaneLayer
 
   public:
                         OGRXPlaneAirwayIntersectionLayer();
-                        ~OGRXPlaneAirwayIntersectionLayer();
+                        virtual ~OGRXPlaneAirwayIntersectionLayer();
 
     OGRFeature*         AddFeature(const char* pszIntersectionName,
                                    double dfLat,
                                    double dfLon);
 
-    virtual void        ResetReading();
+    virtual void        ResetReading() override;
 };
 
 /************************************************************************/
@@ -91,12 +90,12 @@ class OGRXPlaneAwyReader : public OGRXPlaneReader
         void                     ParseRecord();
 
     protected:
-        virtual void             Read();
+        virtual void             Read() override;
 
     public:
-                                 OGRXPlaneAwyReader( OGRXPlaneDataSource* poDataSource );
-        virtual OGRXPlaneReader* CloneForLayer(OGRXPlaneLayer* poLayer);
-        virtual int              IsRecognizedVersion( const char* pszVersionString);
+        explicit                 OGRXPlaneAwyReader( OGRXPlaneDataSource* poDataSource );
+        virtual OGRXPlaneReader* CloneForLayer(OGRXPlaneLayer* poLayer) override;
+        virtual int              IsRecognizedVersion( const char* pszVersionString) override;
 };
 
 #endif

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shp_vsi.c 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: shp_vsi.c 37091 2017-01-10 17:25:57Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  IO Redirection via VSI services for shp/dbf io.
@@ -31,8 +31,9 @@
 #include "shp_vsi.h"
 #include "cpl_error.h"
 #include "cpl_conv.h"
+#include "cpl_vsi_error.h"
 
-CPL_CVSID("$Id: shp_vsi.c 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: shp_vsi.c 37091 2017-01-10 17:25:57Z rouault $");
 
 typedef struct
 {
@@ -54,6 +55,16 @@ VSILFILE* VSI_SHP_GetVSIL( SAFile file )
 }
 
 /************************************************************************/
+/*                        VSI_SHP_GetFilename()                         */
+/************************************************************************/
+
+const char* VSI_SHP_GetFilename( SAFile file )
+{
+    OGRSHPDBFFile* pFile = (OGRSHPDBFFile*) file;
+    return pFile->pszFilename;
+}
+
+/************************************************************************/
 /*                         VSI_SHP_OpenInternal()                       */
 /************************************************************************/
 
@@ -63,7 +74,7 @@ SAFile VSI_SHP_OpenInternal( const char *pszFilename, const char *pszAccess,
 
 {
     OGRSHPDBFFile* pFile;
-    VSILFILE* fp = VSIFOpenL( pszFilename, pszAccess );
+    VSILFILE* fp = VSIFOpenExL( pszFilename, pszAccess, TRUE );
     if( fp == NULL )
         return NULL;
     pFile = (OGRSHPDBFFile* )CPLCalloc(1,sizeof(OGRSHPDBFFile));
@@ -105,7 +116,7 @@ SAOffset VSI_SHP_Read( void *p, SAOffset size, SAOffset nmemb, SAFile file )
 
 {
     OGRSHPDBFFile* pFile = (OGRSHPDBFFile*) file;
-    SAOffset ret = (SAOffset) VSIFReadL( p, (size_t) size, (size_t) nmemb, 
+    SAOffset ret = (SAOffset) VSIFReadL( p, (size_t) size, (size_t) nmemb,
                                  pFile->fp );
     pFile->nCurOffset += ret * size;
     return ret;
@@ -150,7 +161,7 @@ SAOffset VSI_SHP_Write( void *p, SAOffset size, SAOffset nmemb, SAFile file )
     SAOffset ret;
     if( !VSI_SHP_WriteMoreDataOK( file, size * nmemb ) )
         return 0;
-    ret = (SAOffset) VSIFWriteL( p, (size_t) size, (size_t) nmemb, 
+    ret = (SAOffset) VSIFWriteL( p, (size_t) size, (size_t) nmemb,
                                   pFile->fp );
     pFile->nCurOffset += ret * size;
     return ret;

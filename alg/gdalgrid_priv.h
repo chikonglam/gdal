@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalgrid_priv.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: gdalgrid_priv.h 35087 2016-08-13 21:20:46Z rouault $
  *
  * Project:  GDAL Gridding API.
  * Purpose:  Prototypes, and definitions for of GDAL scattered data gridder.
@@ -27,8 +27,13 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#ifndef GDALGRID_PRIV_H
+#define GDALGRID_PRIV_H
+
 #include "cpl_error.h"
 #include "cpl_quad_tree.h"
+
+//! @cond Doxygen_Suppress
 
 typedef struct
 {
@@ -46,14 +51,33 @@ typedef struct
 {
     CPLQuadTree* hQuadTree;
     double       dfInitialSearchRadius;
-    const float *pafX;
-    const float *pafY;
-    const float *pafZ;
+    float *pafX; // Aligned to be usable with AVX
+    float *pafY;
+    float *pafZ;
+    GDALTriangulation* psTriangulation;
+    int                nInitialFacetIdx;
+    /*! Weighting power divided by 2 (pre-computation). */
+    double  dfPowerDiv2PreComp;
+    /*! The radius of search circle squared (pre-computation). */
+    double  dfRadiusPower2PreComp;
+    /*! The radius of search circle to power 4 (pre-computation). */
+    double  dfRadiusPower4PreComp;
 } GDALGridExtraParameters;
 
-#ifdef HAVE_AVX_AT_COMPILE_TIME
-int CPLHaveRuntimeAVX();
+#ifdef HAVE_SSE_AT_COMPILE_TIME
+CPLErr
+GDALGridInverseDistanceToAPower2NoSmoothingNoSearchSSE(
+                                        const void *poOptions,
+                                        GUInt32 nPoints,
+                                        const double *unused_padfX,
+                                        const double *unused_padfY,
+                                        const double *unused_padfZ,
+                                        double dfXPoint, double dfYPoint,
+                                        double *pdfValue,
+                                        void* hExtraParamsIn );
+#endif
 
+#ifdef HAVE_AVX_AT_COMPILE_TIME
 CPLErr GDALGridInverseDistanceToAPower2NoSmoothingNoSearchAVX(
                                         const void *poOptions,
                                         GUInt32 nPoints,
@@ -65,11 +89,6 @@ CPLErr GDALGridInverseDistanceToAPower2NoSmoothingNoSearchAVX(
                                         void* hExtraParamsIn );
 #endif
 
-#if defined(__GNUC__) 
-#define GCC_CPUID(level, a, b, c, d)            \
-  __asm__ ("xchgl %%ebx, %1\n"                  \
-           "cpuid\n"                            \
-           "xchgl %%ebx, %1"                    \
-       : "=a" (a), "=r" (b), "=c" (c), "=d" (d) \
-       : "0" (level))
-#endif
+//! @endcond
+
+#endif // GDALGRID_PRIV_H

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_wkt_srs.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: gt_wkt_srs.h 34121 2016-04-26 14:24:38Z goatbar $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements translation between GeoTIFF normalized projection
@@ -35,12 +35,21 @@
 
 #include "cpl_port.h"
 
-#include "geotiff.h"
 #include "geo_normalize.h"
+#include "geotiff.h"
 
 CPL_C_START
-char CPL_DLL *  GTIFGetOGISDefn( GTIF *, GTIFDefn * );
-int  CPL_DLL   GTIFSetFromOGISDefn( GTIF *, const char * );
+char CPL_DLL *GTIFGetOGISDefn( GTIF *, GTIFDefn * );
+int  CPL_DLL GTIFSetFromOGISDefn( GTIF *, const char * );
+
+typedef enum
+{
+    GEOTIFF_KEYS_STANDARD,
+    GEOTIFF_KEYS_ESRI_PE
+} GTIFFKeysFlavorEnum;
+
+int GTIFSetFromOGISDefnEx( GTIF *, const char *, GTIFFKeysFlavorEnum );
+
 CPL_C_END
 
 #endif // GT_WKT_SRS_H_INCLUDED

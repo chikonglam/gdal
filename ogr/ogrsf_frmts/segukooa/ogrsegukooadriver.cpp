@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrsegukooadriver.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  SEG-P1 / UKOOA P1-90 Translator
  * Purpose:  Implements OGRSEGUKOOADriver.
@@ -30,39 +29,26 @@
 #include "ogr_segukooa.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrsegukooadriver.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: ogrsegukooadriver.cpp 34819 2016-07-28 22:32:18Z goatbar $");
 
 extern "C" void RegisterOGRSEGUKOOA();
-
-/************************************************************************/
-/*                         ~OGRSEGUKOOADriver()                         */
-/************************************************************************/
-
-OGRSEGUKOOADriver::~OGRSEGUKOOADriver()
-
-{
-}
-
-/************************************************************************/
-/*                              GetName()                               */
-/************************************************************************/
-
-const char *OGRSEGUKOOADriver::GetName()
-
-{
-    return "SEGUKOOA";
-}
 
 /************************************************************************/
 /*                                Open()                                */
 /************************************************************************/
 
-OGRDataSource *OGRSEGUKOOADriver::Open( const char * pszFilename, int bUpdate )
-
+static GDALDataset *OGRSEGUKOOADriverOpen( GDALOpenInfo* poOpenInfo )
 {
+    if( poOpenInfo->eAccess == GA_Update ||
+        poOpenInfo->fpL == NULL ||
+        poOpenInfo->pabyHeader[0] != 'H' )
+    {
+        return NULL;
+    }
+
     OGRSEGUKOOADataSource   *poDS = new OGRSEGUKOOADataSource();
 
-    if( !poDS->Open( pszFilename, bUpdate ) )
+    if( !poDS->Open( poOpenInfo->pszFilename ) )
     {
         delete poDS;
         poDS = NULL;
@@ -72,21 +58,24 @@ OGRDataSource *OGRSEGUKOOADriver::Open( const char * pszFilename, int bUpdate )
 }
 
 /************************************************************************/
-/*                           TestCapability()                           */
-/************************************************************************/
-
-int OGRSEGUKOOADriver::TestCapability( CPL_UNUSED const char * pszCap )
-{
-    return FALSE;
-}
-
-/************************************************************************/
-/*                           RegisterOGRSEGUKOOA()                           */
+/*                           RegisterOGRSEGUKOOA()                       */
 /************************************************************************/
 
 void RegisterOGRSEGUKOOA()
 
 {
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRSEGUKOOADriver );
-}
+    if( GDALGetDriverByName( "SEGUKOOA" ) != NULL )
+        return;
 
+    GDALDriver *poDriver = new GDALDriver();
+
+    poDriver->SetDescription( "SEGUKOOA" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VECTOR, "YES" );
+    poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, "SEG-P1 / UKOOA P1/90" );
+    poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_segukooa.html" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+
+    poDriver->pfnOpen = OGRSEGUKOOADriverOpen;
+
+    GetGDALDriverManager()->RegisterDriver( poDriver );
+}

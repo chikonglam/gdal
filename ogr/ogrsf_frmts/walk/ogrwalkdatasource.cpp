@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrwalkdatasource.cpp
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRWalkDatasource class.
@@ -30,17 +29,17 @@
 #include "ogrwalk.h"
 #include <vector>
 
+CPL_CVSID("$Id: ogrwalkdatasource.cpp 35577 2016-09-30 23:30:37Z goatbar $");
+
 /************************************************************************/
 /*                         OGRWalkDataSource()                          */
 /************************************************************************/
 
-OGRWalkDataSource::OGRWalkDataSource()
-
-{
-    pszName = NULL;
-    papoLayers = NULL;
-    nLayers = 0;
-}
+OGRWalkDataSource::OGRWalkDataSource() :
+    pszName(NULL),
+    papoLayers(NULL),
+    nLayers(0)
+{}
 
 /************************************************************************/
 /*                        ~OGRWalkDataSource()                          */
@@ -49,14 +48,11 @@ OGRWalkDataSource::OGRWalkDataSource()
 OGRWalkDataSource::~OGRWalkDataSource()
 
 {
-    int i;
-
     CPLFree( pszName );
 
-    for( i = 0; i < nLayers; i++ )
+    for( int i = 0; i < nLayers; i++ )
     {
         CPLAssert( NULL != papoLayers[i] );
-
         delete papoLayers[i];
     }
 
@@ -67,23 +63,27 @@ OGRWalkDataSource::~OGRWalkDataSource()
 /*                              Open()                                  */
 /************************************************************************/
 
-int OGRWalkDataSource::Open( const char * pszNewName, int bUpdate )
+int OGRWalkDataSource::Open( const char * pszNewName, int /* bUpdate */ )
 {
 /* -------------------------------------------------------------------- */
 /*      If this is the name of an MDB file, then construct the          */
 /*      appropriate connection string.  Otherwise clip of WALK: to      */
 /*      get the DSN.                                                    */
 /* -------------------------------------------------------------------- */
-    char *pszDSN;
+    char *pszDSN = NULL;
 
-    if( EQUALN(pszNewName,"WALK:",5) )
+    if( STARTS_WITH_CI(pszNewName, "WALK:") )
+    {
         pszDSN = CPLStrdup( pszNewName + 5 );
+    }
     else
     {
         const char *pszDSNStringTemplate = "DRIVER=Microsoft Access Driver (*.mdb);DBQ=%s";
         pszDSN = (char *) CPLMalloc(strlen(pszNewName)+strlen(pszDSNStringTemplate)+100);
 
-        sprintf( pszDSN, pszDSNStringTemplate,  pszNewName );
+        snprintf( pszDSN,
+                  strlen(pszNewName)+strlen(pszDSNStringTemplate)+100,
+                  pszDSNStringTemplate,  pszNewName );
     }
 
 /* -------------------------------------------------------------------- */
@@ -93,7 +93,7 @@ int OGRWalkDataSource::Open( const char * pszNewName, int bUpdate )
 
     if( !oSession.EstablishSession( pszDSN, NULL, NULL ) )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "Unable to initialize ODBC connection to DSN for %s,\n"
                   "%s", pszDSN, oSession.GetLastError() );
         CPLFree( pszDSN );
@@ -103,8 +103,6 @@ int OGRWalkDataSource::Open( const char * pszNewName, int bUpdate )
     CPLFree( pszDSN );
 
     pszName = CPLStrdup( pszNewName );
-
-    bDSUpdate = bUpdate;
 
 /* -------------------------------------------------------------------- */
 /*      Collect list of layers and their attributes.                    */
@@ -116,17 +114,17 @@ int OGRWalkDataSource::Open( const char * pszNewName, int bUpdate )
 
     if( !oStmt.ExecuteSQL() )
     {
-        CPLDebug( "Walk", 
-                  "SELECT on WalkLayers fails, perhaps not a walk database?\n%s", 
+        CPLDebug( "Walk",
+                  "SELECT on WalkLayers fails, perhaps not a walk database?\n%s",
                   oSession.GetLastError() );
         return FALSE;
     }
 
     while( oStmt.Fetch() )
     {
-        int i, iNew = apapszGeomColumns.size();
+        int i, iNew = static_cast<int>(apapszGeomColumns.size());
         char **papszRecord = NULL;
-        
+
         for( i = 1; i < 7; i++ )
             papszRecord = CSLAddString( papszRecord, oStmt.GetColData(i) ); //Add LayerName, Extent and Memo
 
@@ -137,12 +135,10 @@ int OGRWalkDataSource::Open( const char * pszNewName, int bUpdate )
 /* -------------------------------------------------------------------- */
 /*      Create a layer for each spatial table.                          */
 /* -------------------------------------------------------------------- */
-    unsigned int iTable;
-
     papoLayers = (OGRWalkLayer **) CPLCalloc(apapszGeomColumns.size(),
                                              sizeof( void * ));
 
-    for( iTable = 0; iTable < apapszGeomColumns.size(); iTable++ )
+    for( unsigned int iTable = 0; iTable < apapszGeomColumns.size(); iTable++ )
     {
         char **papszRecord = apapszGeomColumns[iTable];
 
@@ -150,10 +146,10 @@ int OGRWalkDataSource::Open( const char * pszNewName, int bUpdate )
 
         if( poLayer->Initialize( papszRecord[0],        // LayerName
                                  "Geometry",            // Geometry Column Name
-                                 atof(papszRecord[1]),  // Extent MinE
-                                 atof(papszRecord[2]),  // Extent MaxE
-                                 atof(papszRecord[3]),  // Extent MinN
-                                 atof(papszRecord[4]),  // Extent MaxN
+                                 CPLAtof(papszRecord[1]),  // Extent MinE
+                                 CPLAtof(papszRecord[2]),  // Extent MaxE
+                                 CPLAtof(papszRecord[3]),  // Extent MinN
+                                 CPLAtof(papszRecord[4]),  // Extent MaxN
                                  papszRecord[5])        // Memo for SpatialRef
             != CE_None )
         {
@@ -194,8 +190,8 @@ OGRLayer * OGRWalkDataSource::ExecuteSQL( const char *pszSQLCommand,
 /*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */
     if( IsGenericSQLDialect(pszDialect) )
-        return OGRDataSource::ExecuteSQL( pszSQLCommand, 
-                                          poSpatialFilter, 
+        return OGRDataSource::ExecuteSQL( pszSQLCommand,
+                                          poSpatialFilter,
                                           pszDialect );
 
 /* -------------------------------------------------------------------- */
@@ -209,8 +205,9 @@ OGRLayer * OGRWalkDataSource::ExecuteSQL( const char *pszSQLCommand,
     poStmt->Append( pszSQLCommand );
     if( !poStmt->ExecuteSQL() )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "%s", oSession.GetLastError() );
+        delete poStmt;
         return NULL;
     }
 
@@ -234,7 +231,7 @@ OGRLayer * OGRWalkDataSource::ExecuteSQL( const char *pszSQLCommand,
 
     if( poSpatialFilter != NULL )
         poLayer->SetSpatialFilter( poSpatialFilter );
-    
+
     return poLayer;
 }
 

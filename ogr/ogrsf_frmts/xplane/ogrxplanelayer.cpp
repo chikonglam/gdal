@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrxplanelayer.cpp
  *
  * Project:  XPlane Translator
  * Purpose:  Implements OGRXPlaneLayer class.
@@ -31,32 +30,29 @@
 #include "ogr_xplane_geo_utils.h"
 #include "ogr_xplane_reader.h"
 
-CPL_CVSID("$Id: ogrxplanelayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrxplanelayer.cpp 35911 2016-10-24 15:03:26Z goatbar $");
 
 /************************************************************************/
 /*                            OGRXPlaneLayer()                          */
 /************************************************************************/
 
-OGRXPlaneLayer::OGRXPlaneLayer( const char* pszLayerName )
-
+OGRXPlaneLayer::OGRXPlaneLayer( const char* pszLayerName ) :
+    nFID(0),
+    nFeatureArraySize(0),
+    nFeatureArrayMaxSize(0),
+    nFeatureArrayIndex(0),
+    papoFeatures(NULL),
+    poSRS(new OGRSpatialReference()),
+    poDS(NULL),
+    poReader(NULL),
+    poFeatureDefn(new OGRFeatureDefn(pszLayerName))
 {
-    nFID = 0;
-    nFeatureArraySize = 0;
-    nFeatureArrayMaxSize = 0;
-    nFeatureArrayIndex = 0;
-    papoFeatures = NULL;
-    poDS = NULL;
-
-    poFeatureDefn = new OGRFeatureDefn( pszLayerName );
+    SetDescription( poFeatureDefn->GetName() );
     poFeatureDefn->Reference();
 
-    poSRS = new OGRSpatialReference();
     poSRS->SetWellKnownGeogCS("WGS84");
     poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
-
-    poReader = NULL;
 }
-
 
 /************************************************************************/
 /*                            ~OGRXPlaneLayer()                            */
@@ -71,7 +67,7 @@ OGRXPlaneLayer::~OGRXPlaneLayer()
 
     for(int i=0;i<nFeatureArraySize;i++)
     {
-        if (papoFeatures[i])
+        if( papoFeatures[i] )
             delete papoFeatures[i];
     }
     nFeatureArraySize = 0;
@@ -79,13 +75,12 @@ OGRXPlaneLayer::~OGRXPlaneLayer()
     CPLFree(papoFeatures);
     papoFeatures = NULL;
 
-    if (poReader)
+    if( poReader )
     {
         delete poReader;
         poReader = NULL;
     }
 }
-
 
 /************************************************************************/
 /*                            ResetReading()                            */
@@ -94,11 +89,11 @@ OGRXPlaneLayer::~OGRXPlaneLayer()
 void OGRXPlaneLayer::ResetReading()
 
 {
-    if (poReader)
+    if( poReader )
     {
         for(int i=0;i<nFeatureArraySize;i++)
         {
-            if (papoFeatures[i])
+            if( papoFeatures[i] )
                 delete papoFeatures[i];
         }
         nFID = 0;
@@ -112,13 +107,13 @@ void OGRXPlaneLayer::ResetReading()
 /*                            SetReader()                               */
 /************************************************************************/
 
-void OGRXPlaneLayer::SetReader(OGRXPlaneReader* poReader)
+void OGRXPlaneLayer::SetReader(OGRXPlaneReader* poReaderIn)
 {
-    if (this->poReader)
+    if( poReader )
     {
-        delete this->poReader;
+        delete poReader;
     }
-    this->poReader = poReader;
+    poReader = poReaderIn;
 }
 
 /************************************************************************/
@@ -127,7 +122,7 @@ void OGRXPlaneLayer::SetReader(OGRXPlaneReader* poReader)
 
 void  OGRXPlaneLayer::AutoAdjustColumnsWidth()
 {
-    if (poReader != NULL)
+    if( poReader != NULL )
     {
         CPLError(CE_Failure, CPLE_NotSupported,
                  "AutoAdjustColumnsWidth() only supported when reading the whole file");
@@ -137,16 +132,17 @@ void  OGRXPlaneLayer::AutoAdjustColumnsWidth()
     for(int col=0;col<poFeatureDefn->GetFieldCount();col++)
     {
         OGRFieldDefn* poFieldDefn = poFeatureDefn->GetFieldDefn(col);
-        if (poFieldDefn->GetWidth() == 0)
+        if( poFieldDefn->GetWidth() == 0 )
         {
-            if (poFieldDefn->GetType() == OFTString ||
-                poFieldDefn->GetType() == OFTInteger)
+            if( poFieldDefn->GetType() == OFTString ||
+                poFieldDefn->GetType() == OFTInteger )
             {
                 int nMaxLen = 0;
-                for(int i=0;i<nFeatureArraySize;i++)
+                for( int i = 0; i < nFeatureArraySize; i++ )
                 {
-                    int nLen = strlen(papoFeatures[i]->GetFieldAsString(col));
-                    if (nLen > nMaxLen)
+                    const int nLen = static_cast<int>(
+                        strlen(papoFeatures[i]->GetFieldAsString(col)));
+                    if( nLen > nMaxLen )
                         nMaxLen = nLen;
                 }
                 poFieldDefn->SetWidth(nMaxLen);
@@ -166,25 +162,24 @@ void  OGRXPlaneLayer::AutoAdjustColumnsWidth()
 
 OGRFeature *OGRXPlaneLayer::GetNextFeature()
 {
-    OGRFeature  *poFeature;
 
-    if (poReader)
+    if( poReader )
     {
-        while(TRUE)
+        while( true )
         {
-            if ( nFeatureArrayIndex == nFeatureArraySize)
+            if( nFeatureArrayIndex == nFeatureArraySize )
             {
                 nFeatureArrayIndex = nFeatureArraySize = 0;
 
-                if (poReader->GetNextFeature() == FALSE)
+                if( !poReader->GetNextFeature() )
                     return NULL;
-                if (nFeatureArraySize == 0)
+                if( nFeatureArraySize == 0 )
                     return NULL;
             }
 
             do
             {
-                poFeature = papoFeatures[nFeatureArrayIndex];
+                OGRFeature *poFeature = papoFeatures[nFeatureArrayIndex];
                 papoFeatures[nFeatureArrayIndex] = NULL;
                 nFeatureArrayIndex++;
 
@@ -205,14 +200,14 @@ OGRFeature *OGRXPlaneLayer::GetNextFeature()
 
     while(nFeatureArrayIndex < nFeatureArraySize)
     {
-        poFeature = papoFeatures[nFeatureArrayIndex ++];
+        OGRFeature *poFeature = papoFeatures[nFeatureArrayIndex ++];
         CPLAssert (poFeature != NULL);
 
         if( (m_poFilterGeom == NULL
               || FilterGeometry( poFeature->GetGeometryRef() ) )
             && (m_poAttrQuery == NULL
                 || m_poAttrQuery->Evaluate( poFeature )) )
-        {   
+        {
                 return poFeature->Clone();
         }
     }
@@ -224,16 +219,16 @@ OGRFeature *OGRXPlaneLayer::GetNextFeature()
 /*                           GetFeature()                               */
 /************************************************************************/
 
-OGRFeature *  OGRXPlaneLayer::GetFeature( long nFID )
+OGRFeature *OGRXPlaneLayer::GetFeature( GIntBig nFIDIn )
 {
-    if (poReader)
-        return OGRLayer::GetFeature(nFID);
+    if( poReader )
+        return OGRLayer::GetFeature(nFIDIn);
     else
         poDS->ReadWholeFileIfNecessary();
 
-    if (nFID >= 0 && nFID < nFeatureArraySize)
+    if(nFIDIn >= 0 && nFIDIn < nFeatureArraySize)
     {
-        return papoFeatures[nFID]->Clone();
+        return papoFeatures[nFIDIn]->Clone();
     }
     else
     {
@@ -245,9 +240,9 @@ OGRFeature *  OGRXPlaneLayer::GetFeature( long nFID )
 /*                      GetFeatureCount()                               */
 /************************************************************************/
 
-int  OGRXPlaneLayer::GetFeatureCount( int bForce )
+GIntBig OGRXPlaneLayer::GetFeatureCount( int bForce )
 {
-    if (poReader == NULL && m_poFilterGeom == NULL && m_poAttrQuery == NULL)
+    if( poReader == NULL && m_poFilterGeom == NULL && m_poAttrQuery == NULL )
     {
         poDS->ReadWholeFileIfNecessary();
         return nFeatureArraySize;
@@ -256,43 +251,43 @@ int  OGRXPlaneLayer::GetFeatureCount( int bForce )
         return OGRLayer::GetFeatureCount( bForce ) ;
 }
 
-
 /************************************************************************/
 /*                           SetNextByIndex()                           */
 /************************************************************************/
 
-OGRErr OGRXPlaneLayer::SetNextByIndex( long nIndex )
+OGRErr OGRXPlaneLayer::SetNextByIndex( GIntBig nIndex )
 {
-    if (poReader == NULL && m_poFilterGeom == NULL && m_poAttrQuery == NULL)
+    if( poReader == NULL && m_poFilterGeom == NULL && m_poAttrQuery == NULL )
     {
         poDS->ReadWholeFileIfNecessary();
-        if (nIndex < 0 || nIndex >= nFeatureArraySize)
+        if( nIndex < 0 || nIndex >= nFeatureArraySize )
             return OGRERR_FAILURE;
 
         nFeatureArrayIndex = (int)nIndex;
         return OGRERR_NONE;
     }
-    else
-        return OGRLayer::SetNextByIndex(nIndex);
+
+    return OGRLayer::SetNextByIndex(nIndex);
 }
 
 /************************************************************************/
 /*                       TestCapability()                               */
 /************************************************************************/
 
-int  OGRXPlaneLayer::TestCapability( const char * pszCap )
+int OGRXPlaneLayer::TestCapability( const char * pszCap )
 {
-    if (EQUAL(pszCap,OLCFastFeatureCount) ||
+    if( EQUAL(pszCap,OLCFastFeatureCount) ||
         EQUAL(pszCap,OLCRandomRead) ||
-        EQUAL(pszCap,OLCFastSetNextByIndex))
+        EQUAL(pszCap,OLCFastSetNextByIndex) )
     {
-        if (poReader == NULL && m_poFilterGeom == NULL && m_poAttrQuery == NULL)
+        if( poReader == NULL &&
+            m_poFilterGeom == NULL &&
+            m_poAttrQuery == NULL )
             return TRUE;
     }
-            
+
     return FALSE;
 }
-
 
 /************************************************************************/
 /*                       RegisterFeature()                              */
@@ -303,10 +298,10 @@ void OGRXPlaneLayer::RegisterFeature( OGRFeature* poFeature )
     CPLAssert (poFeature != NULL);
 
     OGRGeometry* poGeom = poFeature->GetGeometryRef();
-    if (poGeom)
+    if( poGeom )
         poGeom->assignSpatialReference( poSRS );
 
-    if (nFeatureArraySize == nFeatureArrayMaxSize)
+    if( nFeatureArraySize == nFeatureArrayMaxSize )
     {
         nFeatureArrayMaxSize = 2 * nFeatureArrayMaxSize + 1;
         papoFeatures = (OGRFeature**)CPLRealloc(papoFeatures,
@@ -332,7 +327,7 @@ OGRFeatureDefn * OGRXPlaneLayer::GetLayerDefn()
 /*                        SetDataSource()                               */
 /************************************************************************/
 
-void OGRXPlaneLayer::SetDataSource(OGRXPlaneDataSource* poDS)
+void OGRXPlaneLayer::SetDataSource(OGRXPlaneDataSource* poDSIn)
 {
-    this->poDS = poDS;
+    poDS = poDSIn;
 }

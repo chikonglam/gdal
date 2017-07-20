@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_sxf.h  $
+ * $Id: ogr_sxf.h 36501 2016-11-25 14:09:24Z rouault $
  *
  * Project:  SXF Translator
  * Purpose:  Include file defining classes for OGR SXF driver, datasource and layers.
@@ -30,8 +30,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_SXF_H_INCLUDED
-#define _OGR_SXF_H_INCLUDED
+#ifndef OGR_SXF_H_INCLUDED
+#define OGR_SXF_H_INCLUDED
 
 #include <set>
 #include <vector>
@@ -40,7 +40,7 @@
 #include "ogrsf_frmts.h"
 #include "org_sxf_defs.h"
 
-#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
+#define CHECK_BIT(var,pos) (((var) & (1<<(pos))) != 0)
 #define TO_DEGREES 57.2957795130823208766
 #define TO_RADIANS 0.017453292519943295769
 
@@ -51,7 +51,7 @@ class OGRSXFLayer : public OGRLayer
 {
 protected:
     OGRFeatureDefn*    poFeatureDefn;
-	VSILFILE*          fpSXF;
+    VSILFILE*          fpSXF;
     GByte              nLayerID;
     std::map<unsigned, CPLString> mnClassificators;
     std::map<long, vsi_l_offset> mnRecordDesc;
@@ -60,7 +60,7 @@ protected:
     std::set<GUInt16> snAttributeCodes;
     int m_nSXFFormatVer;
     CPLString sFIDColumn_;
-    void            **m_hIOMutex;
+    CPLMutex            **m_hIOMutex;
     double              m_dfCoeff;
     virtual OGRFeature *       GetNextRawFeature(long nFID);
 
@@ -68,34 +68,36 @@ protected:
                          const char *psBuff, GUInt32 nBufLen,
                          double *dfX, double *dfY, double *dfH = NULL);
 
-
     OGRFeature *TranslatePoint(const SXFRecordDescription& certifInfo, const char * psRecordBuf, GUInt32 nBufLen);
     OGRFeature *TranslateText(const SXFRecordDescription& certifInfo, const char * psBuff, GUInt32 nBufLen);
     OGRFeature *TranslatePolygon(const SXFRecordDescription& certifInfo, const char * psBuff, GUInt32 nBufLen);
     OGRFeature *TranslateLine(const SXFRecordDescription& certifInfo, const char * psBuff, GUInt32 nBufLen);
     OGRFeature *TranslateVetorAngle(const SXFRecordDescription& certifInfo, const char * psBuff, GUInt32 nBufLen);
 public:
-    OGRSXFLayer(VSILFILE* fp, void** hIOMutex, GByte nID, const char* pszLayerName, int nVer, const SXFMapDescription&  sxfMapDesc);
-    ~OGRSXFLayer();
+    OGRSXFLayer(VSILFILE* fp, CPLMutex** hIOMutex, GByte nID, const char* pszLayerName, int nVer, const SXFMapDescription&  sxfMapDesc);
+    virtual ~OGRSXFLayer();
 
-	virtual void                ResetReading();
-    virtual OGRFeature         *GetNextFeature();
-    virtual OGRErr              SetNextByIndex(long nIndex);
-    virtual OGRFeature         *GetFeature(long nFID);
-    virtual OGRFeatureDefn     *GetLayerDefn() { return poFeatureDefn;}
+    virtual void                ResetReading() override;
+    virtual OGRFeature         *GetNextFeature() override;
+    virtual OGRErr              SetNextByIndex(GIntBig nIndex) override;
+    virtual OGRFeature         *GetFeature(GIntBig nFID) override;
+    virtual OGRFeatureDefn     *GetLayerDefn() override { return poFeatureDefn;}
 
-    virtual int                 TestCapability( const char * );
+    virtual int                 TestCapability( const char * ) override;
 
-    virtual int         GetFeatureCount(int bForce = TRUE);
-    virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
-    virtual OGRSpatialReference *GetSpatialRef();
-    virtual const char* GetFIDColumn();
+    virtual GIntBig     GetFeatureCount(int bForce = TRUE) override;
+    virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE) override;
+    virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce) override
+                { return OGRLayer::GetExtent(iGeomField, psExtent, bForce); }
+    virtual OGRSpatialReference *GetSpatialRef() override;
+    virtual const char* GetFIDColumn() override;
 
     virtual GByte GetId() const { return nLayerID; };
     virtual void AddClassifyCode(unsigned nClassCode, const char *szName = NULL);
-    virtual int AddRecord(long nFID, unsigned nClassCode, vsi_l_offset nOffset, bool bHasSemantic, int nSemanticsSize);
+    virtual bool AddRecord( long nFID, unsigned nClassCode,
+                            vsi_l_offset nOffset, bool bHasSemantic,
+                            size_t nSemanticsSize );
 };
-
 
 /************************************************************************/
 /*                        OGRSXFDataSource                       */
@@ -110,30 +112,30 @@ class OGRSXFDataSource : public OGRDataSource
     OGRLayer**          papoLayers;
     size_t              nLayers;
 
-    VSILFILE* fpSXF;    
-
-    void FillLayers(void);
+    VSILFILE* fpSXF;
+    CPLMutex  *hIOMutex;
+    void FillLayers();
     void CreateLayers();
     void CreateLayers(VSILFILE* fpRSC);
-    OGRErr ReadSXFInformationFlags(VSILFILE* fpSXF, SXFPassport& passport);
+    static OGRErr ReadSXFInformationFlags(VSILFILE* fpSXF, SXFPassport& passport);
     OGRErr ReadSXFDescription(VSILFILE* fpSXF, SXFPassport& passport);
-    void SetVertCS(const long iVCS, SXFPassport& passport);
-    OGRErr ReadSXFMapDescription(VSILFILE* fpSXF, SXFPassport& passport);
+    static void SetVertCS(const long iVCS, SXFPassport& passport);
+    static OGRErr ReadSXFMapDescription(VSILFILE* fpSXF, SXFPassport& passport);
     OGRSXFLayer*       GetLayerById(GByte);
 public:
                         OGRSXFDataSource();
-                        ~OGRSXFDataSource();
+                        virtual ~OGRSXFDataSource();
 
     int                 Open( const char * pszFilename,
                               int bUpdate );
 
-    virtual const char*     GetName() { return pszName; }
+    virtual const char*     GetName() override { return pszName; }
 
-    virtual int             GetLayerCount() { return nLayers; }
-    virtual OGRLayer*       GetLayer( int );
+    virtual int             GetLayerCount() override { return static_cast<int>(nLayers); }
+    virtual OGRLayer*       GetLayer( int ) override;
 
-    virtual int             TestCapability( const char * );
-    void                    CloseFile(); 
+    virtual int             TestCapability( const char * ) override;
+    void                    CloseFile();
 };
 
 /************************************************************************/
@@ -145,10 +147,10 @@ class OGRSXFDriver : public OGRSFDriver
   public:
                 ~OGRSXFDriver();
 
-    const char*     GetName();
-    OGRDataSource*  Open( const char *, int );
-    OGRErr          DeleteDataSource(const char* pszName);
-    int             TestCapability(const char *);
+    const char*     GetName() override;
+    OGRDataSource*  Open( const char *, int ) override;
+    OGRErr          DeleteDataSource(const char* pszName) override;
+    int             TestCapability(const char *) override;
 };
 
-#endif 
+#endif

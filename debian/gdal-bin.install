@@ -15,8 +15,13 @@ usr/bin/gdal_grid
 usr/bin/gdal_rasterize
 usr/bin/gdal_translate
 # gdal_utilities
+usr/bin/gnmanalyse
+usr/bin/gnmmanage
 usr/bin/nearblack
-usr/bin/ogr*
+usr/bin/ogr2ogr
+usr/bin/ogrinfo
+usr/bin/ogrlineref
+usr/bin/ogrtindex
 usr/bin/testepsg
 usr/share/man/man1/gdaladdo.1
 usr/share/man/man1/gdalbuildvrt.1
@@ -32,9 +37,17 @@ usr/share/man/man1/gdaltransform.1
 usr/share/man/man1/gdalwarp.1
 usr/share/man/man1/gdal_contour.1
 usr/share/man/man1/gdal_grid.1
+usr/share/man/man1/gdal_pansharpen.1
 usr/share/man/man1/gdal_rasterize.1
 usr/share/man/man1/gdal_translate.1
 usr/share/man/man1/gdal_utilities.1
+usr/share/man/man1/gnmanalyse.1
+usr/share/man/man1/gnmmanage.1
+usr/share/man/man1/gnm_utilities.1
 usr/share/man/man1/nearblack.1
-usr/share/man/man1/ogr*.1
+usr/share/man/man1/ogr2ogr.1
+usr/share/man/man1/ogrinfo.1
+usr/share/man/man1/ogrlineref.1
+usr/share/man/man1/ogrtindex.1
+usr/share/man/man1/ogr_utilities.1
 # testepsg.1

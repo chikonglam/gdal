@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrpdsdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  PDS Translator
  * Purpose:  Implements OGRPDSDriver.
@@ -27,42 +26,32 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "ogr_pds.h"
 #include "cpl_conv.h"
+#include "ogr_pds.h"
 
-CPL_CVSID("$Id: ogrpdsdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: ogrpdsdriver.cpp 35911 2016-10-24 15:03:26Z goatbar $");
 
 extern "C" void RegisterOGRPDS();
 
-/************************************************************************/
-/*                            ~OGRPDSDriver()                           */
-/************************************************************************/
-
-OGRPDSDriver::~OGRPDSDriver()
-
-{
-}
-
-/************************************************************************/
-/*                              GetName()                               */
-/************************************************************************/
-
-const char *OGRPDSDriver::GetName()
-
-{
-    return "PDS";
-}
+using namespace OGRPDS;
 
 /************************************************************************/
 /*                                Open()                                */
 /************************************************************************/
 
-OGRDataSource *OGRPDSDriver::Open( const char * pszFilename, int bUpdate )
+static GDALDataset *OGRPDSDriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
-    OGRPDSDataSource   *poDS = new OGRPDSDataSource();
+    if( poOpenInfo->eAccess == GA_Update ||
+        poOpenInfo->fpL == NULL )
+        return NULL;
 
-    if( !poDS->Open( pszFilename, bUpdate ) )
+    if( strstr((const char*)poOpenInfo->pabyHeader, "PDS_VERSION_ID") == NULL )
+        return NULL;
+
+    OGRPDSDataSource *poDS = new OGRPDSDataSource();
+
+    if( !poDS->Open( poOpenInfo->pszFilename ) )
     {
         delete poDS;
         poDS = NULL;
@@ -72,21 +61,25 @@ OGRDataSource *OGRPDSDriver::Open( const char * pszFilename, int bUpdate )
 }
 
 /************************************************************************/
-/*                           TestCapability()                           */
-/************************************************************************/
-
-int OGRPDSDriver::TestCapability( CPL_UNUSED const char * pszCap )
-{
-    return FALSE;
-}
-
-/************************************************************************/
-/*                           RegisterOGRPDS()                      */
+/*                           RegisterOGRPDS()                           */
 /************************************************************************/
 
 void RegisterOGRPDS()
 
 {
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRPDSDriver );
-}
+    if( GDALGetDriverByName( "OGR_PDS" ) != NULL )
+        return;
 
+    GDALDriver *poDriver = new GDALDriver();
+
+    poDriver->SetDescription( "OGR_PDS" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VECTOR, "YES" );
+    poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
+                               "Planetary Data Systems TABLE" );
+    poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_pds.html" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+
+    poDriver->pfnOpen = OGRPDSDriverOpen;
+
+    GetGDALDriverManager()->RegisterDriver( poDriver );
+}

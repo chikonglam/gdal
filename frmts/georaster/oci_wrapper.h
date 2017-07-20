@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: $
  *
  * Name:     oci_wrapper.h
  * Project:  Oracle Spatial GeoRaster Driver
@@ -28,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OCI_WRAPPER_H_INCLUDED
-#define _OCI_WRAPPER_H_INCLUDED
+#ifndef OCI_WRAPPER_H_INCLUDED
+#define OCI_WRAPPER_H_INCLUDED
 
 // GDAL supporting types
 
@@ -56,10 +55,10 @@ struct OW_CellDepth {
 bool CheckError( sword nStatus, OCIError* hError );
 
 /***************************************************************************/
-/*                            Auxiliar functions                           */
+/*                            Auxiliary functions                          */
 /***************************************************************************/
 
-const GDALDataType  OWGetDataType( const char* pszCellDepth );
+GDALDataType        OWGetDataType( const char* pszCellDepth );
 const char*         OWSetDataType( const GDALDataType eType );
 int                 OWParseServerVersion( const char* pszText );
 int                 OWParseEPSG( const char* pszText );
@@ -89,7 +88,7 @@ const char*         OWParseSDO_GEOR_INIT( const char* pszInsert, int nField );
 #define OW_XMLNS        "xmlns=\"http://xmlns.oracle.com/spatial/georaster\""
 
 /***************************************************************************/
-/*                   USER DEFINED (actualy Oracle's) types                 */
+/*                   USER DEFINED (actually Oracle's) types                 */
 /***************************************************************************/
 
 typedef OCIRef SDO_GEORASTER_ref;
@@ -267,6 +266,8 @@ public:
                             const char* pszUserIn,
                             const char* pszPasswordIn,
                             const char* pszServerIn );
+    explicit            OWConnection(
+                            OCIExtProcContext* poWithContext );
     virtual            ~OWConnection();
 
 private:
@@ -283,9 +284,14 @@ private:
 
     bool                bSuceeeded;
 
+    bool                bExtProc;
+
     char*               pszUser;
     char*               pszPassword;
     char*               pszServer;
+
+    char*               pszExtProcUser;
+    char*               pszExtProcSchema;
 
     OCIType*            hNumArrayTDO;
     OCIType*            hGeometryTDO;
@@ -293,6 +299,8 @@ private:
     OCIType*            hPCTDO;
     OCIType*            hElemArrayTDO;
     OCIType*            hOrdnArrayTDO;
+
+    void                QueryVersion();
 
 public:
 
@@ -311,6 +319,8 @@ public:
     void                DestroyType( sdo_geometry** pphData );
     void                CreateType( OCIArray** phData , OCIType* type);
     void                DestroyType( OCIArray** phData );
+    void                DestroyType( OCIType* phType );
+
     OCIType*            DescribeType( const char *pszTypeName );
 
     bool                Succeeded() { return bSuceeeded; };
@@ -330,6 +340,9 @@ public:
     bool                StartTransaction(); //  //OCITransStart()
     bool                EndTransaction() {return Commit(); }
 
+    bool                IsExtProc() { return bExtProc; }
+    char*               GetExtProcUser() { return pszExtProcUser; };
+    char*               GetExtProcSchema() { return pszExtProcSchema; };
 };
 
 /***************************************************************************/
@@ -341,7 +354,7 @@ class OWStatement
 
 public:
 
-                        OWStatement( OWConnection* poConnect, 
+                        OWStatement( OWConnection* poConnect,
                             const char* pszStatement );
     virtual            ~OWStatement();
 
@@ -395,10 +408,14 @@ public:
                             int nCount );
     unsigned long       ReadBlob( OCILobLocator* phLocator,
                             void* pBuffer, int nSize );
+    unsigned long       ReadBlob( OCILobLocator* phLocator,
+                            void* pBuffer, int nOffset, int nSize );
     char*               ReadCLob( OCILobLocator* phLocator );
     void                WriteCLob( OCILobLocator** pphLocator, char* pszData );
     bool                WriteBlob( OCILobLocator* phLocator,
                             void* pBuffer, int nSize );
+    int                 WriteBlob( OCILobLocator* phLocator,
+                            void* pBuffer, int nOffset, int nSize );
     int                 GetElement( OCIArray** ppoData,
                             int nIndex, int* pnResult );
     double              GetElement( OCIArray** ppoData,
@@ -407,6 +424,7 @@ public:
                             int nValue );
     void                AddElement( OCIArray* ppoData,
                             double dfValue );
+    unsigned long       GetBlobLength( OCILobLocator* phLocator );
 };
 
 #endif /* ifndef _ORCL_WRAP_H_INCLUDED */

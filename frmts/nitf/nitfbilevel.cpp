@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: nitfbilevel.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module implement BILEVEL (C1) compressed image reading.
@@ -28,41 +27,49 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "gdal.h"
+#include "cpl_port.h"
 #include "nitflib.h"
-#include "cpl_conv.h"
-#include "cpl_string.h"
-#include "cpl_multiproc.h"
 
+#include <cstring>
+
+#include "cpl_conv.h"
+#include "cpl_multiproc.h"
+#include "cpl_string.h"
+#include "cpl_vsi.h"
+#include "gdal.h"
+// #include "tiff.h"
 CPL_C_START
 #include "tiffio.h"
 CPL_C_END
+#include "tifvsi.h"
 
-TIFF* VSI_TIFFOpen(const char* name, const char* mode);
-
-CPL_CVSID("$Id: nitfbilevel.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: nitfbilevel.cpp 37346 2017-02-11 23:03:44Z goatbar $");
 
 /************************************************************************/
 /*                       NITFUncompressBILEVEL()                        */
 /************************************************************************/
 
-int NITFUncompressBILEVEL( NITFImage *psImage, 
+int NITFUncompressBILEVEL( NITFImage *psImage,
                            GByte *pabyInputData, int nInputBytes,
                            GByte *pabyOutputImage )
 
 {
-    int nOutputBytes= (psImage->nBlockWidth * psImage->nBlockHeight + 7)/8;
-
 /* -------------------------------------------------------------------- */
 /*      Write memory TIFF with the bilevel data.                        */
 /* -------------------------------------------------------------------- */
+    const int nOutputBytes= (psImage->nBlockWidth * psImage->nBlockHeight + 7)/8;
+
     CPLString osFilename;
 
     osFilename.Printf( "/vsimem/nitf-wrk-%ld.tif", (long) CPLGetPID() );
 
-    TIFF *hTIFF = VSI_TIFFOpen( osFilename, "w+" );
+    VSILFILE* fpL = VSIFOpenL(osFilename, "w+");
+    if( fpL == NULL )
+        return FALSE;
+    TIFF *hTIFF = VSI_TIFFOpen( osFilename, "w+", fpL );
     if (hTIFF == NULL)
     {
+        CPL_IGNORE_RET_VAL(VSIFCloseL(fpL));
         return FALSE;
     }
 
@@ -77,7 +84,7 @@ int NITFUncompressBILEVEL( NITFImage *psImage,
     TIFFSetField( hTIFF, TIFFTAG_SAMPLESPERPIXEL, 1 );
     TIFFSetField( hTIFF, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK );
     TIFFSetField( hTIFF, TIFFTAG_COMPRESSION, COMPRESSION_CCITTFAX3 );
-    
+
     if( psImage->szCOMRAT[0] == '2' )
         TIFFSetField( hTIFF, TIFFTAG_GROUP3OPTIONS, GROUP3OPT_2DENCODING );
 
@@ -89,22 +96,23 @@ int NITFUncompressBILEVEL( NITFImage *psImage,
 /* -------------------------------------------------------------------- */
 /*      Now open and read it back.                                      */
 /* -------------------------------------------------------------------- */
-    int bResult = TRUE;
+    bool bResult = true;
 
-    hTIFF = VSI_TIFFOpen( osFilename, "r" );
+    hTIFF = VSI_TIFFOpen( osFilename, "r", fpL );
     if (hTIFF == NULL)
     {
+        CPL_IGNORE_RET_VAL(VSIFCloseL(fpL));
         return FALSE;
     }
-
 
     if( TIFFReadEncodedStrip( hTIFF, 0, pabyOutputImage, nOutputBytes ) == -1 )
     {
         memset( pabyOutputImage, 0, nOutputBytes );
-        bResult = FALSE;
+        bResult = false;
     }
 
     TIFFClose( hTIFF );
+    CPL_IGNORE_RET_VAL(VSIFCloseL(fpL));
 
     VSIUnlink( osFilename );
 

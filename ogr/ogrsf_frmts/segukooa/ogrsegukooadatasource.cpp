@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrsegukooadatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  SEG-P1 / UKOOA P1-90 Translator
  * Purpose:  Implements OGRSEGUKOOADataSource class
@@ -31,20 +30,17 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrsegukooadatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: ogrsegukooadatasource.cpp 35199 2016-08-24 21:14:08Z goatbar $");
 
 /************************************************************************/
 /*                        OGRSEGUKOOADataSource()                       */
 /************************************************************************/
 
-OGRSEGUKOOADataSource::OGRSEGUKOOADataSource()
-
-{
-    papoLayers = NULL;
-    nLayers = 0;
-
-    pszName = NULL;
-}
+OGRSEGUKOOADataSource::OGRSEGUKOOADataSource() :
+    pszName(NULL),
+    papoLayers(NULL),
+    nLayers(0)
+{}
 
 /************************************************************************/
 /*                       ~OGRSEGUKOOADataSource()                       */
@@ -86,23 +82,17 @@ OGRLayer *OGRSEGUKOOADataSource::GetLayer( int iLayer )
 /*                                Open()                                */
 /************************************************************************/
 
-int OGRSEGUKOOADataSource::Open( const char * pszFilename, int bUpdateIn)
+int OGRSEGUKOOADataSource::Open( const char * pszFilename )
 
 {
-    if (bUpdateIn)
-    {
-        return FALSE;
-    }
-
     pszName = CPLStrdup( pszFilename );
 
     VSILFILE* fp = VSIFOpenL(pszFilename, "rb");
     if (fp == NULL)
         return FALSE;
 
-    const char* pszLine;
     CPLPushErrorHandler(CPLQuietErrorHandler);
-    pszLine = CPLReadLine2L(fp,81,NULL);
+    const char* pszLine = CPLReadLine2L(fp,81,NULL);
     CPLPopErrorHandler();
     CPLErrorReset();
 
@@ -117,7 +107,7 @@ int OGRSEGUKOOADataSource::Open( const char * pszFilename, int bUpdateIn)
 //      Does this appear to be a UKOOA P1/90 file?
 // --------------------------------------------------------------------
 
-    if (strncmp(pszLine, "H0100 ", 6) == 0)
+    if (STARTS_WITH(pszLine, "H0100 "))
     {
         VSIFSeekL( fp, 0, SEEK_SET );
 

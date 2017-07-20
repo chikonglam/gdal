@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrpgeodriver.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements Personal Geodatabase driver.
@@ -31,7 +30,7 @@
 #include "ogr_pgeo.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrpgeodriver.cpp 27741 2014-09-26 19:20:02Z goatbar $");
+CPL_CVSID("$Id: ogrpgeodriver.cpp 35911 2016-10-24 15:03:26Z goatbar $");
 
 /************************************************************************/
 /*                            ~OGRODBCDriver()                            */
@@ -60,25 +59,24 @@ OGRDataSource *OGRPGeoDriver::Open( const char * pszFilename,
                                     int bUpdate )
 
 {
-    OGRPGeoDataSource     *poDS;
-
-    if( EQUALN(pszFilename, "WALK:", strlen("WALK:")) )
+    if( STARTS_WITH_CI(pszFilename, "WALK:") )
         return NULL;
 
-    if( EQUALN(pszFilename, "GEOMEDIA:", strlen("GEOMEDIA:")) )
+    if( STARTS_WITH_CI(pszFilename, "GEOMEDIA:") )
         return NULL;
 
-    if( !EQUALN(pszFilename,"PGEO:",5) 
+    if( !STARTS_WITH_CI(pszFilename, "PGEO:")
         && !EQUAL(CPLGetExtension(pszFilename),"mdb") )
         return NULL;
 
-    /* Disabling the attempt to guess if a MDB file is a PGeo database */
-    /* or not. The mention to GDB_GeomColumns might be quite far in the */
-    /* file, which can cause mis-detection. See http://trac.osgeo.org/gdal/ticket/4498 */
-    /* This was initially meant to know if a MDB should be opened by the PGeo or the */
-    /* Geomedia driver. */
+    // Disabling the attempt to guess if a MDB file is a PGeo database
+    // or not. The mention to GDB_GeomColumns might be quite far in
+    // the/ file, which can cause misdetection.  See
+    // http://trac.osgeo.org/gdal/ticket/4498 This was initially meant
+    // to know if a MDB should be opened by the PGeo or the Geomedia
+    // driver.
 #if 0
-    if( !EQUALN(pszFilename,"PGEO:",5) &&
+    if( !STARTS_WITH_CI(pszFilename, "PGEO:") &&
         EQUAL(CPLGetExtension(pszFilename),"mdb") )
     {
         VSILFILE* fp = VSIFOpenL(pszFilename, "rb");
@@ -89,7 +87,9 @@ OGRDataSource *OGRPGeoDriver::Open( const char * pszFilename,
         VSIFCloseL(fp);
 
         /* Look for GDB_GeomColumns table */
-        const GByte pabyNeedle[] = { 'G', 0, 'D', 0, 'B', 0, '_', 0, 'G', 0, 'e', 0, 'o', 0, 'm', 0, 'C', 0, 'o', 0, 'l', 0, 'u', 0, 'm', 0, 'n', 0, 's' };
+        const GByte pabyNeedle[] = {
+            'G', 0, 'D', 0, 'B', 0, '_', 0, 'G', 0, 'e', 0, 'o', 0, 'm', 0,
+            'C', 0, 'o', 0, 'l', 0, 'u', 0, 'm', 0, 'n', 0, 's' };
         int bFound = FALSE;
         for(int i=0;i<100000 - (int)sizeof(pabyNeedle);i++)
         {
@@ -120,7 +120,7 @@ OGRDataSource *OGRPGeoDriver::Open( const char * pszFilename,
     //
     if ( !InstallMdbDriver() )
     {
-        CPLError( CE_Warning, CPLE_AppDefined, 
+        CPLError( CE_Warning, CPLE_AppDefined,
                   "Unable to install MDB driver for ODBC, MDB access may not supported.\n" );
     }
     else
@@ -129,7 +129,7 @@ OGRDataSource *OGRPGeoDriver::Open( const char * pszFilename,
 #endif /* ndef WIN32 */
 
     // Open data source
-    poDS = new OGRPGeoDataSource();
+    OGRPGeoDataSource *poDS = new OGRPGeoDataSource();
 
     if( !poDS->Open( pszFilename, bUpdate, TRUE ) )
     {
@@ -148,7 +148,6 @@ int OGRPGeoDriver::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }
-
 
 /*
  * START OF UNIX-only features.
@@ -183,7 +182,7 @@ bool OGRODBCMDBDriver::InstallMdbDriver()
         // Create installer and register driver
         CPLODBCDriverInstaller dri;
 
-        if ( !dri.InstallDriver(driver.c_str(), 0, ODBC_INSTALL_COMPLETE) )
+        if ( !dri.InstallDriver(driver.c_str(), NULL, ODBC_INSTALL_COMPLETE) )
         {
             // Report ODBC error
             CPLError( CE_Failure, CPLE_AppDefined, "ODBC: %s", dri.GetLastError() );
@@ -206,7 +205,7 @@ bool OGRODBCMDBDriver::FindDriverLib()
         "libmdbodbc.so.0" /* for Ubuntu 8.04 support */
     };
     const int nLibNames = sizeof(aszDefaultLibName) / sizeof(aszDefaultLibName[0]);
-    const char* libPath[] = { 
+    const char* libPath[] = {
         "/usr/lib",
         "/usr/local/lib"
     };
@@ -222,12 +221,12 @@ bool OGRODBCMDBDriver::FindDriverLib()
 
         VSIStatBuf sStatBuf;
         if ( VSIStat( pszDrvCfg, &sStatBuf ) == 0
-             && VSI_ISDIR( sStatBuf.st_mode ) ) 
+             && VSI_ISDIR( sStatBuf.st_mode ) )
         {
             // Find default library in custom directory
             const char* pszDriverFile = CPLFormFilename( pszDrvCfg, aszDefaultLibName[0], NULL );
-            CPLAssert( 0 != pszDriverFile );
-        
+            CPLAssert( NULL != pszDriverFile );
+
             strLibPath = pszDriverFile;
         }
 
@@ -245,7 +244,7 @@ bool OGRODBCMDBDriver::FindDriverLib()
         for ( int j = 0; j < nLibNames; j++ )
         {
             const char* pszDriverFile = CPLFormFilename( libPath[i], aszDefaultLibName[j], NULL );
-            CPLAssert( 0 != pszDriverFile );
+            CPLAssert( NULL != pszDriverFile );
 
             if ( LibraryExists( pszDriverFile ) )
             {
@@ -267,7 +266,7 @@ bool OGRODBCMDBDriver::FindDriverLib()
 
 bool OGRODBCMDBDriver::LibraryExists(const char* pszLibPath)
 {
-    CPLAssert( 0 != pszLibPath );
+    CPLAssert( NULL != pszLibPath );
 
     VSIStatBuf stb;
 
@@ -294,5 +293,11 @@ bool OGRODBCMDBDriver::LibraryExists(const char* pszLibPath)
 void RegisterOGRPGeo()
 
 {
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRPGeoDriver );
+    OGRSFDriver* poDriver = new OGRPGeoDriver;
+
+    poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, "ESRI Personal GeoDatabase" );
+    poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "mdb" );
+    poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_pgeo.html" );
+
+    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( poDriver );
 }

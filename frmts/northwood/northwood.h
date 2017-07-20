@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: northwood.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: northwood.h 35897 2016-10-24 11:54:24Z goatbar $
  *
  * Project:  GRC/GRD Reader
  * Purpose:  Northwood Technologies Grid format declarations
@@ -38,15 +38,6 @@
 #else
 #include "cpl_vsi.h"
 #endif
-
-#ifndef MAX
-#define MAX(a, b) (a > b ? a : b)
-#endif
-
-#ifndef MIN
-#define MIN(a, b) (a < b ? a : b)
-#endif
-
 
 typedef struct
 {
@@ -97,12 +88,23 @@ typedef struct
     NWT_CLASSIFIED_ITEM **stClassifedItem;    //hack - it could be up to 64K
 } NWT_CLASSIFIED_DICT;
 
+typedef struct {
+    int iBrightness;
+    int iContrast;
+    bool bGreyscale;
+    bool bGrey;
+    bool bColour;
+    bool bTransparent;
+    int iTransColour;
+    int iTranslucency;
+} RASTER_STYLE;
+
 typedef struct
 {
     char szFileName[256];
     VSILFILE *fp;
     float fVersion;
-    unsigned char cFormat;        //0x00 16 bit, 0x01 32 bit, 0x80 8 bit classifed, 0x81 16 bit classified
+    unsigned char cFormat;  // 0x00 16 bit, 0x01 32 bit, 0x80 8 bit classified, 0x81 16 bit classified
     unsigned int nBitsPerPixel;
     unsigned int nXSide;
     unsigned int nYSide;
@@ -130,6 +132,7 @@ typedef struct
     float fHillShadeAngle;
     NWT_CLASSIFIED_DICT *stClassDict;
     NWT_RGB_ROW stRGBRow;
+    RASTER_STYLE style;
 } NWT_GRID;
 
 int nwt_ParseHeader( NWT_GRID * pGrd, char *nwHeader );

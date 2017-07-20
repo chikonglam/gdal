@@ -22,14 +22,6 @@ with bugs or requests about the other ones.
 GDAL symbols and versioning
 ---------------------------
 
-Note that currently GDAL package maintain builtin symbols and a Debian
-specific versioning to fulfill two goals:
-
- - hiding non-GDAL public functions (e.g. all Tiff/GeoTiff symbols when
-   inner copies of the libraries are used).
- - checking possible API breakages from one upstream version to another and 
-   eventually providing a versioned flavor to manage that breakage.
-   
 Facts:
 
  - the C interface is considered stable, but it adds new functions at every
@@ -40,15 +32,12 @@ Facts:
  - both C and C++ APIs coexists in the same library with a unique SONAME (the
    C one).
  - the only official API that should be used by all programs is the C one.
-   At the moment this is generally respected, so forcing a library migration
-   should be considered pointless in general.
+   Programs using the C++ ABI will depend on the virtual ABI package provided
+   by the libgdal package, in addition to the libgdal package itself to track
+   transitions for the C++ ABI breakage when the SONAME doesn't change.
 
 So:
 
- - Use and maintain a versioning script (debian/gdal.symver). The version
-   currently used there is `GDAL_1.8', and it should be maintained from one
-   version to another, until a hack will be required for some specific
-   future release.
  - Use and maintain a single arch-indep C-only symbol file as libgdal*.symbols.common
    and an arch-dep C++ demangled symbol file for each arch. They are expected to 
    change at every new upstream release, but can be used to do general checks

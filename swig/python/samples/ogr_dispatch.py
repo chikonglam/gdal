@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: ogr_dispatch.py 27044 2014-03-16 23:41:27Z rouault $
+# $Id: ogr_dispatch.py 31658 2015-11-20 14:27:51Z goatbar $
 #
 # Project:  GDAL/OGR samples
 # Purpose:  Dispatch features into layers according to the value of some fields
@@ -53,7 +53,7 @@ def Usage():
     print(' -src name: name of the source dataset.')
     print(' -dst name: name of the destination dataset (existing or to be created).')
     print(' -field field: name of a field to use to dispatch features. May also')
-    print('                        be \'OGR_GEOMETRY\'. At least, one occurence needed.')
+    print('                        be \'OGR_GEOMETRY\'. At least, one occurrence needed.')
     print(' -25D_as_2D: for dispatching, consider 2.5D geometries as 2D.')
     print(' -multi_as_single: for dispatching, consider MULTIPOLYGON as POLYGON and')
     print('                   MULTILINESTRING as LINESTRING.')
@@ -288,6 +288,7 @@ def ogr_dispatch(argv, progress = None, progress_arg = None):
     dst_filename = None
     format = "ESRI Shapefile"
     options = Options()
+    lco = []
     dsco = []
     pszWHERE = None
 
@@ -370,7 +371,7 @@ def ogr_dispatch(argv, progress = None, progress_arg = None):
 
     dst_ds = ogr.Open(dst_filename, update = 1)
     if dst_ds is not None:
-        if len(options.dsco) != 0:
+        if len(dsco) != 0:
             print('-dsco should not be specified for an existing datasource')
             return 1
     else:

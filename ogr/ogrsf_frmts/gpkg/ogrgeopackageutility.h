@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id$
+ * $Id: ogrgeopackageutility.h 37806 2017-03-20 14:59:36Z rouault $
  *
  * Project:  GeoPackage Translator
  * Purpose:  Utility header for OGR GeoPackage driver.
@@ -28,53 +28,35 @@
  ****************************************************************************/
 
 #include "ogrsf_frmts.h"
-#include "sqlite3.h"
 
-#ifndef _OGR_GEOPACKAGEUTILITY_H_INCLUDED
-#define _OGR_GEOPACKAGEUTILITY_H_INCLUDED
+#ifndef OGR_GEOPACKAGEUTILITY_H_INCLUDED
+#define OGR_GEOPACKAGEUTILITY_H_INCLUDED
 
-typedef struct 
-{
-    char** papszResult;
-    int nRowCount;
-    int nColCount;
-    char *pszErrMsg;
-    int rc;
-} SQLResult;
-
-typedef struct 
+typedef struct
 {
     OGRBoolean bEmpty;
     OGRBoolean bExtended;
     OGRwkbByteOrder eByteOrder;
     int iSrsId;
-    int iDims;
+    bool bExtentHasXY;
+    bool bExtentHasZ;
+#ifdef notdef
+    bool bExtentHasM;
+#endif
     double MinX, MaxX, MinY, MaxY, MinZ, MaxZ;
-    size_t szHeader;
+#ifdef notdef
+    double MinM, MaxM;
+#endif
+    size_t nHeaderLen;
 } GPkgHeader;
 
+OGRFieldType        GPkgFieldToOGR(const char *pszGpkgType, OGRFieldSubType& eSubType, int& nMaxWidth);
+const char*         GPkgFieldFromOGR(OGRFieldType eType, OGRFieldSubType eSubType, int nMaxWidth);
+OGRwkbGeometryType  GPkgGeometryTypeToWKB(const char *pszGpkgType, bool bHasZ, bool bHasM);
 
-OGRErr              SQLCommand(sqlite3 *poDb, const char * pszSQL);
-int                 SQLGetInteger(sqlite3 * poDb, const char * pszSQL, OGRErr *err);
+GByte*              GPkgGeometryFromOGR(const OGRGeometry *poGeometry, int iSrsId, size_t *pnWkbLen);
+OGRGeometry*        GPkgGeometryToOGR(const GByte *pabyGpkg, size_t nGpkgLen, OGRSpatialReference *poSrs);
 
-OGRErr              SQLResultInit(SQLResult * poResult);
-OGRErr              SQLQuery(sqlite3 *poDb, const char * pszSQL, SQLResult * poResult);
-const char*         SQLResultGetColumn(const SQLResult * poResult, int iColumnNum);
-const char*         SQLResultGetValue(const SQLResult * poResult, int iColumnNum, int iRowNum);
-int                 SQLResultGetValueAsInteger(const SQLResult * poResult, int iColNum, int iRowNum);
-OGRErr              SQLResultFree(SQLResult * poResult);
-
-int                 SQLiteFieldFromOGR(OGRFieldType nType);
-
-OGRFieldType        GPkgFieldToOGR(const char *pszGpkgType);
-const char*         GPkgFieldFromOGR(OGRFieldType nType);
-OGRwkbGeometryType  GPkgGeometryTypeToWKB(const char *pszGpkgType, int bHasZ);
-const char*         GPkgGeometryTypeFromWKB(OGRwkbGeometryType oType);
-
-GByte*              GPkgGeometryFromOGR(const OGRGeometry *poGeometry, int iSrsId, size_t *szWkb);
-OGRGeometry*        GPkgGeometryToOGR(GByte *pabyGpkg, size_t szGpkg, OGRSpatialReference *poSrs);
-OGRErr              GPkgEnvelopeToOGR(GByte *pabyGpkg, size_t szGpkg, OGREnvelope *poEnv);
-
-OGRErr              GPkgHeaderFromWKB(const GByte *pabyGpkg, GPkgHeader *poHeader);
+OGRErr              GPkgHeaderFromWKB(const GByte *pabyGpkg, size_t nGpkgLen, GPkgHeader *poHeader);
 
 #endif

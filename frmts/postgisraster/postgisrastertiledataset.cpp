@@ -5,13 +5,13 @@
  * Author:   Jorge Arevalo, jorge.arevalo@deimos-space.com
  *                          jorgearevalo@libregis.org
  *
- * Last changes: $Id: $
+ * Last changes: $Id: postgisrastertiledataset.cpp 35897 2016-10-24 11:54:24Z goatbar $
  *
  ***********************************************************************
  * Copyright (c) 2013, Jorge Arevalo
  * Copyright (c) 2013, Even Rouault
  *
- * Permission is hereby granted, free of charge, to any person obtaining 
+ * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
  * without limitation the rights to use, copy, modify, merge, publish,
@@ -19,31 +19,33 @@
  * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
  *
- * The above copyright notice and this permission notice shall be 
+ * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
- * NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE 
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ************************************************************************/
 #include "postgisraster.h"
 
+CPL_CVSID("$Id: postgisrastertiledataset.cpp 35897 2016-10-24 11:54:24Z goatbar $");
+
 /************************
  * \brief Constructor
  ************************/
-PostGISRasterTileDataset::PostGISRasterTileDataset(PostGISRasterDataset* poRDS,
-                                                   int nXSize, 
-                                                   int nYSize)
+PostGISRasterTileDataset::PostGISRasterTileDataset( PostGISRasterDataset* poRDSIn,
+                                                    int nXSize,
+                                                    int nYSize ) :
+    poRDS(poRDSIn),
+    pszPKID(NULL)
 {
-    this->poRDS = poRDS;
-    this->pszPKID = NULL;
-    this->nRasterXSize = nXSize;
-    this->nRasterYSize = nYSize;
+    nRasterXSize = nXSize;
+    nRasterYSize = nYSize;
 
     adfGeoTransform[GEOTRSFRM_TOPLEFT_X] = 0;
     adfGeoTransform[GEOTRSFRM_WE_RES] = 1;
@@ -52,7 +54,6 @@ PostGISRasterTileDataset::PostGISRasterTileDataset(PostGISRasterDataset* poRDS,
     adfGeoTransform[GEOTRSFRM_ROTATION_PARAM2] = 0;
     adfGeoTransform[GEOTRSFRM_NS_RES] = 1;
 }
-
 
 /************************
  * \brief Destructor
@@ -91,12 +92,12 @@ void PostGISRasterTileDataset::GetExtent(double* pdfMinX, double* pdfMinY,
     double dfMinX = adfGeoTransform[GEOTRSFRM_TOPLEFT_X];
     double dfMaxY = adfGeoTransform[GEOTRSFRM_TOPLEFT_Y];
 
-    double dfMaxX = adfGeoTransform[GEOTRSFRM_TOPLEFT_X] + 
-            nRasterXSize * adfGeoTransform[GEOTRSFRM_WE_RES] + 
+    double dfMaxX = adfGeoTransform[GEOTRSFRM_TOPLEFT_X] +
+            nRasterXSize * adfGeoTransform[GEOTRSFRM_WE_RES] +
             nRasterYSize * adfGeoTransform[GEOTRSFRM_ROTATION_PARAM1];
-            
-    double dfMinY = adfGeoTransform[GEOTRSFRM_TOPLEFT_Y] + 
-            nRasterXSize * adfGeoTransform[GEOTRSFRM_ROTATION_PARAM2] +  
+
+    double dfMinY = adfGeoTransform[GEOTRSFRM_TOPLEFT_Y] +
+            nRasterXSize * adfGeoTransform[GEOTRSFRM_ROTATION_PARAM2] +
             nRasterYSize * adfGeoTransform[GEOTRSFRM_NS_RES];
 
     // In case yres > 0
@@ -106,7 +107,7 @@ void PostGISRasterTileDataset::GetExtent(double* pdfMinX, double* pdfMinY,
         dfMinY = dfMaxY;
         dfMaxY = dfTemp;
     }
-    
+
     *pdfMinX = dfMinX;
     *pdfMinY = dfMinY;
     *pdfMaxX = dfMaxX;

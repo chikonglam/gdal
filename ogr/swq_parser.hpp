@@ -1,9 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
- * Copyright (c) 2013, Even Rouault <even dot rouault at mines-paris dot org>
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,14 +71,15 @@ extern int swqdebug;
     SWQT_CAST = 280,
     SWQT_UNION = 281,
     SWQT_ALL = 282,
-    SWQT_LOGICAL_START = 283,
-    SWQT_VALUE_START = 284,
-    SWQT_SELECT_START = 285,
-    SWQT_NOT = 286,
-    SWQT_OR = 287,
-    SWQT_AND = 288,
-    SWQT_UMINUS = 289,
-    SWQT_RESERVED_KEYWORD = 290
+    SWQT_LIMIT = 283,
+    SWQT_OFFSET = 284,
+    SWQT_VALUE_START = 285,
+    SWQT_SELECT_START = 286,
+    SWQT_NOT = 287,
+    SWQT_OR = 288,
+    SWQT_AND = 289,
+    SWQT_UMINUS = 290,
+    SWQT_RESERVED_KEYWORD = 291
   };
 #endif
 

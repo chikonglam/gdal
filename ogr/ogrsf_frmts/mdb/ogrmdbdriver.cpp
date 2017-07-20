@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrmdbdriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements Personal Geodatabase driver.
@@ -30,7 +29,7 @@
 #include "ogr_mdb.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrmdbdriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrmdbdriver.cpp 35911 2016-10-24 15:03:26Z goatbar $");
 
 // g++ -fPIC -g -Wall ogr/ogrsf_frmts/mdb/*.cpp -shared -o ogr_MDB.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/mdb -L. -lgdal -I/usr/lib/jvm/java-6-openjdk/include -I/usr/lib/jvm/java-6-openjdk/include/linux  -L/usr/lib/jvm/java-6-openjdk/jre/lib/amd64/server -ljvm
 
@@ -65,13 +64,16 @@ OGRDataSource *OGRMDBDriver::Open( const char * pszFilename,
 {
     OGRMDBDataSource     *poDS;
 
-    if( EQUALN(pszFilename, "PGEO:", strlen("PGEO:")) )
+    if( bUpdate )
         return NULL;
 
-    if( EQUALN(pszFilename, "GEOMEDIA:", strlen("GEOMEDIA:")) )
+    if( STARTS_WITH_CI(pszFilename, "PGEO:") )
         return NULL;
 
-    if( EQUALN(pszFilename, "WALK:", strlen("WALK:")) )
+    if( STARTS_WITH_CI(pszFilename, "GEOMEDIA:") )
+        return NULL;
+
+    if( STARTS_WITH_CI(pszFilename, "WALK:") )
         return NULL;
 
     if( !EQUAL(CPLGetExtension(pszFilename),"mdb") )
@@ -84,7 +86,7 @@ OGRDataSource *OGRMDBDriver::Open( const char * pszFilename,
     // Open data source
     poDS = new OGRMDBDataSource();
 
-    if( !poDS->Open( pszFilename, bUpdate, TRUE ) )
+    if( !poDS->Open( pszFilename ) )
     {
         delete poDS;
         return NULL;
@@ -97,12 +99,11 @@ OGRDataSource *OGRMDBDriver::Open( const char * pszFilename,
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRMDBDriver::TestCapability( const char * pszCap )
+int OGRMDBDriver::TestCapability( CPL_UNUSED const char * pszCap )
 
 {
     return FALSE;
 }
-
 
 /************************************************************************/
 /*                           RegisterOGRMDB()                           */
@@ -111,6 +112,10 @@ int OGRMDBDriver::TestCapability( const char * pszCap )
 void RegisterOGRMDB()
 
 {
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRMDBDriver );
+    OGRSFDriver* poDriver = new OGRMDBDriver;
+    poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
+                               "Access MDB (PGeo and Geomedia capable)" );
+    poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "mdb" );
+    poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_mdb.html" );
+    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( poDriver );
 }
-

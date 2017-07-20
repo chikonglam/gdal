@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: filegdbtable.h 27640 2014-09-06 15:32:09Z rouault $
+ * $Id: filegdbtable.h 37648 2017-03-08 02:32:09Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements reading of FileGDB tables
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _FILEGDBTABLE_H_INCLUDED
-#define _FILEGDBTABLE_H_INCLUDED
+#ifndef FILEGDBTABLE_H_INCLUDED
+#define FILEGDBTABLE_H_INCLUDED
 
 #include "ogr_core.h"
 #include "cpl_vsi.h"
@@ -98,11 +98,13 @@ class FileGDBField
         int               bNullable;
         int               nMaxWidth; /* for string */
 
+        OGRField          sDefault;
+
         FileGDBIndex*     poIndex;
 
     public:
 
-                            FileGDBField(FileGDBTable* poParent);
+        explicit            FileGDBField(FileGDBTable* poParent);
         virtual            ~FileGDBField();
 
         const std::string&  GetName() const { return osName; }
@@ -110,6 +112,7 @@ class FileGDBField
         FileGDBFieldType    GetType() const { return eType; }
         int                 IsNullable() const { return bNullable; }
         int                 GetMaxWidth() const { return nMaxWidth; }
+        const OGRField     *GetDefault() const { return &sDefault; }
 
         int                 HasIndex();
         FileGDBIndex       *GetIndex();
@@ -140,9 +143,10 @@ class FileGDBGeomField: public FileGDBField
         double            dfYMin;
         double            dfXMax;
         double            dfYMax;
+        int               bHas3D;
 
     public:
-                          FileGDBGeomField(FileGDBTable* poParent);
+        explicit          FileGDBGeomField(FileGDBTable* poParent);
         virtual          ~FileGDBGeomField() {}
 
         const std::string& GetWKT() const { return osWKT; }
@@ -167,6 +171,8 @@ class FileGDBGeomField: public FileGDBField
         double             GetMOrigin() const { return dfMOrigin; }
         double             GetMScale() const { return dfMScale; }
         double             GetMTolerance() const { return dfMTolerance; }
+
+        int                Has3D() const { return bHas3D; }
 };
 
 /************************************************************************/
@@ -180,11 +186,10 @@ class FileGDBRasterField: public FileGDBGeomField
         std::string       osRasterColumnName;
 
     public:
-                          FileGDBRasterField(FileGDBTable* poParent) : FileGDBGeomField(poParent) {}
+        explicit          FileGDBRasterField(FileGDBTable* poParentIn) : FileGDBGeomField(poParentIn) {}
         virtual          ~FileGDBRasterField() {}
 
         const std::string& GetRasterColumnName() const { return osRasterColumnName; }
-
 };
 
 /************************************************************************/
@@ -213,6 +218,8 @@ class FileGDBTable
 {
         VSILFILE                   *fpTable;
         VSILFILE                   *fpTableX;
+        vsi_l_offset                nFileSize; /* only read when needed */
+
         std::string                 osFilename;
         std::vector<FileGDBField*>  apoFields;
         std::string                 osObjectIdColName;
@@ -220,19 +227,23 @@ class FileGDBTable
         int                         bHasReadGDBIndexes;
         std::vector<FileGDBIndex*>  apoIndexes;
 
-        GUInt32                     nOffsetFieldDesc;
+        GUIntBig                    nOffsetFieldDesc;
         GUInt32                     nFieldDescLength;
 
         GUInt32                     nTablxOffsetSize;
-        std::vector<vsi_l_offset>   anFeatureOffsets;
+        std::vector<vsi_l_offset>   anFeatureOffsets; /* MSb set marks deleted feature */
 
         GByte*                      pabyTablXBlockMap;
+        int                         nCountBlocksBeforeIBlockIdx; /* optimization */
+        int                         nCountBlocksBeforeIBlockValue; /* optimization */
 
         char                        achGUIDBuffer[32 + 6 + 1];
         int                         nChSaved;
 
         int                         bError;
         int                         nCurRow;
+        int                         bHasDeletedFeaturesListed;
+        int                         bIsDeleted;
         int                         nLastCol;
         GByte*                      pabyIterVals;
         int                         iAccNullable;
@@ -253,11 +264,11 @@ class FileGDBTable
         void                        Init();
 
         GUIntBig                    nFilterXMin, nFilterXMax, nFilterYMin, nFilterYMax;
-        
-        GUInt32                     nOffsetHeaderEnd;
+
+        GUIntBig                    nOffsetHeaderEnd;
 
         int                         ReadTableXHeader();
-        int                         IsLikelyFeatureAtOffset(vsi_l_offset nFileSize,
+        int                         IsLikelyFeatureAtOffset(
                                                 vsi_l_offset nOffset, GUInt32* pnSize,
                                                 int* pbDeletedRecord);
         int                         GuessFeatureLocations();
@@ -267,7 +278,8 @@ class FileGDBTable
                                 FileGDBTable();
                                ~FileGDBTable();
 
-       int                      Open(const char* pszFilename);
+       int                      Open(const char* pszFilename,
+                                     const char* pszLayerName = NULL);
        void                     Close();
 
        const std::string&       GetFilename() const { return osFilename; }
@@ -277,7 +289,9 @@ class FileGDBTable
        int                      GetFieldCount() const { return (int)apoFields.size(); }
        FileGDBField*            GetField(int i) const { return apoFields[i]; }
        int                      GetGeomFieldIdx() const { return iGeomField; }
-       const FileGDBGeomField*  GetGeomField() const { return (iGeomField >= 0) ? (FileGDBGeomField*)apoFields[iGeomField] : NULL; }
+       const FileGDBGeomField*  GetGeomField() const {
+           return (iGeomField >= 0) ?
+               reinterpret_cast<FileGDBGeomField*>(apoFields[iGeomField]) : NULL; }
        const std::string&       GetObjectIdColName() const { return osObjectIdColName; }
 
        int                      GetFieldIdx(const std::string& osName) const;
@@ -287,10 +301,14 @@ class FileGDBTable
 
        vsi_l_offset             GetOffsetInTableForRow(int iRow);
 
+       int                      HasDeletedFeaturesListed() const { return bHasDeletedFeaturesListed; }
+
        /* Next call to SelectRow() or GetFieldValue() invalidates previously returned values */
        int                      SelectRow(int iRow);
+       int                      GetAndSelectNextNonEmptyRow(int iRow);
        int                      HasGotError() const { return bError; }
        int                      GetCurRow() const { return nCurRow; }
+       int                      IsCurRowDeleted() const { return bIsDeleted; }
        const OGRField*          GetFieldValue(int iCol);
 
        int                      GetFeatureExtent(const OGRField* psGeomField,
@@ -374,4 +392,4 @@ int FileGDBDoubleDateToOGRDate(double dfVal, OGRField* psField);
 
 }; /* namespace OpenFileGDB */
 
-#endif /* ndef _FILEGDBTABLE_H_INCLUDED */
+#endif /* ndef FILEGDBTABLE_H_INCLUDED */

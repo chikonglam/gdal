@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jpeg2000_vsil_io.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: jpeg2000_vsil_io.h 35222 2016-08-28 06:06:11Z goatbar $
  *
  * Project:  JPEG-2000
  * Purpose:  Return a stream for a VSIL file
@@ -29,7 +29,7 @@
 
 #ifndef JPEG2000_VSIL_IO_H
 #define JPEG2000_VSIL_IO_H
- 
+
 #include <jasper/jasper.h>
 
 jas_stream_t *JPEG2000_VSIL_fopen(const char *filename, const char *mode);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdfio.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: pdfio.h 38070 2017-04-20 12:02:25Z rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
@@ -32,18 +32,11 @@
 
 #include "cpl_vsi_virtual.h"
 
-
-/* begin of poppler xpdf includes */
-#include <poppler/Object.h>
-#include <poppler/Stream.h>
-/* end of poppler xpdf includes */
-
 /************************************************************************/
 /*                         VSIPDFFileStream                             */
 /************************************************************************/
 
 #define BUFFER_SIZE 1024
-
 
 #ifdef POPPLER_0_23_OR_LATER
 #define getPos_ret_type Goffset
@@ -59,7 +52,6 @@
 #define moveStart_delta_type int
 #endif
 
-
 class VSIPDFFileStream: public BaseStream
 {
     public:
@@ -70,34 +62,47 @@ class VSIPDFFileStream: public BaseStream
         virtual ~VSIPDFFileStream();
 
 #ifdef POPPLER_0_23_OR_LATER
-        virtual BaseStream* copy();
+        virtual BaseStream* copy() override;
 #endif
 
         virtual Stream *   makeSubStream(makeSubStream_offset_type startA, GBool limitedA,
-                                         makeSubStream_offset_type lengthA, Object *dictA);
-        virtual getPos_ret_type      getPos();
-        virtual getStart_ret_type    getStart();
+                                         makeSubStream_offset_type lengthA, Object *dictA) override;
+        virtual getPos_ret_type      getPos() override;
+        virtual getStart_ret_type    getStart() override;
 
-        virtual void       setPos(setPos_offset_type pos, int dir = 0);
-        virtual void       moveStart(moveStart_delta_type delta);
+        virtual void       setPos(setPos_offset_type pos, int dir = 0) override;
+        virtual void       moveStart(moveStart_delta_type delta) override;
 
-        virtual StreamKind getKind();
-        virtual GooString *getFileName();
+        virtual StreamKind getKind() override;
+        virtual GooString *getFileName() override;
 
-        virtual int        getChar();
-        virtual int        getUnfilteredChar ();
-        virtual int        lookChar();
+        virtual int        getChar() override;
+        virtual int        getUnfilteredChar () override;
+        virtual int        lookChar() override;
 
-        virtual void       reset();
-        virtual void       unfilteredReset ();
-        virtual void       close();
+        virtual void       reset() override;
+        virtual void       unfilteredReset () override;
+        virtual void       close() override;
 
     private:
+#ifdef POPPLER_BASE_STREAM_HAS_TWO_ARGS
+        /* getChars/hasGetChars added in poppler 0.15.0
+         * POPPLER_BASE_STREAM_HAS_TWO_ARGS true from poppler 0.16,
+         * This test will be wrong for poppler 0.15 or 0.16,
+         * but will still compile correctly.
+         */
+        virtual GBool hasGetChars() override;
+        virtual int getChars(int nChars, Guchar *buffer) override;
+#else
+        virtual GBool hasGetChars() ;
+        virtual int getChars(int nChars, Guchar *buffer) ;
+#endif
+
         VSIPDFFileStream  *poParent;
         GooString         *poFilename;
         VSILFILE          *f;
         vsi_l_offset       nStart;
-        int                bLimited;
+        GBool              bLimited;
         vsi_l_offset       nLength;
 
         vsi_l_offset       nCurrentPos;
