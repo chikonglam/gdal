@@ -2,6 +2,7 @@ gdal (2.2.2~rc1+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release candidate.
   * Update watch file for 2.2.2 (pre-)releases.
+  * Refresh patches.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 15 Sep 2017 21:03:09 +0200
 
