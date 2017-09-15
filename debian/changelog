@@ -1,3 +1,9 @@
+gdal (2.2.1+dfsg-3) UNRELEASED; urgency=medium
+
+  * Update watch file for 2.2.2 (pre-)releases.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 15 Sep 2017 20:56:45 +0200
+
 gdal (2.2.1+dfsg-2) unstable; urgency=medium
 
   * Add symbols for sh4.
