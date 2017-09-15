@@ -1,4 +1,4 @@
-# $Id: nmake.opt 37968 2017-04-12 07:16:55Z rouault $
+# $Id: nmake.opt 40036 2017-09-08 11:23:21Z rouault $
 #
 # nmake.opt - main configuration file for NMAKE makefiles.
 #
@@ -607,8 +607,10 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 #OPENJPEG_ENABLED = YES
 #OPENJPEG_CFLAGS = -IC:\openjpeg\include
 #OPENJPEG_LIB = C:\openjpeg\lib\openjp2.lib
-# For OpenJpeg >= 2.1, uncomment
+# For OpenJpeg 2.1.x, uncomment
 #OPENJPEG_VERSION = 20100
+# For OpenJpeg 2.2.x, uncomment
+#OPENJPEG_VERSION = 20200
 
 #if using an external zlib uncomment the following lines
 #ZLIB_EXTERNAL_LIB = 1
@@ -619,12 +621,14 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 # Uncomment POPPLER_BASE_STREAM_HAS_TWO_ARGS = YES for Poppler >= 0.16.0
 # Uncomment POPPLER_0_20_OR_LATER = YES for Poppler >= 0.20.0
 # Uncomment POPPLER_0_23_OR_LATER = YES for Poppler >= 0.23.0
+# Uncomment POPPLER_0_58_OR_LATER = YES for Poppler >= 0.58.0
 #POPPLER_ENABLED = YES
 #POPPLER_CFLAGS = -Ie:/kde/include -Ie:/kde/include/poppler
 #POPPLER_HAS_OPTCONTENT = YES
 #POPPLER_BASE_STREAM_HAS_TWO_ARGS = YES
 #POPPLER_0_20_OR_LATER = YES
 #POPPLER_0_23_OR_LATER = YES
+#POPPLER_0_58_OR_LATER = YES
 #POPPLER_LIBS = e:/kde/lib/poppler.lib e:/kde/lib/freetype.lib e:/kde/lib/liblcms-1.lib advapi32.lib gdi32.lib
 
 # Uncomment for PDF support

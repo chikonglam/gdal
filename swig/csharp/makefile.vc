@@ -8,7 +8,7 @@
 #  - Run the VCVARS32.BAT script to initialize the VC++ environment variables
 #  - Start the build with:  nmake /f makefile.vc
 #
-# $Id: makefile.vc 28983 2015-04-23 21:46:56Z tamas $
+# $Id: makefile.vc 39863 2017-08-18 20:27:45Z tamas $
 #
 
 GDAL_ROOT	=	..\..
@@ -119,6 +119,7 @@ samples:
     $(CSC) $(CSDEBUG) /r:gdal_csharp.dll /r:System.Drawing.dll /out:GDALReadDirect.exe apps\GDALReadDirect.cs
     $(CSC) $(CSDEBUG) /r:gdal_csharp.dll /r:System.Drawing.dll /out:GDALAdjustContrast.exe apps\GDALAdjustContrast.cs
     $(CSC) $(CSDEBUG) /r:gdal_csharp.dll /r:System.Drawing.dll /out:GDALDatasetRasterIO.exe apps\GDALDatasetRasterIO.cs
+    $(CSC) $(CSDEBUG) /r:gdal_csharp.dll /r:System.Drawing.dll /out:GDALDatasetRasterIOEx.exe apps\GDALDatasetRasterIOEx.cs
     $(CSC) $(CSDEBUG) /r:gdal_csharp.dll /out:GDALWrite.exe apps\GDALWrite.cs
     $(CSC) $(CSDEBUG) /r:gdal_csharp.dll /out:GDALDatasetWrite.exe apps\GDALDatasetWrite.cs
     $(CSC) $(CSDEBUG) /r:gdal_csharp.dll /out:GDALColorTable.exe apps\GDALColorTable.cs
