@@ -971,15 +971,25 @@ SWIGINTERN OGRErr GDALDatasetShadow_CommitTransaction(GDALDatasetShadow *self){
 SWIGINTERN OGRErr GDALDatasetShadow_RollbackTransaction(GDALDatasetShadow *self){
     return GDALDatasetRollbackTransaction(self);
   }
-SWIGINTERN CPLErr GDALDatasetShadow_ReadRaster(GDALDatasetShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int bandCount,int *bandMap,int pixelSpace,int lineSpace,int bandSpace){
+SWIGINTERN CPLErr GDALDatasetShadow_ReadRaster__SWIG_0(GDALDatasetShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int bandCount,int *bandMap,int pixelSpace,int lineSpace,int bandSpace){
        return GDALDatasetRasterIO( self, GF_Read, xOff, yOff, xSize, ySize,
 		        buffer, buf_xSize, buf_ySize, buf_type, bandCount,
 		        bandMap, pixelSpace, lineSpace, bandSpace);
     }
-SWIGINTERN CPLErr GDALDatasetShadow_WriteRaster(GDALDatasetShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int bandCount,int *bandMap,int pixelSpace,int lineSpace,int bandSpace){
+SWIGINTERN CPLErr GDALDatasetShadow_WriteRaster__SWIG_0(GDALDatasetShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int bandCount,int *bandMap,int pixelSpace,int lineSpace,int bandSpace){
        return GDALDatasetRasterIO( self, GF_Write, xOff, yOff, xSize, ySize,
 		        buffer, buf_xSize, buf_ySize, buf_type, bandCount,
 		        bandMap, pixelSpace, lineSpace, bandSpace);
+    }
+SWIGINTERN CPLErr GDALDatasetShadow_ReadRaster__SWIG_1(GDALDatasetShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int bandCount,int *bandMap,int pixelSpace,int lineSpace,int bandSpace,GDALRasterIOExtraArg *extraArg){
+       return GDALDatasetRasterIOEx( self, GF_Read, xOff, yOff, xSize, ySize,
+		        buffer, buf_xSize, buf_ySize, buf_type, bandCount,
+		        bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
+    }
+SWIGINTERN CPLErr GDALDatasetShadow_WriteRaster__SWIG_1(GDALDatasetShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int bandCount,int *bandMap,int pixelSpace,int lineSpace,int bandSpace,GDALRasterIOExtraArg *extraArg){
+       return GDALDatasetRasterIOEx( self, GF_Write, xOff, yOff, xSize, ySize,
+		        buffer, buf_xSize, buf_ySize, buf_type, bandCount,
+		        bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
     }
 SWIGINTERN GDAL_GCP const *GDALDatasetShadow___GetGCPs(GDALDatasetShadow *self){
       return GDALGetGCPs( self );
@@ -1216,13 +1226,21 @@ SWIGINTERN char **GDALRasterBandShadow_GetCategoryNames(GDALRasterBandShadow *se
 SWIGINTERN CPLErr GDALRasterBandShadow_SetCategoryNames(GDALRasterBandShadow *self,char **papszCategoryNames){
     return GDALSetRasterCategoryNames( self, papszCategoryNames );
   }
-SWIGINTERN CPLErr GDALRasterBandShadow_ReadRaster(GDALRasterBandShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int pixelSpace,int lineSpace){
+SWIGINTERN CPLErr GDALRasterBandShadow_ReadRaster__SWIG_0(GDALRasterBandShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int pixelSpace,int lineSpace){
        return GDALRasterIO( self, GF_Read, xOff, yOff, xSize, ySize,
 		        buffer, buf_xSize, buf_ySize, buf_type, pixelSpace, lineSpace );
     }
-SWIGINTERN CPLErr GDALRasterBandShadow_WriteRaster(GDALRasterBandShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int pixelSpace,int lineSpace){
+SWIGINTERN CPLErr GDALRasterBandShadow_WriteRaster__SWIG_0(GDALRasterBandShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int pixelSpace,int lineSpace){
        return GDALRasterIO( self, GF_Write, xOff, yOff, xSize, ySize,
 		        buffer, buf_xSize, buf_ySize, buf_type, pixelSpace, lineSpace );
+    }
+SWIGINTERN CPLErr GDALRasterBandShadow_ReadRaster__SWIG_1(GDALRasterBandShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int pixelSpace,int lineSpace,GDALRasterIOExtraArg *extraArg){
+       return GDALRasterIOEx( self, GF_Read, xOff, yOff, xSize, ySize,
+		        buffer, buf_xSize, buf_ySize, buf_type, pixelSpace, lineSpace, extraArg );
+    }
+SWIGINTERN CPLErr GDALRasterBandShadow_WriteRaster__SWIG_1(GDALRasterBandShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int pixelSpace,int lineSpace,GDALRasterIOExtraArg *extraArg){
+       return GDALRasterIOEx( self, GF_Write, xOff, yOff, xSize, ySize,
+		        buffer, buf_xSize, buf_ySize, buf_type, pixelSpace, lineSpace, extraArg );
     }
 
 GDALDataType GDALRasterBandShadow_DataType_get( GDALRasterBandShadow *h ) {
@@ -2231,6 +2249,264 @@ SWIGEXPORT void SWIGSTDCALL CSharp_StringListDestroy(void * jarg1) {
   {
     CPLErrorReset();
     StringListDestroy(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_RasterIOExtraArg_nVersion_set(void * jarg1, int jarg2) {
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  int arg2 ;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  arg2 = (int)jarg2; 
+  if (arg1) (arg1)->nVersion = arg2;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_RasterIOExtraArg_nVersion_get(void * jarg1) {
+  int jresult ;
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  int result;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  result = (int) ((arg1)->nVersion);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_RasterIOExtraArg_eResampleAlg_set(void * jarg1, int jarg2) {
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  GDALRIOResampleAlg arg2 ;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  arg2 = (GDALRIOResampleAlg)jarg2; 
+  if (arg1) (arg1)->eResampleAlg = arg2;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_RasterIOExtraArg_eResampleAlg_get(void * jarg1) {
+  int jresult ;
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  GDALRIOResampleAlg result;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  result = (GDALRIOResampleAlg) ((arg1)->eResampleAlg);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_RasterIOExtraArg_pfnProgress_set(void * jarg1, void * jarg2) {
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  GDALProgressFunc arg2 ;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  arg2 = (GDALProgressFunc)jarg2; 
+  if (arg1) (arg1)->pfnProgress = arg2;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_RasterIOExtraArg_pfnProgress_get(void * jarg1) {
+  void * jresult ;
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  GDALProgressFunc result;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  result =  ((arg1)->pfnProgress);
+  jresult = new GDALProgressFunc((const GDALProgressFunc &)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_RasterIOExtraArg_pProgressData_set(void * jarg1, void * jarg2) {
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  void *arg2 = (void *) 0 ;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  arg2 = (void *)jarg2; 
+  if (arg1) (arg1)->pProgressData = arg2;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_RasterIOExtraArg_pProgressData_get(void * jarg1) {
+  void * jresult ;
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  void *result = 0 ;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  result = (void *) ((arg1)->pProgressData);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_RasterIOExtraArg_bFloatingPointWindowValidity_set(void * jarg1, int jarg2) {
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  int arg2 ;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  arg2 = (int)jarg2; 
+  if (arg1) (arg1)->bFloatingPointWindowValidity = arg2;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_RasterIOExtraArg_bFloatingPointWindowValidity_get(void * jarg1) {
+  int jresult ;
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  int result;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  result = (int) ((arg1)->bFloatingPointWindowValidity);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_RasterIOExtraArg_dfXOff_set(void * jarg1, double jarg2) {
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  double arg2 ;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  arg2 = (double)jarg2; 
+  if (arg1) (arg1)->dfXOff = arg2;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_RasterIOExtraArg_dfXOff_get(void * jarg1) {
+  double jresult ;
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  double result;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  result = (double) ((arg1)->dfXOff);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_RasterIOExtraArg_dfYOff_set(void * jarg1, double jarg2) {
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  double arg2 ;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  arg2 = (double)jarg2; 
+  if (arg1) (arg1)->dfYOff = arg2;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_RasterIOExtraArg_dfYOff_get(void * jarg1) {
+  double jresult ;
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  double result;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  result = (double) ((arg1)->dfYOff);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_RasterIOExtraArg_dfXSize_set(void * jarg1, double jarg2) {
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  double arg2 ;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  arg2 = (double)jarg2; 
+  if (arg1) (arg1)->dfXSize = arg2;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_RasterIOExtraArg_dfXSize_get(void * jarg1) {
+  double jresult ;
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  double result;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  result = (double) ((arg1)->dfXSize);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_RasterIOExtraArg_dfYSize_set(void * jarg1, double jarg2) {
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  double arg2 ;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  arg2 = (double)jarg2; 
+  if (arg1) (arg1)->dfYSize = arg2;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_RasterIOExtraArg_dfYSize_get(void * jarg1) {
+  double jresult ;
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  double result;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  result = (double) ((arg1)->dfYSize);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_new_RasterIOExtraArg() {
+  void * jresult ;
+  GDALRasterIOExtraArg *result = 0 ;
+  
+  {
+    CPLErrorReset();
+    result = (GDALRasterIOExtraArg *)new GDALRasterIOExtraArg();
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_delete_RasterIOExtraArg(void * jarg1) {
+  GDALRasterIOExtraArg *arg1 = (GDALRasterIOExtraArg *) 0 ;
+  
+  arg1 = (GDALRasterIOExtraArg *)jarg1; 
+  {
+    CPLErrorReset();
+    delete arg1;
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -7740,7 +8016,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Dataset_RollbackTransaction(void * jarg1) {
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Dataset_ReadRaster(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, void * jarg11, int jarg12, int jarg13, int jarg14) {
+SWIGEXPORT int SWIGSTDCALL CSharp_Dataset_ReadRaster__SWIG_0(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, void * jarg11, int jarg12, int jarg13, int jarg14) {
   int jresult ;
   GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
   int arg2 ;
@@ -7777,7 +8053,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Dataset_ReadRaster(void * jarg1, int jarg2, in
   arg14 = (int)jarg14; 
   {
     CPLErrorReset();
-    result = (CPLErr)GDALDatasetShadow_ReadRaster(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+    result = (CPLErr)GDALDatasetShadow_ReadRaster__SWIG_0(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -7802,7 +8078,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Dataset_ReadRaster(void * jarg1, int jarg2, in
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Dataset_WriteRaster(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, void * jarg11, int jarg12, int jarg13, int jarg14) {
+SWIGEXPORT int SWIGSTDCALL CSharp_Dataset_WriteRaster__SWIG_0(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, void * jarg11, int jarg12, int jarg13, int jarg14) {
   int jresult ;
   GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
   int arg2 ;
@@ -7839,7 +8115,135 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Dataset_WriteRaster(void * jarg1, int jarg2, i
   arg14 = (int)jarg14; 
   {
     CPLErrorReset();
-    result = (CPLErr)GDALDatasetShadow_WriteRaster(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+    result = (CPLErr)GDALDatasetShadow_WriteRaster__SWIG_0(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Dataset_ReadRaster__SWIG_1(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, void * jarg11, int jarg12, int jarg13, int jarg14, void * jarg15) {
+  int jresult ;
+  GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  void *arg6 = (void *) 0 ;
+  int arg7 ;
+  int arg8 ;
+  GDALDataType arg9 ;
+  int arg10 ;
+  int *arg11 = (int *) 0 ;
+  int arg12 ;
+  int arg13 ;
+  int arg14 ;
+  GDALRasterIOExtraArg *arg15 = (GDALRasterIOExtraArg *) 0 ;
+  CPLErr result;
+  
+  arg1 = (GDALDatasetShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  arg5 = (int)jarg5; 
+  arg6 = (void *)jarg6; 
+  arg7 = (int)jarg7; 
+  arg8 = (int)jarg8; 
+  arg9 = (GDALDataType)jarg9; 
+  arg10 = (int)jarg10; 
+  {
+    /* %typemap(in) (int argin[ANY]) */
+    arg11 = (int *)jarg11;
+  }
+  arg12 = (int)jarg12; 
+  arg13 = (int)jarg13; 
+  arg14 = (int)jarg14; 
+  arg15 = (GDALRasterIOExtraArg *)jarg15; 
+  {
+    CPLErrorReset();
+    result = (CPLErr)GDALDatasetShadow_ReadRaster__SWIG_1(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Dataset_WriteRaster__SWIG_1(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, void * jarg11, int jarg12, int jarg13, int jarg14, void * jarg15) {
+  int jresult ;
+  GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  void *arg6 = (void *) 0 ;
+  int arg7 ;
+  int arg8 ;
+  GDALDataType arg9 ;
+  int arg10 ;
+  int *arg11 = (int *) 0 ;
+  int arg12 ;
+  int arg13 ;
+  int arg14 ;
+  GDALRasterIOExtraArg *arg15 = (GDALRasterIOExtraArg *) 0 ;
+  CPLErr result;
+  
+  arg1 = (GDALDatasetShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  arg5 = (int)jarg5; 
+  arg6 = (void *)jarg6; 
+  arg7 = (int)jarg7; 
+  arg8 = (int)jarg8; 
+  arg9 = (GDALDataType)jarg9; 
+  arg10 = (int)jarg10; 
+  {
+    /* %typemap(in) (int argin[ANY]) */
+    arg11 = (int *)jarg11;
+  }
+  arg12 = (int)jarg12; 
+  arg13 = (int)jarg13; 
+  arg14 = (int)jarg14; 
+  arg15 = (GDALRasterIOExtraArg *)jarg15; 
+  {
+    CPLErrorReset();
+    result = (CPLErr)GDALDatasetShadow_WriteRaster__SWIG_1(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -9848,7 +10252,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Band_SetCategoryNames(void * jarg1, void * jar
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Band_ReadRaster(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11) {
+SWIGEXPORT int SWIGSTDCALL CSharp_Band_ReadRaster__SWIG_0(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11) {
   int jresult ;
   GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
   int arg2 ;
@@ -9876,7 +10280,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Band_ReadRaster(void * jarg1, int jarg2, int j
   arg11 = (int)jarg11; 
   {
     CPLErrorReset();
-    result = (CPLErr)GDALRasterBandShadow_ReadRaster(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
+    result = (CPLErr)GDALRasterBandShadow_ReadRaster__SWIG_0(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -9901,7 +10305,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Band_ReadRaster(void * jarg1, int jarg2, int j
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Band_WriteRaster(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11) {
+SWIGEXPORT int SWIGSTDCALL CSharp_Band_WriteRaster__SWIG_0(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11) {
   int jresult ;
   GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
   int arg2 ;
@@ -9929,7 +10333,117 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Band_WriteRaster(void * jarg1, int jarg2, int 
   arg11 = (int)jarg11; 
   {
     CPLErrorReset();
-    result = (CPLErr)GDALRasterBandShadow_WriteRaster(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
+    result = (CPLErr)GDALRasterBandShadow_WriteRaster__SWIG_0(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Band_ReadRaster__SWIG_1(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11, void * jarg12) {
+  int jresult ;
+  GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  void *arg6 = (void *) 0 ;
+  int arg7 ;
+  int arg8 ;
+  GDALDataType arg9 ;
+  int arg10 ;
+  int arg11 ;
+  GDALRasterIOExtraArg *arg12 = (GDALRasterIOExtraArg *) 0 ;
+  CPLErr result;
+  
+  arg1 = (GDALRasterBandShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  arg5 = (int)jarg5; 
+  arg6 = (void *)jarg6; 
+  arg7 = (int)jarg7; 
+  arg8 = (int)jarg8; 
+  arg9 = (GDALDataType)jarg9; 
+  arg10 = (int)jarg10; 
+  arg11 = (int)jarg11; 
+  arg12 = (GDALRasterIOExtraArg *)jarg12; 
+  {
+    CPLErrorReset();
+    result = (CPLErr)GDALRasterBandShadow_ReadRaster__SWIG_1(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Band_WriteRaster__SWIG_1(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, void * jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11, void * jarg12) {
+  int jresult ;
+  GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  void *arg6 = (void *) 0 ;
+  int arg7 ;
+  int arg8 ;
+  GDALDataType arg9 ;
+  int arg10 ;
+  int arg11 ;
+  GDALRasterIOExtraArg *arg12 = (GDALRasterIOExtraArg *) 0 ;
+  CPLErr result;
+  
+  arg1 = (GDALRasterBandShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  arg5 = (int)jarg5; 
+  arg6 = (void *)jarg6; 
+  arg7 = (int)jarg7; 
+  arg8 = (int)jarg8; 
+  arg9 = (GDALDataType)jarg9; 
+  arg10 = (int)jarg10; 
+  arg11 = (int)jarg11; 
+  arg12 = (GDALRasterIOExtraArg *)jarg12; 
+  {
+    CPLErrorReset();
+    result = (CPLErr)GDALRasterBandShadow_WriteRaster__SWIG_1(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
