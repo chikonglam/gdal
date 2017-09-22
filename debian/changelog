@@ -3,6 +3,7 @@ gdal (2.2.2+dfsg-1) UNRELEASED; urgency=medium
   * New upstream release.
   * Update symbols for 2.2.2~rc1.
   * Strip pre-releases from symbols version.
+  * Bump Standards-Version to 4.1.0, no changes.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 22 Sep 2017 14:47:46 +0200
 
