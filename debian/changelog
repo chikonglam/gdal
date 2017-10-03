@@ -4,6 +4,7 @@ gdal (2.2.2+dfsg-1~exp2) UNRELEASED; urgency=medium
   * Add patch to fix privacy-breach-generic lintian issues.
   * Update symbols for alpha, armhf, hppa & sh4.
   * Bump Standards-Version to 4.1.1, no changes.
+  * Add lintian overrides for copyright-year-in-future false positive.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 22 Sep 2017 16:35:54 +0200
 
