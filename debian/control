@@ -156,6 +156,7 @@ Description: Geospatial Data Abstraction Library - Development files
 
 Package: libgdal-doc
 Architecture: all
+Multi-Arch: foreign
 Section: doc
 Depends: libjs-jquery,
          ${misc:Depends}
@@ -209,6 +210,7 @@ Description: Geospatial Data Abstraction Library - Utility programs
 
 Package: gdal-data
 Architecture: all
+Multi-Arch: foreign
 Depends: ${misc:Depends}
 Description: Geospatial Data Abstraction Library - Data files
  GDAL is a translator library for raster geospatial data formats.
