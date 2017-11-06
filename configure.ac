@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: configure.ac 39012 2017-06-09 10:08:43Z rouault $
+dnl $Id: configure.ac 40036 2017-09-08 11:23:21Z rouault $
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Configure source file.
@@ -2539,10 +2539,11 @@ if test "$with_openjpeg" = "no" ; then
 
 elif test "$with_openjpeg" = "yes" -o "$with_openjpeg" = "" ; then
 
-  AC_CHECK_HEADERS([openjpeg-2.0/openjpeg.h])
-  if test "$ac_cv_header_openjpeg_2_0_openjpeg_h" = "yes"; then
+  AC_CHECK_HEADERS([openjpeg-2.2/openjpeg.h])
+  if test "$ac_cv_header_openjpeg_2_2_openjpeg_h" = "yes"; then
     AC_CHECK_LIB(openjp2,opj_stream_set_user_data_length,HAVE_OPENJPEG=yes,HAVE_OPENJPEG=no,)
     if test "$HAVE_OPENJPEG" = "yes"; then
+        OPENJPEG_VERSION=20200
         LIBS="-lopenjp2 $LIBS"
     fi
   else
@@ -2552,6 +2553,14 @@ elif test "$with_openjpeg" = "yes" -o "$with_openjpeg" = "" ; then
         if test "$HAVE_OPENJPEG" = "yes"; then
             OPENJPEG_VERSION=20100
             LIBS="-lopenjp2 $LIBS"
+        fi
+    else
+        AC_CHECK_HEADERS([openjpeg-2.0/openjpeg.h])
+        if test "$ac_cv_header_openjpeg_2_0_openjpeg_h" = "yes"; then
+            AC_CHECK_LIB(openjp2,opj_stream_set_user_data_length,HAVE_OPENJPEG=yes,HAVE_OPENJPEG=no,)
+            if test "$HAVE_OPENJPEG" = "yes"; then
+                LIBS="-lopenjp2 $LIBS"
+            fi
         fi
     fi
   fi
@@ -2563,8 +2572,11 @@ else
   elif test -r $with_openjpeg/include/openjpeg-2.1/openjpeg.h ; then
     OPENJPEG_VERSION=20100
     EXTRA_INCLUDES="-I$with_openjpeg/include $EXTRA_INCLUDES"
+  elif test -r $with_openjpeg/include/openjpeg-2.2/openjpeg.h ; then
+    OPENJPEG_VERSION=20200
+    EXTRA_INCLUDES="-I$with_openjpeg/include $EXTRA_INCLUDES"
   else
-    AC_MSG_ERROR([openjpeg.h not found in $with_openjpeg/include/openjpeg-2.0 or $with_openjpeg/include/openjpeg-2.1])
+    AC_MSG_ERROR([openjpeg.h not found in $with_openjpeg/include/openjpeg-2.0 or $with_openjpeg/include/openjpeg-2.1 or $with_openjpeg/include/openjpeg-2.2])
   fi
 
   AC_CHECK_LIB(openjp2,opj_stream_set_user_data_length,HAVE_OPENJPEG=yes,HAVE_OPENJPEG=no,-L$with_openjpeg/lib)
@@ -4271,6 +4283,8 @@ HAVE_POPPLER=no
 POPPLER_HAS_OPTCONTENT=no
 POPPLER_BASE_STREAM_HAS_TWO_ARGS=no
 POPPLER_0_20_OR_LATER=no
+POPPLER_0_23_OR_LATER=no
+POPPLER_0_58_OR_LATER=no
 
 AC_MSG_CHECKING([for poppler])
 
@@ -4309,59 +4323,84 @@ if test "$with_poppler" != "no" -a "$with_poppler" != ""; then
         POPPLER_INC=$TEST_POPPLER_INC
         POPPLER_PLUGIN_LIB="${TEST_POPPLER_LIB}"
 
-        # And now try another dirty thing, but this one is
-        # optional.
-        AC_MSG_CHECKING([if Catalog::optContent exists])
+        CHECK_OTHER_POPPLER_VERSION=yes
+
+        # And now we check if we have Poppler >= 0.58.0
+        AC_MSG_CHECKING([if Object does have new API (>= 0.58.0)])
         rm -f testpoppler.*
-        echo '#define private public' > testpoppler.cpp
-        echo '#include <poppler/Object.h>' >> testpoppler.cpp
-        echo '#include <poppler/Catalog.h>' >> testpoppler.cpp
-        echo 'int main(int argc, char** argv) { return &(((Catalog*)0x8000)->optContent) == 0; }' >> testpoppler.cpp
+        echo '#include <poppler/Object.h>' > testpoppler.cpp
+        echo 'int main(int argc, char** argv) { Object o(objNull); return 0; }' >> testpoppler.cpp
         if test -z "`${CXX} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
+            POPPLER_0_58_OR_LATER=yes
+            POPPLER_0_23_OR_LATER=yes
+            POPPLER_0_20_OR_LATER=yes
+            POPPLER_BASE_STREAM_HAS_TWO_ARGS=yes
             POPPLER_HAS_OPTCONTENT=yes
+            CHECK_OTHER_POPPLER_VERSION=no
             AC_MSG_RESULT([yes])
         else
             AC_MSG_RESULT([no])
         fi
 
-        # And now we check if we have Poppler >= 0.16.0
-        AC_MSG_CHECKING([if BaseStream constructor needs 2 arguments])
-        rm -f testpoppler.*
-        echo '#include <poppler/Object.h>' > testpoppler.cpp
-        echo '#include <poppler/Stream.h>' >> testpoppler.cpp
-        echo 'class TestStream: public BaseStream {' >> testpoppler.cpp
-        echo 'public:' >> testpoppler.cpp
-        echo '  TestStream() : BaseStream(0,0) {}' >> testpoppler.cpp
-        echo '};' >> testpoppler.cpp
-        echo 'int main(int argc, char** argv) { return 0; }' >> testpoppler.cpp
-        if test -z "`${CXX} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
-            POPPLER_BASE_STREAM_HAS_TWO_ARGS=yes
-            AC_MSG_RESULT([yes])
+        if test "$CHECK_OTHER_POPPLER_VERSION" = "yes"; then
 
-            # And now we check if we have Poppler >= 0.20.0
-            AC_MSG_CHECKING([if we have Poppler >= 0.20.0])
+            # And now try another dirty thing, but this one is
+            # optional.
+            AC_MSG_CHECKING([if Catalog::optContent exists])
             rm -f testpoppler.*
-            echo '#include <poppler/Error.h>' > testpoppler.cpp
-            echo 'int main(int argc, char** argv) { setErrorCallback(0,0); return 0; }' >> testpoppler.cpp
+            echo '#define private public' > testpoppler.cpp
+            echo '#include <poppler/Object.h>' >> testpoppler.cpp
+            echo '#include <poppler/Catalog.h>' >> testpoppler.cpp
+            echo 'int main(int argc, char** argv) { return &(((Catalog*)0x8000)->optContent) == 0; }' >> testpoppler.cpp
             if test -z "`${CXX} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
-                POPPLER_0_20_OR_LATER=yes
+                POPPLER_HAS_OPTCONTENT=yes
+                AC_MSG_RESULT([yes])
+            else
+                AC_MSG_RESULT([no])
+            fi
+
+            # And now we check if we have Poppler >= 0.16.0
+            AC_MSG_CHECKING([if BaseStream constructor needs 2 arguments])
+            rm -f testpoppler.*
+            echo '#include <poppler/Object.h>' > testpoppler.cpp
+            echo '#include <poppler/Stream.h>' >> testpoppler.cpp
+            echo 'class TestStream: public BaseStream {' >> testpoppler.cpp
+            echo 'public:' >> testpoppler.cpp
+            echo '  TestStream() : BaseStream(0,0) {}' >> testpoppler.cpp
+            echo '};' >> testpoppler.cpp
+            echo 'int main(int argc, char** argv) { return 0; }' >> testpoppler.cpp
+            if test -z "`${CXX} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
+                POPPLER_BASE_STREAM_HAS_TWO_ARGS=yes
                 AC_MSG_RESULT([yes])
 
-                # And now we check if we have Poppler >= 0.23.0
-                AC_MSG_CHECKING([if we have Poppler >= 0.23.0])
+                # And now we check if we have Poppler >= 0.20.0
+                AC_MSG_CHECKING([if we have Poppler >= 0.20.0])
                 rm -f testpoppler.*
-                echo '#include <poppler/Object.h>' > testpoppler.cpp
-                echo '#include <poppler/Stream.h>' >> testpoppler.cpp
-                echo 'class TestStream: public BaseStream {' >> testpoppler.cpp
-                echo 'public:' >> testpoppler.cpp
-                echo '  TestStream() : BaseStream(0,0) {}' >> testpoppler.cpp
-                echo '  ~TestStream() {}' >> testpoppler.cpp
-                echo '  virtual BaseStream *copy() { return BaseStream::copy(); }' >> testpoppler.cpp
-                echo '};' >> testpoppler.cpp
-                echo 'int main(int argc, char** argv) { return 0; }' >> testpoppler.cpp
+                echo '#include <poppler/Error.h>' > testpoppler.cpp
+                echo 'int main(int argc, char** argv) { setErrorCallback(0,0); return 0; }' >> testpoppler.cpp
                 if test -z "`${CXX} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
-                    POPPLER_0_23_OR_LATER=yes
+                    POPPLER_0_20_OR_LATER=yes
                     AC_MSG_RESULT([yes])
+
+                    # And now we check if we have Poppler >= 0.23.0
+                    AC_MSG_CHECKING([if we have Poppler >= 0.23.0])
+                    rm -f testpoppler.*
+                    echo '#include <poppler/Object.h>' > testpoppler.cpp
+                    echo '#include <poppler/Stream.h>' >> testpoppler.cpp
+                    echo 'class TestStream: public BaseStream {' >> testpoppler.cpp
+                    echo 'public:' >> testpoppler.cpp
+                    echo '  TestStream() : BaseStream(0,0) {}' >> testpoppler.cpp
+                    echo '  ~TestStream() {}' >> testpoppler.cpp
+                    echo '  virtual BaseStream *copy() { return BaseStream::copy(); }' >> testpoppler.cpp
+                    echo '};' >> testpoppler.cpp
+                    echo 'int main(int argc, char** argv) { return 0; }' >> testpoppler.cpp
+                    if test -z "`${CXX} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
+                        POPPLER_0_23_OR_LATER=yes
+                        AC_MSG_RESULT([yes])
+                    else
+                        AC_MSG_RESULT([no])
+                    fi
+
                 else
                     AC_MSG_RESULT([no])
                 fi
@@ -4369,9 +4408,6 @@ if test "$with_poppler" != "no" -a "$with_poppler" != ""; then
             else
                 AC_MSG_RESULT([no])
             fi
-
-        else
-            AC_MSG_RESULT([no])
         fi
     else
         AC_MSG_RESULT([no])
@@ -4387,6 +4423,7 @@ AC_SUBST(POPPLER_HAS_OPTCONTENT, $POPPLER_HAS_OPTCONTENT)
 AC_SUBST(POPPLER_BASE_STREAM_HAS_TWO_ARGS, $POPPLER_BASE_STREAM_HAS_TWO_ARGS)
 AC_SUBST(POPPLER_0_20_OR_LATER, $POPPLER_0_20_OR_LATER)
 AC_SUBST(POPPLER_0_23_OR_LATER, $POPPLER_0_23_OR_LATER)
+AC_SUBST(POPPLER_0_58_OR_LATER, $POPPLER_0_58_OR_LATER)
 AC_SUBST(POPPLER_INC, $POPPLER_INC)
 AC_SUBST(POPPLER_PLUGIN_LIB, $POPPLER_PLUGIN_LIB)
 

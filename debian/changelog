@@ -1,3 +1,40 @@
+gdal (2.2.2+dfsg-2) unstable; urgency=medium
+
+  * Mark gdal-data & libgdal-doc as Multi-Arch: foreign.
+    (closes: #879015)
+  * Update symbols for powerpc.
+  * Add upstream patch to support OpenJPEG 2.3.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 18 Oct 2017 16:03:28 +0200
+
+gdal (2.2.2+dfsg-1) unstable; urgency=medium
+
+  * Update watch file for final releases.
+  * Add patch to fix privacy-breach-generic lintian issues.
+  * Update symbols for alpha, armhf, hppa & sh4.
+  * Bump Standards-Version to 4.1.1, no changes.
+  * Add lintian overrides for copyright-year-in-future false positive.
+  * Move from experimental to unstable.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 03 Oct 2017 19:53:18 +0200
+
+gdal (2.2.2+dfsg-1~exp1) experimental; urgency=medium
+
+  * New upstream release.
+  * Update symbols for 2.2.2~rc1.
+  * Strip pre-releases from symbols version.
+  * Bump Standards-Version to 4.1.0, no changes.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 22 Sep 2017 14:55:55 +0200
+
+gdal (2.2.2~rc1+dfsg-1~exp1) experimental; urgency=medium
+
+  * New upstream release candidate.
+  * Update watch file for 2.2.2 (pre-)releases.
+  * Refresh patches.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 15 Sep 2017 21:10:25 +0200
+
 gdal (2.2.1+dfsg-2) unstable; urgency=medium
 
   * Add symbols for sh4.

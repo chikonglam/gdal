@@ -62,7 +62,7 @@ public class Dataset : MajorObject {
       base.Dispose();
     }
   }
-/*! Eight bit unsigned integer */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
+/*! Eight bit unsigned integer */ /*@SWIG:../include/csharp/gdal_csharp.i,147,%ds_rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, byte[] buffer, int buf_xSize, int buf_ySize,
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
@@ -89,9 +89,35 @@ public class Dataset : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
+  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, byte[] buffer, int buf_xSize, int buf_ySize,
+     int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+      CPLErr retval;
+      GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+      try {
+          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Byte,
+                               bandCount, bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
+      } finally {
+          handle.Free();
+      }
+      GC.KeepAlive(this);
+      return retval;
+  }
+  public CPLErr WriteRaster(int xOff, int yOff, int xSize, int ySize, byte[] buffer, int buf_xSize, int buf_ySize,
+     int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+      CPLErr retval;
+      GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+      try {
+          retval = WriteRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Byte,
+                               bandCount, bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
+      } finally {
+          handle.Free();
+      }
+      GC.KeepAlive(this);
+      return retval;
+  }
 
 /*@SWIG@*/
-/*! Sixteen bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
+/*! Sixteen bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,147,%ds_rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, short[] buffer, int buf_xSize, int buf_ySize,
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
@@ -118,9 +144,35 @@ public class Dataset : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
+  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, short[] buffer, int buf_xSize, int buf_ySize,
+     int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+      CPLErr retval;
+      GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+      try {
+          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Int16,
+                               bandCount, bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
+      } finally {
+          handle.Free();
+      }
+      GC.KeepAlive(this);
+      return retval;
+  }
+  public CPLErr WriteRaster(int xOff, int yOff, int xSize, int ySize, short[] buffer, int buf_xSize, int buf_ySize,
+     int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+      CPLErr retval;
+      GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+      try {
+          retval = WriteRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Int16,
+                               bandCount, bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
+      } finally {
+          handle.Free();
+      }
+      GC.KeepAlive(this);
+      return retval;
+  }
 
 /*@SWIG@*/
-/*! Thirty two bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
+/*! Thirty two bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,147,%ds_rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, int[] buffer, int buf_xSize, int buf_ySize,
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
@@ -147,9 +199,35 @@ public class Dataset : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
+  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, int[] buffer, int buf_xSize, int buf_ySize,
+     int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+      CPLErr retval;
+      GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+      try {
+          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Int32,
+                               bandCount, bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
+      } finally {
+          handle.Free();
+      }
+      GC.KeepAlive(this);
+      return retval;
+  }
+  public CPLErr WriteRaster(int xOff, int yOff, int xSize, int ySize, int[] buffer, int buf_xSize, int buf_ySize,
+     int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+      CPLErr retval;
+      GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+      try {
+          retval = WriteRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Int32,
+                               bandCount, bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
+      } finally {
+          handle.Free();
+      }
+      GC.KeepAlive(this);
+      return retval;
+  }
 
 /*@SWIG@*/
-/*! Thirty two bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
+/*! Thirty two bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,147,%ds_rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, float[] buffer, int buf_xSize, int buf_ySize,
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
@@ -176,9 +254,35 @@ public class Dataset : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
+  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, float[] buffer, int buf_xSize, int buf_ySize,
+     int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+      CPLErr retval;
+      GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+      try {
+          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Float32,
+                               bandCount, bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
+      } finally {
+          handle.Free();
+      }
+      GC.KeepAlive(this);
+      return retval;
+  }
+  public CPLErr WriteRaster(int xOff, int yOff, int xSize, int ySize, float[] buffer, int buf_xSize, int buf_ySize,
+     int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+      CPLErr retval;
+      GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+      try {
+          retval = WriteRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Float32,
+                               bandCount, bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
+      } finally {
+          handle.Free();
+      }
+      GC.KeepAlive(this);
+      return retval;
+  }
 
 /*@SWIG@*/
-/*! Sixty four bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
+/*! Sixty four bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,147,%ds_rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, double[] buffer, int buf_xSize, int buf_ySize,
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
@@ -199,6 +303,32 @@ public class Dataset : MajorObject {
       try {
           retval = WriteRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Float64,
                                bandCount, bandMap, pixelSpace, lineSpace, bandSpace);
+      } finally {
+          handle.Free();
+      }
+      GC.KeepAlive(this);
+      return retval;
+  }
+  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, double[] buffer, int buf_xSize, int buf_ySize,
+     int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+      CPLErr retval;
+      GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+      try {
+          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Float64,
+                               bandCount, bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
+      } finally {
+          handle.Free();
+      }
+      GC.KeepAlive(this);
+      return retval;
+  }
+  public CPLErr WriteRaster(int xOff, int yOff, int xSize, int ySize, double[] buffer, int buf_xSize, int buf_ySize,
+     int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+      CPLErr retval;
+      GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+      try {
+          retval = WriteRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Float64,
+                               bandCount, bandMap, pixelSpace, lineSpace, bandSpace, extraArg);
       } finally {
           handle.Free();
       }
@@ -408,13 +538,25 @@ public CPLErr SetGCPs(GCP[] pGCPs, string pszGCPProjection) {
   }
 
   public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, IntPtr buffer, int buf_xSize, int buf_ySize, DataType buf_type, int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
-    CPLErr ret = (CPLErr)GdalPINVOKE.Dataset_ReadRaster(swigCPtr, xOff, yOff, xSize, ySize, buffer, buf_xSize, buf_ySize, (int)buf_type, bandCount, bandMap, pixelSpace, lineSpace, bandSpace);
+    CPLErr ret = (CPLErr)GdalPINVOKE.Dataset_ReadRaster__SWIG_0(swigCPtr, xOff, yOff, xSize, ySize, buffer, buf_xSize, buf_ySize, (int)buf_type, bandCount, bandMap, pixelSpace, lineSpace, bandSpace);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
   public CPLErr WriteRaster(int xOff, int yOff, int xSize, int ySize, IntPtr buffer, int buf_xSize, int buf_ySize, DataType buf_type, int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
-    CPLErr ret = (CPLErr)GdalPINVOKE.Dataset_WriteRaster(swigCPtr, xOff, yOff, xSize, ySize, buffer, buf_xSize, buf_ySize, (int)buf_type, bandCount, bandMap, pixelSpace, lineSpace, bandSpace);
+    CPLErr ret = (CPLErr)GdalPINVOKE.Dataset_WriteRaster__SWIG_0(swigCPtr, xOff, yOff, xSize, ySize, buffer, buf_xSize, buf_ySize, (int)buf_type, bandCount, bandMap, pixelSpace, lineSpace, bandSpace);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, IntPtr buffer, int buf_xSize, int buf_ySize, DataType buf_type, int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+    CPLErr ret = (CPLErr)GdalPINVOKE.Dataset_ReadRaster__SWIG_1(swigCPtr, xOff, yOff, xSize, ySize, buffer, buf_xSize, buf_ySize, (int)buf_type, bandCount, bandMap, pixelSpace, lineSpace, bandSpace, RasterIOExtraArg.getCPtr(extraArg));
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public CPLErr WriteRaster(int xOff, int yOff, int xSize, int ySize, IntPtr buffer, int buf_xSize, int buf_ySize, DataType buf_type, int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace, RasterIOExtraArg extraArg) {
+    CPLErr ret = (CPLErr)GdalPINVOKE.Dataset_WriteRaster__SWIG_1(swigCPtr, xOff, yOff, xSize, ySize, buffer, buf_xSize, buf_ySize, (int)buf_type, bandCount, bandMap, pixelSpace, lineSpace, bandSpace, RasterIOExtraArg.getCPtr(extraArg));
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }

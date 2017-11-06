@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: ogrkmldriver.cpp 37108 2017-01-12 10:16:27Z rouault $");
+CPL_CVSID("$Id: ogrkmldriver.cpp 39692 2017-07-30 19:32:43Z rouault $");
 
 /************************************************************************/
 /*                         OGRKMLDriverIdentify()                       */
@@ -45,9 +45,10 @@ static int OGRKMLDriverIdentify( GDALOpenInfo* poOpenInfo )
     if( poOpenInfo->fpL == NULL )
         return FALSE;
 
-    return
-        strstr(reinterpret_cast<char *>(poOpenInfo->pabyHeader),
-               "<kml") != NULL;
+    return strstr(reinterpret_cast<char *>(poOpenInfo->pabyHeader),
+                  "<kml") != NULL ||
+           strstr(reinterpret_cast<char *>(poOpenInfo->pabyHeader),
+                  "<kml:kml") != NULL;
 }
 
 /************************************************************************/

@@ -220,6 +220,66 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_StringListDestroy")]
   public static extern void StringListDestroy(IntPtr jarg1);
 
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_nVersion_set")]
+  public static extern void RasterIOExtraArg_nVersion_set(HandleRef jarg1, int jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_nVersion_get")]
+  public static extern int RasterIOExtraArg_nVersion_get(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_eResampleAlg_set")]
+  public static extern void RasterIOExtraArg_eResampleAlg_set(HandleRef jarg1, int jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_eResampleAlg_get")]
+  public static extern int RasterIOExtraArg_eResampleAlg_get(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_pfnProgress_set")]
+  public static extern void RasterIOExtraArg_pfnProgress_set(HandleRef jarg1, Gdal.GDALProgressFuncDelegate jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_pfnProgress_get")]
+  public static extern Gdal.GDALProgressFuncDelegate RasterIOExtraArg_pfnProgress_get(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_pProgressData_set")]
+  public static extern void RasterIOExtraArg_pProgressData_set(HandleRef jarg1, IntPtr jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_pProgressData_get")]
+  public static extern IntPtr RasterIOExtraArg_pProgressData_get(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_bFloatingPointWindowValidity_set")]
+  public static extern void RasterIOExtraArg_bFloatingPointWindowValidity_set(HandleRef jarg1, int jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_bFloatingPointWindowValidity_get")]
+  public static extern int RasterIOExtraArg_bFloatingPointWindowValidity_get(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_dfXOff_set")]
+  public static extern void RasterIOExtraArg_dfXOff_set(HandleRef jarg1, double jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_dfXOff_get")]
+  public static extern double RasterIOExtraArg_dfXOff_get(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_dfYOff_set")]
+  public static extern void RasterIOExtraArg_dfYOff_set(HandleRef jarg1, double jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_dfYOff_get")]
+  public static extern double RasterIOExtraArg_dfYOff_get(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_dfXSize_set")]
+  public static extern void RasterIOExtraArg_dfXSize_set(HandleRef jarg1, double jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_dfXSize_get")]
+  public static extern double RasterIOExtraArg_dfXSize_get(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_dfYSize_set")]
+  public static extern void RasterIOExtraArg_dfYSize_set(HandleRef jarg1, double jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterIOExtraArg_dfYSize_get")]
+  public static extern double RasterIOExtraArg_dfYSize_get(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_new_RasterIOExtraArg")]
+  public static extern IntPtr new_RasterIOExtraArg();
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_delete_RasterIOExtraArg")]
+  public static extern void delete_RasterIOExtraArg(HandleRef jarg1);
+
   [DllImport("gdal_wrap", EntryPoint="CSharp_Debug")]
   public static extern void Debug(string jarg1, string jarg2);
 
@@ -697,11 +757,17 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_RollbackTransaction")]
   public static extern int Dataset_RollbackTransaction(HandleRef jarg1);
 
-  [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_ReadRaster")]
-  public static extern int Dataset_ReadRaster(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int[] jarg11, int jarg12, int jarg13, int jarg14);
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_ReadRaster__SWIG_0")]
+  public static extern int Dataset_ReadRaster__SWIG_0(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int[] jarg11, int jarg12, int jarg13, int jarg14);
 
-  [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_WriteRaster")]
-  public static extern int Dataset_WriteRaster(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int[] jarg11, int jarg12, int jarg13, int jarg14);
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_WriteRaster__SWIG_0")]
+  public static extern int Dataset_WriteRaster__SWIG_0(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int[] jarg11, int jarg12, int jarg13, int jarg14);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_ReadRaster__SWIG_1")]
+  public static extern int Dataset_ReadRaster__SWIG_1(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int[] jarg11, int jarg12, int jarg13, int jarg14, HandleRef jarg15);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_WriteRaster__SWIG_1")]
+  public static extern int Dataset_WriteRaster__SWIG_1(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int[] jarg11, int jarg12, int jarg13, int jarg14, HandleRef jarg15);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset___GetGCPs")]
   public static extern IntPtr Dataset___GetGCPs(HandleRef jarg1);
@@ -865,11 +931,17 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_Band_SetCategoryNames")]
   public static extern int Band_SetCategoryNames(HandleRef jarg1, IntPtr[] jarg2);
 
-  [DllImport("gdal_wrap", EntryPoint="CSharp_Band_ReadRaster")]
-  public static extern int Band_ReadRaster(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11);
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Band_ReadRaster__SWIG_0")]
+  public static extern int Band_ReadRaster__SWIG_0(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11);
 
-  [DllImport("gdal_wrap", EntryPoint="CSharp_Band_WriteRaster")]
-  public static extern int Band_WriteRaster(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11);
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Band_WriteRaster__SWIG_0")]
+  public static extern int Band_WriteRaster__SWIG_0(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Band_ReadRaster__SWIG_1")]
+  public static extern int Band_ReadRaster__SWIG_1(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11, HandleRef jarg12);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Band_WriteRaster__SWIG_1")]
+  public static extern int Band_WriteRaster__SWIG_1(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int jarg11, HandleRef jarg12);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_new_ColorTable")]
   public static extern IntPtr new_ColorTable(int jarg1);

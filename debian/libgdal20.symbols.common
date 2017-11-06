@@ -418,6 +418,7 @@
  GDALCreateColorTable@Base 1.8.0
  GDALCreateCopy@Base 1.8.0
  GDALCreateDatasetMaskBand@Base 1.8.0
+ GDALCreateDriver@Base 2.2.2
  GDALCreateGCPRefineTransformer@Base 1.9.0
  GDALCreateGCPTransformer@Base 1.8.0
  GDALCreateGenImgProjTransformer2@Base 1.8.0
