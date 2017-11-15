@@ -1,3 +1,9 @@
+gdal (2.2.2+dfsg-3) UNRELEASED; urgency=medium
+
+  * Strip trailing whitespace from changelog.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 15 Nov 2017 21:49:49 +0100
+
 gdal (2.2.2+dfsg-2) unstable; urgency=medium
 
   * Mark gdal-data & libgdal-doc as Multi-Arch: foreign.
@@ -190,7 +196,7 @@ gdal (2.1.2+dfsg-1) unstable; urgency=medium
 
 gdal (2.1.2+dfsg-1~exp1) experimental; urgency=medium
 
-  * New upstream release. 
+  * New upstream release.
 
  -- Bas Couwenberg <sebastic@debian.org>  Thu, 27 Oct 2016 14:27:42 +0200
 
@@ -779,7 +785,7 @@ gdal (1.10.1+dfsg-3) unstable; urgency=medium
 
 gdal (1.10.1+dfsg-2) unstable; urgency=medium
 
-  * Moved to libhdf5-dev b-d with the right versioning. 
+  * Moved to libhdf5-dev b-d with the right versioning.
     (closes: #689426)
   * Policy bumped to 3.9.5, no changes.
   * Added a Breaks for python-gdal vs gdal-bin due to gdal_retile.1 collision
@@ -871,7 +877,7 @@ gdal (1.10.0-0~exp1) experimental; urgency=low
   * Policy bumped to 3.9.4. No changes required.
   * New upstream version with many fixes. All patches refreshed.
   	(closes: #679887)
-  * Added a Breaks: libgdal1-1.6.0. I don't know if it still makes sense, 
+  * Added a Breaks: libgdal1-1.6.0. I don't know if it still makes sense,
     but for sure it does not hurt. (closes: #677403)
   * Now debian/rules should be parallel-safe for making. Thanks Gregor Hermann
     for the patch. (closes: #686014)
@@ -882,7 +888,7 @@ gdal (1.10.0-0~exp1) experimental; urgency=low
 
 gdal (1.9.2-1~exp2) experimental; urgency=low
 
-  * Reintroduced internal symbols hiding for better compatibility 
+  * Reintroduced internal symbols hiding for better compatibility
     against mixing external geotiff and gdal. See Orfeotoolbox case:
     See #558733 again.
 
@@ -896,10 +902,10 @@ gdal (1.9.2-1~exp1) experimental; urgency=low
   [ Francesco Paolo Lovergine ]
   * Reintroducing libgdal1-dev as a transitional package to allow r-deps
     to build in any environment.
-  * Removed old dependency on libcurl3-dev for libgdal-dev and added a 
+  * Removed old dependency on libcurl3-dev for libgdal-dev and added a
     preferred dep on libcurl4-gnutls-dev to make lintian happy.
   * Added build-{arch|indep} targets in debian/rules.
-  * Fixed a bit debian/changelog for latest changes. 
+  * Fixed a bit debian/changelog for latest changes.
   * Now using libxerces-c-dev as dependency for current library version.
   * Policy bumped to 3.9.4. No special changes required.
 
@@ -932,7 +938,7 @@ gdal (1.9.0-1~exp4) experimental; urgency=low
 
 gdal (1.9.0-1~exp3) experimental; urgency=low
 
-  * Added b-deps and enabled a few new supports: 
+  * Added b-deps and enabled a few new supports:
     Poppler, Armadillo, OpenJPEG, FreeXL and libZMA.
   * Revised copyright file for format 1.0.
 
@@ -975,8 +981,8 @@ gdal (1.8.1-2~exp2) experimental; urgency=low
 
   * Changed organization of symbol files in one common file and
     multiple .symbols.arch file.
-  * Now normalized to conventional GDAL library name and dropping the Debian 
-    specific versioned naming scheme for the library. 
+  * Now normalized to conventional GDAL library name and dropping the Debian
+    specific versioned naming scheme for the library.
     Dropped patch: libname, python.
   * Added sparc and mipsel symbol files.
   * Updated NEWS file with basic information about changes in the package.
@@ -1009,7 +1015,7 @@ gdal (1.8.1-1) experimental; urgency=low
     (closes: #616821)
   * Merged lintian-overrides handling from 1.7 branch.
   * This version is already compatible with libdap >= 3.10, no patch needed.
-  * Still retaining chrpath trick to maintain compatibility against libtool 
+  * Still retaining chrpath trick to maintain compatibility against libtool
     inner use in swing-enabled bindings.
   * Updated debian/watch file to cope with release-candidate versions which
     results newer than final ones.
@@ -1019,7 +1025,7 @@ gdal (1.8.1-1) experimental; urgency=low
     global symbols.
   * Added -Bsymbolic to force binding of global symbols to definition within
     the library. This should solve problems in linking against both tiff,
-    geotiff and gdal. That should have no impact against netcdf, hdf5 and 
+    geotiff and gdal. That should have no impact against netcdf, hdf5 and
     other common formats.
     (closes: #558733)
   * Merged a lintian override from 1.7 series for TIFF library embedding.
@@ -1028,7 +1034,7 @@ gdal (1.8.1-1) experimental; urgency=low
 
 gdal (1.8.0-2) experimental; urgency=low
 
-  * Patch: symver. Added symbol versioning (GDAL_X.Y) for all symbols 
+  * Patch: symver. Added symbol versioning (GDAL_X.Y) for all symbols
     exported by GDAL.
     (closes: #558733)
   * Patch: spatialite. Added explicit linking to sqlite3 for spatialite.
@@ -1079,7 +1085,7 @@ gdal (1.7.3-1) unstable; urgency=low
 
   [ Francesco Paolo Lovergine ]
   * Added sample programs to python-gdal documentation.
-  * Merged changelog to be ready for true unstable upload. 
+  * Merged changelog to be ready for true unstable upload.
   * Policy bumped to 3.9.1, without changes.
   * Added Build-Conflicts against python-setuptools, because it still
     has problems at building time.
@@ -1101,7 +1107,7 @@ gdal (1.7.2-2) experimental; urgency=low
   * Fixed hdf4 patch.
   * Added build-dep on libxml2-dev.
   * Added build-dep on libspatialite-dev to support Spatialite as additional
-    format. 
+    format.
   * Now install gdaldem among gdal-bin utilities.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 07 May 2010 16:46:03 +0200
@@ -1123,7 +1129,7 @@ gdal (1.7.1-1) experimental; urgency=low
 
   [ Francesco Paolo Lovergine ]
   * Now build-dep on netcdf 4 to allow deep testing.
-  * Policy bumped to 3.8.4 without changes. 
+  * Policy bumped to 3.8.4 without changes.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 19 Apr 2010 18:11:49 +0200
 
@@ -1171,7 +1177,7 @@ gdal (1.6.2-1) unstable; urgency=low
   * New upstream release, with a bounce of bugs fixing.
   * [PATCH] Added gdal-grass.dpatch to add VERSION to the grass plugin
     tarball. This is useful to force failing when a binNMU happens while
-    GDAL is transitioning to a major version. See gdal-grass package to 
+    GDAL is transitioning to a major version. See gdal-grass package to
     understand  how it is managed. This trick does allow a proper fix
     of #544978.
   * Removed .egg-info stripping.
@@ -1197,8 +1203,8 @@ gdal (1.6.1-3) unstable; urgency=low
 gdal (1.6.1-2) experimental; urgency=low
 
   * Removed superfluous patches, applied upstream: mysql5.1, swig1338
-  * [PATCH] Added cpl_ddl.dpatch to fix missing external declaration. Note that 
-    the default -fvisibility=hidden is propagated into python stuff and other 
+  * [PATCH] Added cpl_ddl.dpatch to fix missing external declaration. Note that
+    the default -fvisibility=hidden is propagated into python stuff and other
     swig bindings.
     (closes: #529745)
   * Fixed watch file url.
@@ -1263,8 +1269,8 @@ gdal (1.6.0-1) experimental; urgency=low
   * Removed gcc4.4.dpatch merged upstream.
   * Debhelper compatibility level moved to 7.
     Changed dh_clean and dh_install usages.
-  * Deprecated dh_movefiles changed in dh_install. 
-  * Now uses the more capable internal TIFF library which allows BigTIFF 
+  * Deprecated dh_movefiles changed in dh_install.
+  * Now uses the more capable internal TIFF library which allows BigTIFF
     support.
     It also fixes http://trac.osgeo.org/gdal/ticket/2486 issue.
     Removed libtiff4-dev dependencies.
@@ -1316,12 +1322,12 @@ gdal (1.5.2-2) unstable; urgency=low
 
 gdal (1.5.2-1) unstable; urgency=low
 
-  * New upstream release. This is a bug fix release. 
+  * New upstream release. This is a bug fix release.
     (closes: #485582)
   * Patchset updated: removed max.dpatch, merged upstream.
-  * Added a gdal-grass stanza in debian/rules to generate the gdal-grass 
+  * Added a gdal-grass stanza in debian/rules to generate the gdal-grass
     tarball on fly.
-  * Added a Suggests for python-gdal in gdal-bin stanza within debian/control. 
+  * Added a Suggests for python-gdal in gdal-bin stanza within debian/control.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 10 Jun 2008 16:08:05 +0200
 
@@ -1545,7 +1551,7 @@ gdal (1.4.1-1) unstable; urgency=low
 
   * New upstream version. Package names are not changed in respect with 1.4.0
     and in derogation with current gdal migration policy for debian-gis
-    because there are not changes to C/C++ API. 
+    because there are not changes to C/C++ API.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Sun,  8 Apr 2007 11:31:07 +0200
 
@@ -1614,7 +1620,7 @@ gdal (1.3.2-1) unstable; urgency=low
 
   The "doing-it-yourself-is-better" release.
 
-  * New upstream release. 
+  * New upstream release.
     (closes: #370441)
     As stated previously, changed package name for
     a smooth C++ transition in case of (undocumented) API/ABI changes.
@@ -1625,12 +1631,12 @@ gdal (1.3.2-1) unstable; urgency=low
         351372_mipsel_ftbfs.dpatch (applied upstream)
         357189_gcc4.1_ftbfs.dpatch (idem)
         360389_amd64_ftbfs.dpatch  (better done by upstream)
-    - New patch: 
+    - New patch:
     	ogrili2layer.cpp.dpatch (gcc 4.1 STL compatibility)
   * Policy bumped to 3.7.2. No changes.
   * Removed a couple of old *.docs and *.files files in debian dir.
   * Added mysql support.
-  * Moved to new python policy. Note that python-gdal provides both modules 
+  * Moved to new python policy. Note that python-gdal provides both modules
     and an extension, so quite a few changes are required all around.
     See http://wiki.debian.org/DebianPython/NewPolicy for information about
     the matter.
@@ -1648,7 +1654,7 @@ gdal (1.3.1-6) unstable; urgency=high
 gdal (1.3.1-5) unstable; urgency=low
 
   [ Paul Wise ]
-  * Fix GCC 4.1 FTBFS with patch from Martin Michlmayr. Closes: #357189 
+  * Fix GCC 4.1 FTBFS with patch from Martin Michlmayr. Closes: #357189
 
   [ Francesco Paolo Lovergine ]
   * Fix Unix ODBC FTBS with patch by me. Closes: #360389
@@ -1764,7 +1770,7 @@ gdal (1.2.6-1) unstable; urgency=high
 gdal (1.2.5-1) unstable; urgency=low
 
   * New upstream release (Closes: #280343)
-  * Added gdaltindex and gdal_contour in debian/gdal-bin.files 
+  * Added gdaltindex and gdal_contour in debian/gdal-bin.files
     (Closes: #278539)
 
  -- Silke Reimer <silke.reimer@intevation.de>  Thu, 25 Nov 2004 18:06:07 +0100
@@ -1793,8 +1799,8 @@ gdal (1.2.0-1) unstable; urgency=low
 
 gdal (1.2+cvs.031111-1) unstable; urgency=low
 
-  * New upstream cvs snapshot. This should fix the building failure 
-    on arm, powerpc, mipsel and s390 due to "invalid conversion from 
+  * New upstream cvs snapshot. This should fix the building failure
+    on arm, powerpc, mipsel and s390 due to "invalid conversion from
     `int8*' to `const char*'"
   * add odbc support to debian package.
   * switch on xerces support.
@@ -1807,8 +1813,8 @@ gdal (1.2+cvs.031016-1) unstable; urgency=low
   * Take maintainership
   * added man pages
   * added libtool patch to debian/rules to avoid linking with rpath
-  * changed last line of pymod/GNUmakefile because otherwise all 
-    files within pymod would be deleted when building package with 
+  * changed last line of pymod/GNUmakefile because otherwise all
+    files within pymod would be deleted when building package with
     fakeroot
 
  -- Silke Reimer (MoinMoin) <silke@intevation.de>  Fri, 17 Oct 2003 11:14:34 +0200
