@@ -6,6 +6,8 @@ gdal (2.2.3~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Drop svn-r40330_Add-support-for-openjpeg-2.3.patch, included upstream.
   * Strip trailing whitespace from control & changelog files.
   * Add lintian override for debian-watch-uses-insecure-uri.
+  * Use deferred asignment operator for dpkg-architecture call for
+    DEB_HOST_MULTIARCH variable.
 
  -- Bas Couwenberg <sebastic@debian.org>  Mon, 20 Nov 2017 14:19:51 +0100
 

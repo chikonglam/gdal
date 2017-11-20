@@ -33,7 +33,7 @@ GDAL_MINOR=$(word 2,$(GDALVER))
 GDAL_PATCH=$(word 3,$(GDALVER))
 
 ifeq (,$(DEB_HOST_MULTIARCH))
-  DEB_HOST_MULTIARCH := $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+  DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 endif
 
 ifneq ($(wildcard /usr/lib/$(DEB_HOST_MULTIARCH)/hdf5/serial/libhdf5.so),)
