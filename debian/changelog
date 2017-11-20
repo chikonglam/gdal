@@ -4,6 +4,7 @@ gdal (2.2.3~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Strip trailing whitespace from changelog.
   * Update watch file for 2.2.3 (pre-)releases.
   * Drop svn-r40330_Add-support-for-openjpeg-2.3.patch, included upstream.
+  * Strip trailing whitespace from control & changelog files.
 
  -- Bas Couwenberg <sebastic@debian.org>  Mon, 20 Nov 2017 14:19:51 +0100
 
@@ -1127,7 +1128,7 @@ gdal (1.7.1-1) experimental; urgency=low
   [ Alan Boudreault ]
   * New upstream release.
   * Patches updated for 1.7.0.
-  * Removed patches, applied upstream: cpl_dll.	
+  * Removed patches, applied upstream: cpl_dll.
   * Removed pre 1.3.38 swig patch (ogr.py.diff).
 
   [ Francesco Paolo Lovergine ]
