@@ -5,6 +5,7 @@ gdal (2.2.3~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Update watch file for 2.2.3 (pre-)releases.
   * Drop svn-r40330_Add-support-for-openjpeg-2.3.patch, included upstream.
   * Strip trailing whitespace from control & changelog files.
+  * Add lintian override for debian-watch-uses-insecure-uri.
 
  -- Bas Couwenberg <sebastic@debian.org>  Mon, 20 Nov 2017 14:19:51 +0100
 
