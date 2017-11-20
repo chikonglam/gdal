@@ -1056,8 +1056,8 @@ use Geo::GDAL::Const;
 # Note that the 1/100000 digits may be used to create more than one
 # CPAN release from one GDAL release.
 
-our $VERSION = '2.0202';
-our $GDAL_VERSION = '2.2.2';
+our $VERSION = '2.0203';
+our $GDAL_VERSION = '2.2.3';
 
 =pod
 
@@ -1099,7 +1099,7 @@ None by default.
 The GDAL home page is L<http://gdal.org/>
 
 The documentation of this module is written in Doxygen format. See
-L<http://ajolma.net/Geo-GDAL/snapshot/>
+L<http://arijolma.org/Geo-GDAL/snapshot/>
 
 =head1 AUTHOR
 

@@ -960,7 +960,7 @@ package Geo::OGR;
 
 
 package Geo::OGR;
-our $VERSION = '2.0202'; # this needs to be the same as that in gdal_perl.i
+our $VERSION = '2.0203'; # this needs to be the same as that in gdal_perl.i
 
 Geo::GDAL->import(qw(:INTERNAL));
 

@@ -336,6 +336,21 @@ class GdalConstPINVOKE {
   [DllImport("gdalconst_wrap", EntryPoint="CSharp_GRA_Mode_get")]
   public static extern int GRA_Mode_get();
 
+  [DllImport("gdalconst_wrap", EntryPoint="CSharp_GRA_Max_get")]
+  public static extern int GRA_Max_get();
+
+  [DllImport("gdalconst_wrap", EntryPoint="CSharp_GRA_Min_get")]
+  public static extern int GRA_Min_get();
+
+  [DllImport("gdalconst_wrap", EntryPoint="CSharp_GRA_Med_get")]
+  public static extern int GRA_Med_get();
+
+  [DllImport("gdalconst_wrap", EntryPoint="CSharp_GRA_Q1_get")]
+  public static extern int GRA_Q1_get();
+
+  [DllImport("gdalconst_wrap", EntryPoint="CSharp_GRA_Q3_get")]
+  public static extern int GRA_Q3_get();
+
   [DllImport("gdalconst_wrap", EntryPoint="CSharp_GPI_Gray_get")]
   public static extern int GPI_Gray_get();
 
