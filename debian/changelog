@@ -1,4 +1,4 @@
-gdal (2.2.3~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.2.3~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
   * Strip trailing whitespace from changelog.
@@ -9,7 +9,7 @@ gdal (2.2.3~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Use deferred asignment operator for dpkg-architecture call for
     DEB_HOST_MULTIARCH variable.
 
- -- Bas Couwenberg <sebastic@debian.org>  Mon, 20 Nov 2017 14:19:51 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 20 Nov 2017 14:34:28 +0100
 
 gdal (2.2.2+dfsg-2) unstable; urgency=medium
 
