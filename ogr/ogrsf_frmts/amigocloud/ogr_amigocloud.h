@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_amigocloud.h 36687 2016-12-04 22:28:14Z rouault $
+ * $Id: ogr_amigocloud.h 40508 2017-10-20 12:55:15Z rouault $
  *
  * Project:  AMIGOCLOUD Translator
  * Purpose:  Definition of classes for OGR AmigoCloud driver.
@@ -60,6 +60,7 @@ class OGRAmigoCloudGeomFieldDefn: public OGRGeomFieldDefn
         }
 };
 
+// cppcheck-suppress copyCtorAndEqOperator
 class OGRAmigoCloudFID
 {
     public:
@@ -293,6 +294,9 @@ class OGRAmigoCloudDataSource : public OGRDataSource
             OGRGeometry *poSpatialFilter = NULL,
             const char *pszDialect = NULL,
             bool bRunDeferredActions = false );
+
+        bool ListDatasets();
+        bool waitForJobToFinish(const char* jobId);
 };
 
 #endif /* ndef OGR_AMIGOCLOUD_H_INCLUDED */

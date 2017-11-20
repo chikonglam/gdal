@@ -1,4 +1,4 @@
-# $Id: nmake.opt 40036 2017-09-08 11:23:21Z rouault $
+# $Id: nmake.opt 40330 2017-10-05 12:56:50Z rouault $
 #
 # nmake.opt - main configuration file for NMAKE makefiles.
 #
@@ -195,6 +195,9 @@ SOFTWARNFLAGS= /wd4244 /wd4702 /wd4701 /wd4013 /wd4706 /wd4057 /wd4210 /wd4305
 # Linker debug options
 !IFDEF DEBUG
 LDEBUG= /debug
+!ELSEIFDEF WITH_PDB
+# Ensures that PDB is included in release DLL if so requested
+LDEBUG= /debug /opt:ref /opt:icf
 !ENDIF
 
 # Uncomment the following if you are building for 64-bit windows
@@ -611,6 +614,8 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 #OPENJPEG_VERSION = 20100
 # For OpenJpeg 2.2.x, uncomment
 #OPENJPEG_VERSION = 20200
+# For OpenJpeg 2.3.x, uncomment
+#OPENJPEG_VERSION = 20300
 
 #if using an external zlib uncomment the following lines
 #ZLIB_EXTERNAL_LIB = 1

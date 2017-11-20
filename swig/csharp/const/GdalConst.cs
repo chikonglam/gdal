@@ -61,6 +61,11 @@ public class GdalConst {
   public static readonly int GRA_Lanczos = GdalConstPINVOKE.GRA_Lanczos_get();
   public static readonly int GRA_Average = GdalConstPINVOKE.GRA_Average_get();
   public static readonly int GRA_Mode = GdalConstPINVOKE.GRA_Mode_get();
+  public static readonly int GRA_Max = GdalConstPINVOKE.GRA_Max_get();
+  public static readonly int GRA_Min = GdalConstPINVOKE.GRA_Min_get();
+  public static readonly int GRA_Med = GdalConstPINVOKE.GRA_Med_get();
+  public static readonly int GRA_Q1 = GdalConstPINVOKE.GRA_Q1_get();
+  public static readonly int GRA_Q3 = GdalConstPINVOKE.GRA_Q3_get();
   public static readonly int GPI_Gray = GdalConstPINVOKE.GPI_Gray_get();
   public static readonly int GPI_RGB = GdalConstPINVOKE.GPI_RGB_get();
   public static readonly int GPI_CMYK = GdalConstPINVOKE.GPI_CMYK_get();
