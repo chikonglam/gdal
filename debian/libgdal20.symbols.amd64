@@ -2381,8 +2381,8 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALDefaultRasterAttributeTable::~GDALDefaultRasterAttributeTable()@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::~GDALDefaultRasterAttributeTable()@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::~GDALDefaultRasterAttributeTable()@Base" 1.11.0 1
- (c++)"OGR::transcode(unsigned short const*, CPLString&, int)@Base" 2.2.0 1
- (c++)"OGR::transcode(unsigned short const*, int)@Base" 2.2.0 1
+ (c++)"OGR::transcode(char16_t const*, CPLString&, int)@Base" 2.2.3~rc1 1
+ (c++)"OGR::transcode(char16_t const*, int)@Base" 2.2.3~rc1 1
  (c++)"CADFile::ReadTables(CADFile::OpenOptions)@Base" 2.2.0 1
  (c++)"CADFile::isReadingUnsupportedGeometries()@Base" 2.2.0 1
  (c++)"CADFile::GetLayer(unsigned long)@Base" 2.2.0 1
@@ -2881,6 +2881,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRCircularString::getEnvelope(OGREnvelope3D*) const@Base" 2.0.1 1
  (c++)"OGRCircularString::IsFullCircle(double&, double&, double&) const@Base" 2.0.1 1
  (c++)"OGRCircularString::ContainsPoint(OGRPoint const*) const@Base" 2.0.1 1
+ (c++)"OGRCircularString::IntersectsPoint(OGRPoint const*) const@Base" 2.2.3~rc1 1
  (c++)"OGRCircularString::getGeometryName() const@Base" 2.0.1 1
  (c++)"OGRCircularString::getGeometryType() const@Base" 2.0.1 1
  (c++)"OGRCircularString::hasCurveGeometry(int) const@Base" 2.0.1 1
