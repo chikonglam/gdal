@@ -2,6 +2,7 @@ gdal (2.2.3+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Update symbols for 2.2.3~rc1.
+  * Drop unused override for debian-watch-uses-insecure-uri.
 
  -- Bas Couwenberg <sebastic@debian.org>  Thu, 23 Nov 2017 12:16:57 +0100
 
