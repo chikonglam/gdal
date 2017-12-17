@@ -1,9 +1,10 @@
-gdal (2.2.3+dfsg-1~exp2) UNRELEASED; urgency=medium
+gdal (2.2.3+dfsg-1) unstable; urgency=medium
 
   * Update symbols for alpha, hurd-i386 & m68k.
   * Bump Standards-Version to 4.1.2, no changes.
+  * Move from experimental to unstable.
 
- -- Bas Couwenberg <sebastic@debian.org>  Sat, 25 Nov 2017 17:54:47 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 17 Dec 2017 11:21:25 +0100
 
 gdal (2.2.3+dfsg-1~exp1) experimental; urgency=medium
 
