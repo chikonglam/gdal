@@ -160,8 +160,7 @@ Package: libgdal-doc
 Architecture: all
 Multi-Arch: foreign
 Section: doc
-Depends: libjs-jquery,
-         ${misc:Depends}
+Depends: ${misc:Depends}
 Suggests: libgdal20
 Description: Documentation for the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
@@ -291,8 +290,7 @@ Description: Python 3 bindings to the Geospatial Data Abstraction Library
 Package: libgdal-perl
 Architecture: any
 Section: perl
-Depends: libjs-jquery,
-         ${perl:Depends},
+Depends: ${perl:Depends},
          ${shlibs:Depends},
          ${misc:Depends}
 Description: Perl bindings to the Geospatial Data Abstraction Library
