@@ -13,6 +13,7 @@ gdal (2.2.3+dfsg-2) unstable; urgency=medium
 
   [ Bas Couwenberg ]
   * Strip trailing whitespace form changelog and patch header.
+  * Reorder build dependencies (sorted by name).
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 02 Jan 2018 12:27:12 +0100
 
