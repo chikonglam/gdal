@@ -1,8 +1,6 @@
-gdal (2.2.3+dfsg-2) unstable; urgency=medium
+gdal (2.2.3+dfsg-2) UNRELEASED; urgency=medium
 
   [ Francesco Paolo Lovergine ]
-  [UNRELEASED]
-
   * Added a couple of missing build-dep to correctly generate Perl binding
     documentation.
   * New patch perl-doxygen added to get the full classes documentation in
