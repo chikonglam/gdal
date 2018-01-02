@@ -1,14 +1,18 @@
 gdal (2.2.3+dfsg-2) unstable; urgency=medium
 
+  [ Francesco Paolo Lovergine ]
   [UNRELEASED]
 
   * Added a couple of missing build-dep to correctly generate Perl binding
     documentation.
-  * New patch perl-doxygen added to get the full classes documentation in 
+  * New patch perl-doxygen added to get the full classes documentation in
     Perl binding, due to current doxygen implementation.
   * The doxygen jquery is currently a fork of jquery in minified form, and it
     is not compatible with the modern one. Replacement with the libjsquery
     provided now removed.
+
+  [ Bas Couwenberg ]
+  * Strip trailing whitespace form changelog and patch header.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 02 Jan 2018 12:27:12 +0100
 

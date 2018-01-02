@@ -1,5 +1,5 @@
 Description: Fix generation of classes documentation in Perl bindings doxygen stuff.
-Author: Francesco Paolo Lovergine <frankie@debian.org>	
+Author: Francesco Paolo Lovergine <frankie@debian.org>
 Last-Update: 2018-01-02
 Forwarded: needed
 
