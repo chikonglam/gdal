@@ -6,6 +6,9 @@ gdal (2.2.3+dfsg-2) unstable; urgency=medium
     documentation.
   * New patch perl-doxygen added to get the full classes documentation in 
     Perl binding, due to current doxygen implementation.
+  * The doxygen jquery is currently a fork of jquery in minified form, and it
+    is not compatible with the modern one. Replacement with the libjsquery
+    provided now removed.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 02 Jan 2018 12:27:12 +0100
 
