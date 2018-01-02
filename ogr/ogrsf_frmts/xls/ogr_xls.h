@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_xls.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_xls.h 40701 2017-11-13 15:58:20Z rouault $
  *
  * Project:  XLS Translator
  * Purpose:  Definition of classes for OGR .xls driver.
@@ -92,6 +92,10 @@ class OGRXLSDataSource : public OGRDataSource
 
     const void*         xlshandle;
 
+    CPLString           m_osANSIFilename;
+#ifdef WIN32
+    CPLString           m_osTempFilename;
+#endif
   public:
                         OGRXLSDataSource();
                         virtual ~OGRXLSDataSource();

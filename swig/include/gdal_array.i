@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_array.i 39834 2017-08-16 12:20:23Z rouault $
+ * $Id: gdal_array.i 40119 2017-09-15 13:04:16Z rouault $
  *
  * Name:     gdal_array.i
  * Project:  GDAL Python Interface
@@ -1065,7 +1065,6 @@ retStringAndCPLFree* GetArrayFilename(PyArrayObject *psArray)
 
 %pythoncode %{
 import numpy
-from . import _gdal_array
 
 import gdalconst
 import gdal

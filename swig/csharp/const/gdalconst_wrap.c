@@ -756,6 +756,56 @@ SWIGEXPORT int SWIGSTDCALL CSharp_GRA_Mode_get() {
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_GRA_Max_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRA_Max);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GRA_Min_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRA_Min);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GRA_Med_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRA_Med);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GRA_Q1_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRA_Q1);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GRA_Q3_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRA_Q3);
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT int SWIGSTDCALL CSharp_GPI_Gray_get() {
   int jresult ;
   int result;
