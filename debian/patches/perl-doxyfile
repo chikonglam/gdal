@@ -1,0 +1,16 @@
+Description: Fix generation of classes documentation in Perl bindings doxygen stuff.
+Author: Francesco Paolo Lovergine <frankie@debian.org>	
+Last-Update: 2018-01-02
+Forwarded: needed
+
+--- gdal.orig/swig/perl/Doxyfile
++++ gdal/swig/perl/Doxyfile
+@@ -280,7 +280,7 @@ OPTIMIZE_OUTPUT_VHDL   = NO
+ # Note that for custom extensions you also need to set FILE_PATTERNS otherwise
+ # the files are not read by doxygen.
+ 
+-EXTENSION_MAPPING      =
++EXTENSION_MAPPING      = pm=C++
+ 
+ # If the MARKDOWN_SUPPORT tag is enabled then doxygen pre-processes all comments
+ # according to the Markdown format, which allows for more readable

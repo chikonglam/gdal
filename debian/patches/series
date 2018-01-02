@@ -9,3 +9,4 @@ java.opt
 perl-vendor
 privacy-breach-logo.patch
 privacy-breach-generic.patch
+perl-doxyfile
