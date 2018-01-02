@@ -4,7 +4,7 @@ Uploaders: Francesco Paolo Lovergine <frankie@debian.org>,
            Bas Couwenberg <sebastic@debian.org>
 Section: science
 Priority: optional
-Build-Depends: debhelper (>= 9),
+Build-Depends: debhelper (>= 9.20160114),
                dh-autoreconf,
                dh-python,
                d-shlibs,
