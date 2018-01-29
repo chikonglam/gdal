@@ -292,6 +292,7 @@ Section: perl
 Depends: ${perl:Depends},
          ${shlibs:Depends},
          ${misc:Depends}
+Suggests: libgdal-perl-doc
 Description: Perl bindings to the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
@@ -310,6 +311,31 @@ Description: Perl bindings to the Geospatial Data Abstraction Library
  TIGER data, S57, MapInfo File, DGN, GML and more.
  .
  This package contains Perl bindings for GDAL/OGR library.
+
+Package: libgdal-perl-doc
+Architecture: all
+Depends: ${misc:Depends}
+Breaks: libgdal-perl (<< 2.2.3+dfsg-2~exp1)
+Replaces: libgdal-perl (<< 2.2.3+dfsg-2~exp1)
+Section: doc
+Description: Documentation for GDAL Perl bindings
+ As a library, it presents a single abstract data model to the
+ calling application for all supported formats. The related OGR
+ library (which lives within the GDAL source tree) provides
+ a similar capability for simple features vector data.
+ .
+ GDAL supports 40+ popular data formats, including commonly used
+ ones (GeoTIFF, JPEG, PNG and more) as well as the ones used in
+ GIS and remote sensing software packages (ERDAS Imagine,
+ ESRI Arc/Info, ENVI, PCI Geomatics). Also supported many remote
+ sensing and scientific data distribution formats such as HDF,
+ EOS FAST, NOAA L1B, NetCDF, FITS.
+ .
+ OGR library supports popular vector formats like ESRI Shapefile,
+ TIGER data, S57, MapInfo File, DGN, GML and more.
+ .
+ This package contains the documentation of the Perl bindings for
+ GDAL/OGR library.
 
 Package: libgdal-java
 Architecture: any

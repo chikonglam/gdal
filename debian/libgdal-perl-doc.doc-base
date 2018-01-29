@@ -4,5 +4,5 @@ Abstract: This manual describes the GDAL Perl API.
 Section: Science/Geoscience
 
 Format: HTML
-Index: /usr/share/doc/libgdal-perl/html/index.html
-Files: /usr/share/doc/libgdal-perl/html/*.html
+Index: /usr/share/doc/libgdal-perl-doc/html/index.html
+Files: /usr/share/doc/libgdal-perl-doc/html/*.html
