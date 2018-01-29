@@ -4,3 +4,6 @@ libgdal-dev: hyphen-used-as-minus-sign
 # False positive on: "(319) 369-3131"
 libgdal-dev: copyright-year-in-future 3131 *
 
+# GDAL doesn't use Multi-Arch, it breaks too many rdeps
+libgdal-dev: pkg-config-unavailable-for-cross-compilation usr/lib/pkgconfig/gdal.pc
+

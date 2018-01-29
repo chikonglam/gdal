@@ -20,6 +20,7 @@ gdal (2.2.3+dfsg-2) UNRELEASED; urgency=medium
   * Bump Standards-Version to 4.1.3, no changes.
   * Update symbols for powerpcspe.
   * Move libgdal-perl documentation to separate arch:all package.
+  * Add lintian override for pkg-config-unavailable-for-cross-compilation.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 02 Jan 2018 12:27:12 +0100
 
