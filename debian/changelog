@@ -16,6 +16,7 @@ gdal (2.2.3+dfsg-2) UNRELEASED; urgency=medium
   * Reorder build dependencies (sorted by name).
   * Remove jquery symlinks and dependencies.
   * Update copyright-format URL to use HTTPS.
+  * Add upstream patch to avoid potential issue with CPL circular buffers.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 02 Jan 2018 12:27:12 +0100
 
