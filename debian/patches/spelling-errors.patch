@@ -1,5 +1,6 @@
 Description: Fix spelling errors.
  * Invalide -> Invalid
+ * Altitide -> Altitude
 Author: Bas Couwenberg <sebastic@debian.org>
 
 --- a/ogr/ogrsf_frmts/kml/ogrkmldatasource.cpp
@@ -9,7 +10,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
              pszAltitudeMode_ = NULL;
              CPLError( CE_Warning, CPLE_AppDefined,
 -                      "Invalide AltitideMode specified, ignoring" );
-+                      "Invalid AltitideMode specified, ignoring" );
++                      "Invalid AltitudeMode specified, ignoring" );
          }
      }
      else
