@@ -11,3 +11,4 @@ privacy-breach-logo.patch
 privacy-breach-generic.patch
 perl-doxyfile
 svn-r41303_gnm-avoid-potential-issue-with-CPL-circular-buffers.patch
+spelling-errors.patch
