@@ -8,7 +8,7 @@ gdal (2.2.3+dfsg-2) UNRELEASED; urgency=medium
   * The doxygen jquery is currently a fork of jquery in minified form, and it
     is not compatible with the modern one. Replacement with the libjsquery
     provided now removed.
-  * autotools_dev plugin is deprecated since debhelper >= 9.20160114 and now 
+  * autotools_dev plugin is deprecated since debhelper >= 9.20160114 and now
     no more supported.
 
   [ Bas Couwenberg ]
