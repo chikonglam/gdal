@@ -3166,6 +3166,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<S57AttrInfo*, std::allocator<S57AttrInfo*> >::_M_default_append(unsigned long)@Base" 2.1.1 1
  (c++)"void std::vector<OGRFieldDefn*, std::allocator<OGRFieldDefn*> >::emplace_back<OGRFieldDefn*>(OGRFieldDefn*&&)@Base" 2.1.2 1
  (c++)"void std::vector<OGRFieldDefn*, std::allocator<OGRFieldDefn*> >::_M_realloc_insert<OGRFieldDefn* const&>(__gnu_cxx::__normal_iterator<OGRFieldDefn**, std::vector<OGRFieldDefn*, std::allocator<OGRFieldDefn*> > >, OGRFieldDefn* const&)@Base" 2.2.2 1
+ (c++)"void std::vector<OGRFieldDefn*, std::allocator<OGRFieldDefn*> >::_M_realloc_insert<OGRFieldDefn*>(__gnu_cxx::__normal_iterator<OGRFieldDefn**, std::vector<OGRFieldDefn*, std::allocator<OGRFieldDefn*> > >, OGRFieldDefn*&&)@Base" 2.2.3 1
  (c++)"void std::vector<OGRDataSource*, std::allocator<OGRDataSource*> >::_M_realloc_insert<OGRDataSource* const&>(__gnu_cxx::__normal_iterator<OGRDataSource**, std::vector<OGRDataSource*, std::allocator<OGRDataSource*> > >, OGRDataSource* const&)@Base" 2.2.2 1
  (c++)"void std::vector<OGRLinearRing*, std::allocator<OGRLinearRing*> >::_M_realloc_insert<OGRLinearRing* const&>(__gnu_cxx::__normal_iterator<OGRLinearRing**, std::vector<OGRLinearRing*, std::allocator<OGRLinearRing*> > >, OGRLinearRing* const&)@Base" 2.2.2 1
  (c++)"void std::vector<OGRLinearRing*, std::allocator<OGRLinearRing*> >::_M_realloc_insert<OGRLinearRing*>(__gnu_cxx::__normal_iterator<OGRLinearRing**, std::vector<OGRLinearRing*, std::allocator<OGRLinearRing*> > >, OGRLinearRing*&&)@Base" 2.2.2 1
@@ -3180,6 +3181,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"void std::vector<OGRSpatialReference*, std::allocator<OGRSpatialReference*> >::_M_realloc_insert<OGRSpatialReference*>(__gnu_cxx::__normal_iterator<OGRSpatialReference**, std::vector<OGRSpatialReference*, std::allocator<OGRSpatialReference*> > >, OGRSpatialReference*&&)@Base" 2.2.2 1
  (c++)"void std::vector<GMLGeometryPropertyDefn*, std::allocator<GMLGeometryPropertyDefn*> >::_M_realloc_insert<GMLGeometryPropertyDefn* const&>(__gnu_cxx::__normal_iterator<GMLGeometryPropertyDefn**, std::vector<GMLGeometryPropertyDefn*, std::allocator<GMLGeometryPropertyDefn*> > >, GMLGeometryPropertyDefn* const&)@Base" 2.2.2 1
  (c++)"void std::vector<OGRCoordinateTransformation*, std::allocator<OGRCoordinateTransformation*> >::_M_realloc_insert<OGRCoordinateTransformation* const&>(__gnu_cxx::__normal_iterator<OGRCoordinateTransformation**, std::vector<OGRCoordinateTransformation*, std::allocator<OGRCoordinateTransformation*> > >, OGRCoordinateTransformation* const&)@Base" 2.2.2 1
+ (c++)"void std::vector<OGRCoordinateTransformation*, std::allocator<OGRCoordinateTransformation*> >::_M_realloc_insert<OGRCoordinateTransformation*>(__gnu_cxx::__normal_iterator<OGRCoordinateTransformation**, std::vector<OGRCoordinateTransformation*, std::allocator<OGRCoordinateTransformation*> > >, OGRCoordinateTransformation*&&)@Base" 2.2.3 1
  (c++)"void std::vector<OGRCurve*, std::allocator<OGRCurve*> >::_M_realloc_insert<OGRCurve* const&>(__gnu_cxx::__normal_iterator<OGRCurve**, std::vector<OGRCurve*, std::allocator<OGRCurve*> > >, OGRCurve* const&)@Base" 2.2.2 1
  (c++)"std::vector<OGRCurve*, std::allocator<OGRCurve*> >::_M_erase(__gnu_cxx::__normal_iterator<OGRCurve**, std::vector<OGRCurve*, std::allocator<OGRCurve*> > >)@Base" 2.1.3 1
  (c++)"void std::vector<OGRLayer*, std::allocator<OGRLayer*> >::emplace_back<OGRLayer*>(OGRLayer*&&)@Base" 2.1.1 1
@@ -3259,7 +3261,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<double, std::allocator<double> >::operator=(std::vector<double, std::allocator<double> > const&)@Base" 1.9.0 1
  (c++)"void std::vector<unsigned char, std::allocator<unsigned char> >::emplace_back<unsigned char>(unsigned char&&)@Base" 2.2.0 1
  (c++)"std::vector<unsigned char, std::allocator<unsigned char> >::_M_default_append(unsigned long)@Base" 2.1.1 1
- (c++)"void std::vector<unsigned char, std::allocator<unsigned char> >::_M_realloc_insert<unsigned char const&>(__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, std::allocator<unsigned char> > >, unsigned char const&)@Base" 2.2.2 1
+ (c++)"std::vector<unsigned char, std::allocator<unsigned char> >::operator=(std::vector<unsigned char, std::allocator<unsigned char> > const&)@Base" 2.2.3 1
  (c++)"void std::vector<int, std::allocator<int> >::emplace_back<int>(int&&)@Base" 2.1.1 1
  (c++)"std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&)@Base" 1.9.0 1
  (c++)"std::vector<int, std::allocator<int> >::_M_default_append(unsigned long)@Base" 2.1.1 1
@@ -3283,7 +3285,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"void std::vector<long long, std::allocator<long long> >::_M_realloc_insert<long long>(__gnu_cxx::__normal_iterator<long long*, std::vector<long long, std::allocator<long long> > >, long long&&)@Base" 2.2.2 1
  (c++)"std::vector<long long, std::allocator<long long> >::operator=(std::vector<long long, std::allocator<long long> > const&)@Base" 2.2.0 1
  (c++)"void std::vector<unsigned long long, std::allocator<unsigned long long> >::emplace_back<unsigned long long>(unsigned long long&&)@Base" 2.1.1 1
- (c++)"void std::vector<unsigned long long, std::allocator<unsigned long long> >::_M_realloc_insert<unsigned long long const&>(__gnu_cxx::__normal_iterator<unsigned long long*, std::vector<unsigned long long, std::allocator<unsigned long long> > >, unsigned long long const&)@Base" 2.2.2 1
  (c++)"void std::vector<unsigned long long, std::allocator<unsigned long long> >::_M_realloc_insert<unsigned long long>(__gnu_cxx::__normal_iterator<unsigned long long*, std::vector<unsigned long long, std::allocator<unsigned long long> > >, unsigned long long&&)@Base" 2.2.2 1
  (c++)"std::__cxx11::_List_base<CPLString, std::allocator<CPLString> >::_M_clear()@Base" 2.1.1 1
  (c++)"std::__cxx11::_List_base<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_clear()@Base" 2.0.1 1
@@ -3843,5 +3844,5 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"vtable for OGRLayer@Base" 1.9.0 1
  (c++)"vtable for OGRPoint@Base" 1.9.0 1
  (c++)"vtable for VRTSource@Base" 1.11.0 1
- (c++)"CPLErr VRTComplexSource::RasterIOInternal<double>(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*, GDALDataType)::bHasWarned@Base" 2.1.2 1
- (c++)"CPLErr VRTComplexSource::RasterIOInternal<float>(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*, GDALDataType)::bHasWarned@Base" 2.1.2 1
+ (c++)"VRTComplexSource::RasterIOInternal<double>(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*, GDALDataType)::bHasWarned@Base" 2.2.3 1
+ (c++)"VRTComplexSource::RasterIOInternal<float>(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*, GDALDataType)::bHasWarned@Base" 2.2.3 1
