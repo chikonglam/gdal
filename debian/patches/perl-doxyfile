@@ -3,8 +3,8 @@ Author: Francesco Paolo Lovergine <frankie@debian.org>
 Last-Update: 2018-01-02
 Forwarded: https://github.com/ajolma/Geo-GDAL-2.02/pull/1
 
---- gdal.orig/swig/perl/Doxyfile
-+++ gdal/swig/perl/Doxyfile
+--- a/swig/perl/Doxyfile
++++ b/swig/perl/Doxyfile
 @@ -280,7 +280,7 @@ OPTIMIZE_OUTPUT_VHDL   = NO
  # Note that for custom extensions you also need to set FILE_PATTERNS otherwise
  # the files are not read by doxygen.
