@@ -50,7 +50,7 @@
 #include "ogr_geometry.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: mitab_tabview.cpp 37351 2017-02-12 05:22:20Z goatbar $");
+CPL_CVSID("$Id: mitab_tabview.cpp 40965 2017-12-06 13:41:33Z rouault $");
 
 /*=====================================================================
  *                      class TABView
@@ -1324,6 +1324,7 @@ int  TABRelation::Init(const char *pszViewName,
     /*-----------------------------------------------------------------
      * If selectedFields = "*" then select all fields from both tables
      *----------------------------------------------------------------*/
+    papszSelectedFields = CSLDuplicate(papszSelectedFields);
     if (CSLCount(papszSelectedFields) == 1 &&
         EQUAL(papszSelectedFields[0], "*") )
     {

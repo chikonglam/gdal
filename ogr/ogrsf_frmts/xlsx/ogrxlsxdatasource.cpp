@@ -32,7 +32,7 @@
 #include "cpl_time.h"
 #include "cpl_vsi_error.h"
 
-CPL_CVSID("$Id: ogrxlsxdatasource.cpp 40632 2017-11-04 11:29:43Z rouault $");
+CPL_CVSID("$Id: ogrxlsxdatasource.cpp 41415 2018-02-05 22:42:24Z rouault $");
 
 namespace OGRXLSX {
 
@@ -1880,7 +1880,7 @@ static void WriteLayer(const char* pszName, OGRLayer* poLayer, int iLayer,
                 if (eType == OFTReal)
                 {
                     VSIFPrintfL(fp, "<c r=\"%s%d\">\n", szCol, iRow);
-                    VSIFPrintfL(fp, "<v>%.16f</v>\n", poFeature->GetFieldAsDouble(j));
+                    VSIFPrintfL(fp, "<v>%.16g</v>\n", poFeature->GetFieldAsDouble(j));
                     VSIFPrintfL(fp, "</c>\n");
                 }
                 else if (eType == OFTInteger)
@@ -1926,7 +1926,7 @@ static void WriteLayer(const char* pszName, OGRLayer* poLayer, int iLayer,
                     if (eType == OFTDate)
                         VSIFPrintfL(fp, "<v>%d</v>\n", (int)(dfNumberOfDaysSince1900 + 0.1));
                     else
-                        VSIFPrintfL(fp, "<v>%.16f</v>\n", dfNumberOfDaysSince1900);
+                        VSIFPrintfL(fp, "<v>%.16g</v>\n", dfNumberOfDaysSince1900);
                     VSIFPrintfL(fp, "</c>\n");
                 }
                 else
@@ -2091,6 +2091,12 @@ void OGRXLSXDataSource::FlushCache()
     if( !bUpdated )
         return;
 
+    /* Cause all layers to be loaded */
+    for(int i = 0; i<nLayers; i++)
+    {
+        ((OGRXLSXLayer*)papoLayers[i])->GetLayerDefn();
+    }
+
     VSIStatBufL sStat;
     if (VSIStatL(pszName, &sStat) == 0)
     {
@@ -2100,12 +2106,6 @@ void OGRXLSXDataSource::FlushCache()
                     "Cannot delete %s", pszName);
             return;
         }
-    }
-
-    /* Cause all layers to be initialized */
-    for(int i = 0; i<nLayers; i++)
-    {
-        ((OGRXLSXLayer*)papoLayers[i])->GetLayerDefn();
     }
 
     /* Maintain new ZIP files opened */

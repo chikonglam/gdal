@@ -2718,8 +2718,8 @@ SWIGINTERN CPLErr GDALDatasetShadow_WriteRaster(GDALDatasetShadow *self,int xoff
     if ( buf_type != 0 ) {
       ntype = (GDALDataType) *buf_type;
     } else {
-      int lastband = GDALGetRasterCount( self ) - 1;
-      if (lastband < 0)
+      int lastband = GDALGetRasterCount( self );
+      if (lastband <= 0)
         return CE_Failure;
       ntype = GDALGetRasterDataType( GDALGetRasterBand( self, lastband ) );
     }
@@ -2757,8 +2757,8 @@ SWIGINTERN CPLErr GDALDatasetShadow_ReadRaster(GDALDatasetShadow *self,int xoff,
     if ( buf_type != 0 ) {
       ntype = (GDALDataType) *buf_type;
     } else {
-      int lastband = GDALGetRasterCount( self ) - 1;
-      if (lastband < 0)
+      int lastband = GDALGetRasterCount( self );
+      if (lastband <= 0)
         return CE_Failure;
       ntype = GDALGetRasterDataType( GDALGetRasterBand( self, lastband ) );
     }

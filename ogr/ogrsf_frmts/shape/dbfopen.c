@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dbfopen.c 37046 2016-12-31 09:59:57Z rouault $
+ * $Id: dbfopen.c 41846 2018-03-17 13:27:51Z rouault $
  *
  * Project:  Shapelib
  * Purpose:  Implementation of .dbf access API documented in dbf_api.html.
@@ -209,7 +209,7 @@
 #define CPLsnprintf snprintf
 #endif
 
-SHP_CVSID("$Id: dbfopen.c 37046 2016-12-31 09:59:57Z rouault $")
+SHP_CVSID("$Id: dbfopen.c 41846 2018-03-17 13:27:51Z rouault $")
 
 #ifndef FALSE
 #  define FALSE		0
@@ -504,12 +504,15 @@ DBFOpenLL( const char * pszFilename, const char * pszAccess, SAHooks *psHooks )
     pszBasename = (char *) malloc(strlen(pszFilename)+5);
     strcpy( pszBasename, pszFilename );
     for( i = (int)strlen(pszBasename)-1;
-	 i > 0 && pszBasename[i] != '.' && pszBasename[i] != '/'
-	       && pszBasename[i] != '\\';
-	 i-- ) {}
-
-    if( pszBasename[i] == '.' )
-        pszBasename[i] = '\0';
+         i > 0 && pszBasename[i] != '/' && pszBasename[i] != '\\';
+         i-- )
+    {
+        if( pszBasename[i] == '.' )
+        {
+            pszBasename[i] = '\0';
+            break;
+        }
+    }
 
     nFullnameLen = strlen(pszBasename) + 5;
     pszFullname = (char *) malloc(nFullnameLen);
@@ -778,12 +781,15 @@ DBFCreateLL( const char * pszFilename, const char * pszCodePage, SAHooks *psHook
     pszBasename = (char *) malloc(strlen(pszFilename)+5);
     strcpy( pszBasename, pszFilename );
     for( i = (int)strlen(pszBasename)-1;
-	 i > 0 && pszBasename[i] != '.' && pszBasename[i] != '/'
-	       && pszBasename[i] != '\\';
-	 i-- ) {}
-
-    if( pszBasename[i] == '.' )
-        pszBasename[i] = '\0';
+         i > 0 && pszBasename[i] != '/' && pszBasename[i] != '\\';
+         i-- )
+    {
+        if( pszBasename[i] == '.' )
+        {
+            pszBasename[i] = '\0';
+            break;
+        }
+    }
 
     nFullnameLen = strlen(pszBasename) + 5;
     pszFullname = (char *) malloc(nFullnameLen);

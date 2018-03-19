@@ -33,7 +33,7 @@
 #include "gdal_frmts.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: airsardataset.cpp 36501 2016-11-25 14:09:24Z rouault $");
+CPL_CVSID("$Id: airsardataset.cpp 41376 2018-02-01 17:02:05Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -238,7 +238,7 @@ CPLErr AirSARRasterBand::IReadBlock( int /* nBlockXOff */,
             pafLine[iPixel*2 + 0] = (float)(SQRT_2 * (m[M13] - m[M23]));
 
             // imaginary
-            pafLine[iPixel*2 + 1] = (float)(SQRT_2 * (m[M23] - m[M14]));
+            pafLine[iPixel*2 + 1] = (float)(SQRT_2 * (m[M24] - m[M14]));
         }
     }
     else if( nBand == 6 ) /* C33 */

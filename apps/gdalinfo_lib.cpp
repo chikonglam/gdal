@@ -55,12 +55,13 @@
 #include "ogr_api.h"
 #include "ogr_json_header.h"
 #include "ogr_srs_api.h"
+#include "ogr_spatialref.h"
 #include "ogrgeojsonreader.h"
 #include "ogrgeojsonwriter.h"
 
 using std::vector;
 
-CPL_CVSID("$Id: gdalinfo_lib.cpp 38115 2017-04-23 07:24:41Z rouault $");
+CPL_CVSID("$Id: gdalinfo_lib.cpp 41753 2018-03-12 15:58:55Z rouault $");
 
 /*! output format */
 typedef enum {
@@ -591,6 +592,20 @@ char *GDALInfo( GDALDatasetH hDataset, const GDALInfoOptions *psOptions )
             else
             {
                 hLatLong = OSRCloneGeogCS( hProj );
+                if( hLatLong )
+                {
+                    // Drop GEOGCS|UNIT child to be sure to output as degrees
+                    OGRSpatialReference* poLatLong = reinterpret_cast<
+                        OGRSpatialReference*>(hLatLong);
+                    OGR_SRSNode *poGEOGCS = poLatLong->GetRoot();
+                    if( poGEOGCS )
+                    {
+                        const int iUnitChild =
+                            poGEOGCS->FindChild("UNIT");
+                        if( iUnitChild != -1 )
+                            poGEOGCS->DestroyChild(iUnitChild);
+                    }
+                }
             }
         }
 
@@ -1181,7 +1196,9 @@ char *GDALInfo( GDALDatasetH hDataset, const GDALInfoOptions *psOptions )
                      iOverview < GDALGetOverviewCount(hMaskBand);
                      iOverview++ )
                 {
-                    GDALRasterBandH hOverview;
+                    GDALRasterBandH hOverview = GDALGetOverview( hMaskBand, iOverview );
+                    if( !hOverview )
+                        break;
                     json_object *poMaskOverview = NULL;
                     json_object *poMaskOverviewSize = NULL;
 
@@ -1196,7 +1213,6 @@ char *GDALInfo( GDALDatasetH hDataset, const GDALInfoOptions *psOptions )
                             Concat(osStr, psOptions->bStdoutOutput, ", " );
                     }
 
-                    hOverview = GDALGetOverview( hMaskBand, iOverview );
                     if(bJson)
                     {
                         json_object *poMaskOverviewSizeX =

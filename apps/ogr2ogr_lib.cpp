@@ -61,7 +61,7 @@
 #include "ogrlayerdecorator.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogr2ogr_lib.cpp 39771 2017-08-07 19:33:50Z rouault $");
+CPL_CVSID("$Id: ogr2ogr_lib.cpp 41373 2018-02-01 10:09:27Z rouault $");
 
 typedef enum
 {
@@ -2057,6 +2057,7 @@ GDALDatasetH GDALVectorTranslate( const char *pszDest, GDALDatasetH hDstDS, int 
     /* Various tests to avoid overwriting the source layer(s) */
     /* or to avoid appending a layer to itself */
     if( bUpdate && strcmp(osDestFilename, poDS->GetDescription()) == 0 &&
+        !EQUAL(poDS->GetDriverName(), "Memory") &&
         (bOverwrite || bAppend) )
     {
         bool bError = false;
@@ -3865,8 +3866,30 @@ TargetLayerInfo* SetupTargetLayer::Setup(OGRLayer* poSrcLayer,
 
         const char* pszFIDColumn = poDstLayer->GetFIDColumn();
 
-        for( int iField = 0; iField < nSrcFieldCount; iField++ )
+        std::vector<int> anSrcFieldIndices;
+        if( m_papszSelFields )
         {
+            for( int iField=0; m_papszSelFields[iField] != NULL; iField++)
+            {
+                const int iSrcField =
+                    poSrcFDefn->GetFieldIndex(m_papszSelFields[iField]);
+                if (iSrcField >= 0)
+                {
+                    anSrcFieldIndices.push_back(iSrcField);
+                }
+            }
+        }
+        else
+        {
+            for( int iField = 0; iField < nSrcFieldCount; iField++ )
+            {
+                anSrcFieldIndices.push_back(iField);
+            }
+        }
+
+        for( size_t i = 0; i < anSrcFieldIndices.size(); i++ )
+        {
+            const int iField = anSrcFieldIndices[i];
             OGRFieldDefn* poSrcFieldDefn = poSrcFDefn->GetFieldDefn(iField);
             OGRFieldDefn oFieldDefn( poSrcFieldDefn );
 

@@ -35,7 +35,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ntffilereader.cpp 39006 2017-06-09 07:55:52Z rouault $");
+CPL_CVSID("$Id: ntffilereader.cpp 41289 2018-01-18 11:46:21Z rouault $");
 
 static int DefaultNTFRecordGrouper( NTFFileReader *, NTFRecord **,
                                     NTFRecord * );
@@ -951,7 +951,7 @@ int NTFFileReader::ProcessAttRec( NTFRecord * poRecord,
             iOffset = nEnd;
             if( iOffset >= poRecord->GetLength() )
             {
-                bError = true;
+                bError = (iOffset > poRecord->GetLength());
                 break;
             }
             if( pszData[iOffset] == '\\' )

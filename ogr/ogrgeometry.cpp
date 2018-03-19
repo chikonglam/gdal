@@ -56,7 +56,7 @@
 #define UNUSED_IF_NO_GEOS
 #endif
 
-CPL_CVSID("$Id: ogrgeometry.cpp 38291 2017-05-14 00:40:31Z rouault $");
+CPL_CVSID("$Id: ogrgeometry.cpp 40911 2017-12-02 15:02:10Z rouault $");
 
 //! @cond Doxygen_Suppress
 int OGRGeometry::bGenerate_DB2_V72_BYTE_ORDER = FALSE;
@@ -5261,6 +5261,8 @@ OGRErr OGRGeometry::PointOnSurfaceInternal( OGRPoint * poPoint ) const
         poPoint->setX( poInsidePoint->getX() );
         poPoint->setY( poInsidePoint->getY() );
     }
+
+    OGR_G_DestroyGeometry(hInsidePoint);
 
     return OGRERR_NONE;
 }

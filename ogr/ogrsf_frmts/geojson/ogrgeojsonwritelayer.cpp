@@ -32,7 +32,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrgeojsonwritelayer.cpp 37472 2017-02-26 02:47:45Z goatbar $");
+CPL_CVSID("$Id: ogrgeojsonwritelayer.cpp 41192 2018-01-04 18:37:00Z rouault $");
 
 // Remove annoying warnings Microsoft Visual C++.
 #if defined(_MSC_VER)
@@ -151,6 +151,7 @@ OGRErr OGRGeoJSONWriteLayer::ICreateFeature( OGRFeature* poFeature )
     {
         poFeatureToWrite = new OGRFeature(poFeatureDefn_);
         poFeatureToWrite->SetFrom( poFeature );
+        poFeatureToWrite->SetFID( poFeature->GetFID() );
         OGRGeometry* poGeometry = poFeatureToWrite->GetGeometryRef();
         if( poGeometry )
         {
