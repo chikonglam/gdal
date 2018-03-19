@@ -33,7 +33,7 @@
 #include "rawdataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: rrasterdataset.cpp 36682 2016-12-04 20:34:45Z rouault $");
+CPL_CVSID("$Id: rrasterdataset.cpp 41816 2018-03-16 11:33:00Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -509,10 +509,10 @@ GDALDataset *RRASTERDataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->SetBand( i, poBand );
         if( EQUAL(osDataType, "INT1S") )
         {
-            poDS->GetRasterBand(i)->SetMetadataItem(
-                    "SIGNEDBYTE", "PIXELTYPE", "IMAGE_STRUCTURE" );
+            poDS->GetRasterBand(i)->GDALRasterBand::SetMetadataItem(
+                    "PIXELTYPE", "SIGNEDBYTE", "IMAGE_STRUCTURE" );
         }
-        if( !EQUAL(osNoDataValue, "NA") )
+        if( !osNoDataValue.empty() && !EQUAL(osNoDataValue, "NA") )
         {
             double dfNoDataValue = CPLAtof(osNoDataValue);
             poBand->SetNoDataValue(dfNoDataValue);

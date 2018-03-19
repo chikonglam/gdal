@@ -33,7 +33,7 @@
 #include "cpl_time.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgeopackagetablelayer.cpp 40670 2017-11-09 15:24:07Z rouault $");
+CPL_CVSID("$Id: ogrgeopackagetablelayer.cpp 41766 2018-03-13 09:21:58Z rouault $");
 
 static const char UNSUPPORTED_OP_READ_ONLY[] =
   "%s : unsupported operation on a read-only datasource.";
@@ -2598,7 +2598,7 @@ bool OGRGeoPackageTableLayer::CreateSpatialIndex(const char* pszTableName)
         Actions   : Remove record from rtree for old <i>
                     Insert record into rtree for new <i> */
     pszSQL = sqlite3_mprintf(
-                   "CREATE TRIGGER \"%w_update3\" AFTER UPDATE OF \"%w\" ON \"%w\" "
+                   "CREATE TRIGGER \"%w_update3\" AFTER UPDATE ON \"%w\" "
                    "WHEN OLD.\"%w\" != NEW.\"%w\" AND "
                    "(NEW.\"%w\" NOTNULL AND NOT ST_IsEmpty(NEW.\"%w\")) "
                    "BEGIN "
@@ -2609,7 +2609,7 @@ bool OGRGeoPackageTableLayer::CreateSpatialIndex(const char* pszTableName)
                    "ST_MinY(NEW.\"%w\"), ST_MaxY(NEW.\"%w\")"
                    "); "
                    "END",
-                   m_osRTreeName.c_str(), pszC, pszT,
+                   m_osRTreeName.c_str(), pszT,
                    pszI, pszI,
                    pszC, pszC,
                    m_osRTreeName.c_str(), pszI,

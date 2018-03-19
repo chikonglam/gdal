@@ -44,7 +44,7 @@
 #include "proj_api.h"
 #endif
 
-CPL_CVSID("$Id: ogrct.cpp 37166 2017-01-17 16:38:53Z rouault $");
+CPL_CVSID("$Id: ogrct.cpp 41301 2018-01-20 17:57:14Z rouault $");
 
 /* ==================================================================== */
 /*      PROJ.4 interface stuff.                                         */
@@ -545,13 +545,13 @@ OGRProj4CT::~OGRProj4CT()
 
     if( pjctx != NULL )
     {
-        pfn_pj_ctx_free(pjctx);
-
         if( psPJSource != NULL )
             pfn_pj_free( psPJSource );
 
         if( psPJTarget != NULL )
             pfn_pj_free( psPJTarget );
+
+        pfn_pj_ctx_free(pjctx);
     }
     else
     {

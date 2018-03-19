@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfimage.c 36380 2016-11-21 10:21:20Z rouault $
+ * $Id: nitfimage.c 41147 2017-12-30 09:06:46Z rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for implementation of most NITFImage
@@ -36,7 +36,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitfimage.c 36380 2016-11-21 10:21:20Z rouault $");
+CPL_CVSID("$Id: nitfimage.c 41147 2017-12-30 09:06:46Z rouault $");
 
 CPL_INLINE static void CPL_IGNORE_RET_VAL_INT(CPL_UNUSED int unused) {}
 
@@ -4290,11 +4290,11 @@ int NITFReadIMRFCA( NITFImage *psImage, NITFRPC00BInfo *psRPC )
 
     for( count = 0; count < 20; ++count )
     {
-        psRPC->LINE_NUM_COEFF[count] = CPLAtof( NITFGetField(szTemp, pachTreIMRFCA, count*22,     22) );
-        psRPC->LINE_DEN_COEFF[count] = CPLAtof( NITFGetField(szTemp, pachTreIMRFCA, 440+count*22, 22) );
+        psRPC->SAMP_NUM_COEFF[count] = CPLAtof( NITFGetField(szTemp, pachTreIMRFCA, count*22,     22) );
+        psRPC->SAMP_DEN_COEFF[count] = CPLAtof( NITFGetField(szTemp, pachTreIMRFCA, 440+count*22, 22) );
 
-        psRPC->SAMP_NUM_COEFF[count] = CPLAtof( NITFGetField(szTemp, pachTreIMRFCA, 880+count*22,  22) );
-        psRPC->SAMP_DEN_COEFF[count] = CPLAtof( NITFGetField(szTemp, pachTreIMRFCA, 1320+count*22, 22) );
+        psRPC->LINE_NUM_COEFF[count] = CPLAtof( NITFGetField(szTemp, pachTreIMRFCA, 880+count*22,  22) );
+        psRPC->LINE_DEN_COEFF[count] = CPLAtof( NITFGetField(szTemp, pachTreIMRFCA, 1320+count*22, 22) );
     }
 
     psRPC->SUCCESS = 1;

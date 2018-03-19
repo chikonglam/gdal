@@ -49,7 +49,7 @@
 #define STARTS_WITH_CI(a,b) EQUALN(a,b,strlen(b))
 #endif
 
-CPL_CVSID("$Id: sentinel2dataset.cpp 40547 2017-10-24 17:42:31Z rouault $");
+CPL_CVSID("$Id: sentinel2dataset.cpp 41673 2018-03-09 14:12:44Z rouault $");
 
 CPL_C_START
 // TODO: Leave this declaration while Sentinel2 folks use this as a
@@ -3266,7 +3266,7 @@ SENTINEL2Dataset* SENTINEL2Dataset::CreateL1CL2ADataset(
             }
 
             GDALProxyPoolDataset* proxyDS = NULL;
-            if( bIsPreview )
+            if( bIsPreview || bIsTCI )
             {
                 proxyDS = oMapPVITile[osTile];
                 if( proxyDS == NULL )
@@ -3300,7 +3300,7 @@ SENTINEL2Dataset* SENTINEL2Dataset::CreateL1CL2ADataset(
 
             if( nBand != nAlphaBand )
             {
-                poBand->AddSimpleSource( proxyDS->GetRasterBand((bIsPreview) ? nBand : 1),
+                poBand->AddSimpleSource( proxyDS->GetRasterBand((bIsPreview || bIsTCI) ? nBand : 1),
                                         0, 0,
                                         oGranuleInfo.nWidth,
                                         oGranuleInfo.nHeight,

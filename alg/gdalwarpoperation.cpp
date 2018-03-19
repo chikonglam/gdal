@@ -49,7 +49,7 @@
 #include "ogr_api.h"
 #include "ogr_core.h"
 
-CPL_CVSID("$Id: gdalwarpoperation.cpp 39828 2017-08-16 08:07:41Z rouault $");
+CPL_CVSID("$Id: gdalwarpoperation.cpp 41328 2018-01-24 21:57:56Z rouault $");
 
 struct _GDALWarpChunk {
     int dx, dy, dsx, dsy;
@@ -1776,7 +1776,7 @@ CPLErr GDALWarpOperation::WarpRegionToBuffer(
         if( psOptions->nBandCount == 1 )
         {
             // Particular case to simplify the stack a bit.
-            eErr = poSrcDS->GetRasterBand(psOptions->panDstBands[0])->RasterIO(
+            eErr = poSrcDS->GetRasterBand(psOptions->panSrcBands[0])->RasterIO(
                                   GF_Read,
                                   nSrcXOff, nSrcYOff, nSrcXSize, nSrcYSize,
                                   oWK.papabySrcImage[0], nSrcXSize, nSrcYSize,

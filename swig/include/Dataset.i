@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: Dataset.i 37423 2017-02-19 13:25:24Z rouault $
+ * $Id: Dataset.i 41075 2017-12-19 13:58:29Z rouault $
  *
  * Name:     Dataset.i
  * Project:  GDAL Python Interface
@@ -487,8 +487,8 @@ public:
     if ( buf_type != 0 ) {
       ntype = (GDALDataType) *buf_type;
     } else {
-      int lastband = GDALGetRasterCount( self ) - 1;
-      if (lastband < 0)
+      int lastband = GDALGetRasterCount( self );
+      if (lastband <= 0)
         return CE_Failure;
       ntype = GDALGetRasterDataType( GDALGetRasterBand( self, lastband ) );
     }
@@ -549,8 +549,8 @@ CPLErr ReadRaster(  int xoff, int yoff, int xsize, int ysize,
     if ( buf_type != 0 ) {
       ntype = (GDALDataType) *buf_type;
     } else {
-      int lastband = GDALGetRasterCount( self ) - 1;
-      if (lastband < 0)
+      int lastband = GDALGetRasterCount( self );
+      if (lastband <= 0)
         return CE_Failure;
       ntype = GDALGetRasterDataType( GDALGetRasterBand( self, lastband ) );
     }

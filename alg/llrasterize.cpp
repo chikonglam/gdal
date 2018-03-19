@@ -39,7 +39,7 @@
 
 #include "gdal_alg.h"
 
-CPL_CVSID("$Id: llrasterize.cpp 38818 2017-06-02 12:08:07Z rouault $");
+CPL_CVSID("$Id: llrasterize.cpp 41013 2017-12-12 12:05:53Z rouault $");
 
 static int llCompareInt(const void *a, const void *b)
 {
@@ -452,7 +452,7 @@ GDALdllImageLineAllTouched( int nRasterXSize, int nRasterYSize,
                 int iY = static_cast<int>(floor(dfY));
                 int iYEnd = (int) floor(dfYEnd);
 
-                if( iX >= nRasterXSize )
+                if( iX < 0 || iX >= nRasterXSize )
                     continue;
 
                 double dfDeltaVariant = 0.0;
@@ -495,7 +495,7 @@ GDALdllImageLineAllTouched( int nRasterXSize, int nRasterYSize,
                 const int iY = static_cast<int>(floor(dfY));
                 int iXEnd = (int) floor(dfXEnd);
 
-                if( iY >= nRasterYSize )
+                if( iY < 0 || iY >= nRasterYSize )
                     continue;
 
                 // Clip to the borders of the target region.
