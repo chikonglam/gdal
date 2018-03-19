@@ -1,3 +1,9 @@
+gdal (2.2.3+dfsg-3) UNRELEASED; urgency=medium
+
+  * Update watch file for 2.2.4 (pre-)releases.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 19 Mar 2018 15:24:25 +0100
+
 gdal (2.2.3+dfsg-2) unstable; urgency=medium
 
   * Update spelling-errors.patch to also fix 'Altitude' typo.
