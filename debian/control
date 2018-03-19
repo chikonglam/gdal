@@ -62,7 +62,7 @@ Build-Conflicts: automake1.11,
                  python-setuptools
 Standards-Version: 4.1.4
 Vcs-Browser: https://salsa.debian.org/debian-gis-team/gdal
-Vcs-Git: https://salsa.debian.org/debian-gis-team/gdal.git
+Vcs-Git: https://salsa.debian.org/debian-gis-team/gdal.git -b experimental
 Homepage: http://www.gdal.org/
 X-Python3-Version: >= 3.2
 
