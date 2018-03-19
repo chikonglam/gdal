@@ -1,4 +1,4 @@
-gdal (2.2.4~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.2.4~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
   * Update watch file for 2.2.4 (pre-)releases.
@@ -6,7 +6,7 @@ gdal (2.2.4~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Update C++ symbols files.
   * Add lintian overrides for vcs-deprecated-in-debian-infrastructure.
 
- -- Bas Couwenberg <sebastic@debian.org>  Mon, 19 Mar 2018 15:28:56 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 19 Mar 2018 15:35:59 +0100
 
 gdal (2.2.3+dfsg-2) unstable; urgency=medium
 
