@@ -4,6 +4,7 @@ gdal (2.2.4~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Update watch file for 2.2.4 (pre-)releases.
   * Drop patches included upstream. Refresh remaining patches.
   * Update C++ symbols files.
+  * Add lintian overrides for vcs-deprecated-in-debian-infrastructure.
 
  -- Bas Couwenberg <sebastic@debian.org>  Mon, 19 Mar 2018 15:28:56 +0100
 
