@@ -2,6 +2,7 @@ Description: Fix generation of classes documentation in Perl bindings doxygen st
 Author: Francesco Paolo Lovergine <frankie@debian.org>
 Last-Update: 2018-01-02
 Forwarded: https://github.com/ajolma/Geo-GDAL-2.02/pull/1
+Applied-Upstream: https://github.com/ajolma/Geo-GDAL-2.02/commit/cf17a59dc1f6f14ef42047051d8efd10ffe266cc
 
 --- a/swig/perl/Doxyfile
 +++ b/swig/perl/Doxyfile
