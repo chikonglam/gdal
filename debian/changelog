@@ -1,11 +1,12 @@
-gdal (2.2.4+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.2.4+dfsg-1) unstable; urgency=medium
 
   * New upstream release.
   * Update watch file for final releases.
   * Simplify overrides for vcs-deprecated-in-debian-infrastructure.
   * Add python3-distutils to build dependencies.
+  * Move from experimental to unstable.
 
- -- Bas Couwenberg <sebastic@debian.org>  Wed, 21 Mar 2018 16:14:09 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 21 Mar 2018 16:14:53 +0100
 
 gdal (2.2.4~rc1+dfsg-1~exp1) experimental; urgency=medium
 
