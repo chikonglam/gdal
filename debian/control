@@ -54,6 +54,7 @@ Build-Depends: debhelper (>= 9.20160114),
                python-numpy,
                python3-all-dev,
                python3-numpy,
+               python3-distutils,
                swig,
                unixodbc-dev (>= 2.2.11),
                zlib1g-dev
