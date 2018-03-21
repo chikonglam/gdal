@@ -1,4 +1,3 @@
-# Package not officiall migrated to Salsa yet.
-gdal source: vcs-deprecated-in-debian-infrastructure vcs-git https://anonscm.debian.org/*
-gdal source: vcs-deprecated-in-debian-infrastructure vcs-browser https://anonscm.debian.org/*
+# Package not officially migrated to Salsa yet.
+gdal source: vcs-deprecated-in-debian-infrastructure * https://anonscm.debian.org/*
 
