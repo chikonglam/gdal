@@ -61,8 +61,8 @@ Build-Depends: debhelper (>= 9.20160114),
 Build-Conflicts: automake1.11,
                  python-setuptools
 Standards-Version: 4.1.3
-Vcs-Browser: https://anonscm.debian.org/cgit/pkg-grass/gdal.git
-Vcs-Git: https://anonscm.debian.org/git/pkg-grass/gdal.git
+Vcs-Browser: https://salsa.debian.org/debian-gis-team/gdal
+Vcs-Git: https://salsa.debian.org/debian-gis-team/gdal.git
 Homepage: http://www.gdal.org/
 X-Python3-Version: >= 3.2
 
