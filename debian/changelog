@@ -3,6 +3,7 @@ gdal (2.2.4+dfsg-2) UNRELEASED; urgency=medium
   * Update upstream metadata for move to GitHub.
   * Update Vcs-* URLs for Salsa.
   * Drop override for vcs-deprecated-in-debian-infrastructure.
+  * Bump Standards-Version to 4.1.4, no changes.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 23 Mar 2018 15:27:27 +0100
 
