@@ -19,6 +19,7 @@ gdal (2.3.0~beta1+dfsg-1) UNRELEASED; urgency=medium
   * Enable CharLS support.
   * Rename --with-static-proj4 configure option to --with-proj.
   * Fix JNI library installation.
+  * Drop unnecessary get-orig-source target.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 20 Apr 2018 14:43:16 +0200
 
