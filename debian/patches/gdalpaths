@@ -10,7 +10,7 @@ Forwarded: not-needed
                                          GDAL_PREFIX "/PlugIns");
      #else
 -                                        GDAL_PREFIX "/lib/gdalplugins" );
-+                                        GDAL_PREFIX "/lib/gdalplugins/2.2" );
++                                        GDAL_PREFIX "/lib/gdalplugins/2.3" );
      #endif
  #else
          char szExecPath[1024];
@@ -21,7 +21,7 @@ Forwarded: not-needed
              CPLPushFinderLocation( GDAL_PREFIX "/Resources/gdal" );
    #else
 -            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal" );
-+            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal/2.2" );
++            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal/2.3" );
    #endif
  #endif
          }

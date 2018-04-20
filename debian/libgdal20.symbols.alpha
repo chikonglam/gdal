@@ -1,5 +1,5 @@
 libgdal.so.20 libgdal20 #MINVER#
-| libgdal20 #MINVER#, gdal-abi-2-2-3
+| libgdal20 #MINVER#, gdal-abi-2-3-0
 #include "libgdal20.symbols.common"
  (c++)"CPLOPrintf(char const*, ...)@Base" 2.2.0 1
  (c++)"GetVersion()@Base" 2.2.0 1
