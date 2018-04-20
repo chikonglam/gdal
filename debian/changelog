@@ -5,6 +5,7 @@ gdal (2.2.4+dfsg-2) UNRELEASED; urgency=medium
   * Drop override for vcs-deprecated-in-debian-infrastructure.
   * Bump Standards-Version to 4.1.4, no changes.
   * Update watch file for 2.3.0 (pre-)releases.
+  * Don't exclude esri_extra.wkt, license issue resolved.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 23 Mar 2018 15:27:27 +0100
 
