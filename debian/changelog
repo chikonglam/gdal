@@ -8,6 +8,13 @@ gdal (2.3.0~beta1+dfsg-1) UNRELEASED; urgency=medium
   * Update watch file for 2.3.0 (pre-)releases.
   * Don't exclude esri_extra.wkt, license issue resolved.
   * Refresh patches.
+  * Update copyright file, changes:
+    - Update copyright years for existing copyright holders
+    - Add new copyright holders
+    - Change license shortname MIT to Expat
+    - Drop license & copyright for autotools files
+    - Add license & copyright for ESRI WKT files
+    - Add license & copyright for cpl_mem_cache.h
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 20 Apr 2018 14:43:16 +0200
 
