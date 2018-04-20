@@ -5,7 +5,7 @@ Forwarded: not-needed
 
 --- a/gcore/gdaldrivermanager.cpp
 +++ b/gcore/gdaldrivermanager.cpp
-@@ -740,7 +740,7 @@ void GDALDriverManager::AutoLoadDrivers(
+@@ -752,7 +752,7 @@ void GDALDriverManager::AutoLoadDrivers(
      #ifdef MACOSX_FRAMEWORK
                                          GDAL_PREFIX "/PlugIns");
      #else
