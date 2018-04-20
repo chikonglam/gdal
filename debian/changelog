@@ -1,4 +1,4 @@
-gdal (2.3.0~beta1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.3.0~beta1+dfsg-1) experimental; urgency=medium
 
   * New upstream beta release.
   * Update upstream metadata for move to GitHub.
@@ -21,7 +21,7 @@ gdal (2.3.0~beta1+dfsg-1) UNRELEASED; urgency=medium
   * Fix JNI library installation.
   * Drop unnecessary get-orig-source target.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 20 Apr 2018 14:43:16 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 20 Apr 2018 15:55:03 +0200
 
 gdal (2.2.4+dfsg-1) unstable; urgency=medium
 
