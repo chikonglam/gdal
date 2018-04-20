@@ -29,7 +29,7 @@
 #include "ogr_dxf.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrdxfdriver.cpp 35645 2016-10-08 00:48:42Z goatbar $");
+CPL_CVSID("$Id: ogrdxfdriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                       OGRDXFDriverIdentify()                         */
@@ -38,7 +38,7 @@ CPL_CVSID("$Id: ogrdxfdriver.cpp 35645 2016-10-08 00:48:42Z goatbar $");
 static int OGRDXFDriverIdentify( GDALOpenInfo* poOpenInfo )
 
 {
-    if( poOpenInfo->fpL == NULL || poOpenInfo->nHeaderBytes == 0 )
+    if( poOpenInfo->fpL == nullptr || poOpenInfo->nHeaderBytes == 0 )
         return FALSE;
     if( EQUAL(CPLGetExtension(poOpenInfo->pszFilename),"dxf") )
         return TRUE;
@@ -83,14 +83,14 @@ static GDALDataset *OGRDXFDriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
     if( !OGRDXFDriverIdentify(poOpenInfo) )
-        return NULL;
+        return nullptr;
 
     OGRDXFDataSource *poDS = new OGRDXFDataSource();
 
     if( !poDS->Open( poOpenInfo->pszFilename ) )
     {
         delete poDS;
-        poDS = NULL;
+        poDS = nullptr;
     }
 
     return poDS;
@@ -114,7 +114,7 @@ static GDALDataset *OGRDXFDriverCreate( const char * pszName,
     else
     {
         delete poDS;
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -125,7 +125,7 @@ static GDALDataset *OGRDXFDriverCreate( const char * pszName,
 void RegisterOGRDXF()
 
 {
-    if( GDALGetDriverByName( "DXF" ) != NULL )
+    if( GDALGetDriverByName( "DXF" ) != nullptr )
         return;
 
     GDALDriver  *poDriver = new GDALDriver();
@@ -147,6 +147,7 @@ void RegisterOGRDXF()
                                "<LayerCreationOptionList/>" );
 
     poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+    poDriver->SetMetadataItem( GDAL_DCAP_FEATURE_STYLES, "YES" );
 
     poDriver->pfnOpen = OGRDXFDriverOpen;
     poDriver->pfnIdentify = OGRDXFDriverIdentify;

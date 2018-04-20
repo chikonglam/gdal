@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_vdv.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_vdv.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  VDV Translator
  * Purpose:  Implements OGRVDVDriver.
@@ -151,7 +151,7 @@ class OGRVDVWriterLayer: public OGRLayer
                                           const char* pszName,
                                           VSILFILE* fpL,
                                           bool bOwnFP,
-                                          OGRVDV452Table* poVDV452Table = NULL,
+                                          OGRVDV452Table* poVDV452Table = nullptr,
                                           const CPLString& osVDV452Lang = "",
                                           bool bProfileStrict = false
                                           );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_ili2.h 37743 2017-03-17 13:14:00Z rouault $
+ * $Id: ogr_ili2.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  Interlis 2 Translator
  * Purpose:   Definition of classes for OGR Interlis 2 driver.
@@ -71,7 +71,7 @@ class OGRILI2Layer : public OGRLayer
 
     OGRFeatureDefn *    GetLayerDefn() override { return poFeatureDefn; }
 
-    CPLString           GetIliGeomType( const char* cFieldName) { return oGeomFieldInfos[cFieldName].iliGeomType; };
+    CPLString           GetIliGeomType( const char* cFieldName) { return oGeomFieldInfos[cFieldName].iliGeomType; }
 
     OGRErr              CreateField( OGRFieldDefn *poField, int bApproxOK = TRUE ) override;
 
@@ -107,9 +107,9 @@ class OGRILI2DataSource : public OGRDataSource
     OGRLayer   *GetLayer( int ) override;
 
     virtual OGRLayer *ICreateLayer( const char *,
-                                      OGRSpatialReference * = NULL,
+                                      OGRSpatialReference * = nullptr,
                                       OGRwkbGeometryType = wkbUnknown,
-                                      char ** = NULL ) override;
+                                      char ** = nullptr ) override;
 
     VSILFILE *  GetOutputFP() { return fpOutput; }
     int         TestCapability( const char * ) override;

@@ -6,7 +6,7 @@
 #  - Run the VCVARS32.BAT script to initialize the VC++ environment variables
 #  - Start the build with:  nmake /f makefile.vc
 #
-# $Id: makefile.vc 15758 2008-11-18 18:02:14Z dmorissette $
+# $Id$
 #
 
 OBJ	= 	mitab_rawbinblock.obj mitab_mapheaderblock.obj \

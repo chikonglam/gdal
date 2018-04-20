@@ -28,7 +28,7 @@
 
 #include "ogr_geopackage.h"
 
-CPL_CVSID("$Id: ogrgeopackageselectlayer.cpp 37534 2017-03-01 16:50:58Z rouault $");
+CPL_CVSID("$Id: ogrgeopackageselectlayer.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                        OGRGeoPackageSelectLayer()                    */
@@ -112,7 +112,7 @@ OGRErr OGRGeoPackageSelectLayer::ResetStatement()
     const int rc =
         sqlite3_prepare_v2( m_poDS->GetDB(), poBehaviour->osSQLCurrent,
                          static_cast<int>(poBehaviour->osSQLCurrent.size()),
-                         &m_poQueryStatement, NULL );
+                         &m_poQueryStatement, nullptr );
 
     if( rc == SQLITE_OK )
     {
@@ -123,7 +123,7 @@ OGRErr OGRGeoPackageSelectLayer::ResetStatement()
         CPLError( CE_Failure, CPLE_AppDefined,
                   "In ResetStatement(): sqlite3_prepare_v2(%s):\n  %s",
                   poBehaviour->osSQLCurrent.c_str(), sqlite3_errmsg(m_poDS->GetDB()) );
-        m_poQueryStatement = NULL;
+        m_poQueryStatement = nullptr;
         return OGRERR_FAILURE;
     }
 }

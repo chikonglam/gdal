@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: gdalwarpsimple.c 35226 2016-08-28 13:49:13Z goatbar $");
+CPL_CVSID("$Id: gdalwarpsimple.c ff8146d84de7cba8e09d212d5481ea7d2ede3e98 2017-06-27 20:47:31Z Even Rouault $")
 
 static GDALDatasetH
 GDALWarpCreateOutput( GDALDatasetH hSrcDS, const char *pszFilename,

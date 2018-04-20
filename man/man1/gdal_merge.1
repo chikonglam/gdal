@@ -1,4 +1,4 @@
-.TH "gdal_merge" 1 "Mon Mar 19 2018" "GDAL" \" -*- nroff -*-
+.TH "gdal_merge" 1 "Fri Apr 20 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -21,7 +21,7 @@ This utility will automatically mosaic a set of images\&. All the images must be
 .IP "\fB\fB-o\fP \fIout_filename\fP:\fP" 1c
 The name of the output file, which will be created if it does not already exist (defaults to 'out\&.tif')\&. 
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
-Output format, defaults to GeoTIFF (GTiff)\&.  
+Select the output format\&. Starting with GDAL 2\&.3, if not specified, the format is guessed from the extension (previously was GTiff)\&. Use the short format name\&.  
 .IP "\fB\fB-co\fP \fINAME=VALUE\fP:\fP" 1c
 Creation option for output file\&. Multiple options can be specified\&. See \fCformat specific documentation for legal creation options for each format\fP  
 .IP "\fB\fB-ot\fP \fIdatatype\fP:\fP" 1c

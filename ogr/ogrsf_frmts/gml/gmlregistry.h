@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlregistry.h 37244 2017-01-30 22:12:31Z goatbar $
+ * $Id: gmlregistry.h 4595d3beeb6644f1d909dfb4ae011dcb6cd314fe 2017-01-30 22:12:31Z Kurt Schwehr $
  *
  * Project:  GML registry
  * Purpose:  GML reader

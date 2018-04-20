@@ -61,6 +61,8 @@ generate: ${WRAPPERS} gdal_array_wrap.cpp
 	# Unused assigned variable
 	for i in gdal_wrap.cpp gdalconst_wrap.c ogr_wrap.cpp osr_wrap.cpp gdal_array_wrap.cpp gnm_wrap.cpp; do if test -f ${SWIGOUTPUTDIR}/$$i; then sed 's/module_head = \&swig_module;/\/\*module_head = \&swig_module;\*\//' ${SWIGOUTPUTDIR}/$$i  > ${SWIGOUTPUTDIR}/$$i.tmp; mv -f ${SWIGOUTPUTDIR}/$$i.tmp ${SWIGOUTPUTDIR}/$$i; fi; done
 	for i in gdal_wrap.cpp; do sed 's/result = (CPLErr)\(.*\);/CPL_IGNORE_RET_VAL(result = (CPLErr)\1);/' ${SWIGOUTPUTDIR}/$$i  > ${SWIGOUTPUTDIR}/$$i.tmp; mv -f ${SWIGOUTPUTDIR}/$$i.tmp ${SWIGOUTPUTDIR}/$$i; done
+	# SWIG defect fixed per https://github.com/swig/swig/commit/b0e29fbdf31bb94b11cb8a7cc830b4a76467afa3#diff-ba23eb3671d250e6a62261f19f653dd2R93
+	for i in gdal_wrap.cpp gdalconst_wrap.c ogr_wrap.cpp osr_wrap.cpp gdal_array_wrap.cpp gnm_wrap.cpp; do if test -f ${SWIGOUTPUTDIR}/$$i; then sed 's/obj = PyUnicode_AsUTF8String(obj);/obj = PyUnicode_AsUTF8String(obj); if (!obj) return SWIG_TypeError;/' ${SWIGOUTPUTDIR}/$$i  > ${SWIGOUTPUTDIR}/$$i.tmp; mv -f ${SWIGOUTPUTDIR}/$$i.tmp ${SWIGOUTPUTDIR}/$$i; fi; done
 
 build: extensions/gdal_wrap.cpp
 	rm -f setup_vars.ini
@@ -70,7 +72,7 @@ build: extensions/gdal_wrap.cpp
 egg:
 	$(PYTHON) setup.py bdist_egg 
 
-site_package_dir=$(shell $(PYTHON) -c "from __future__ import print_function;from distutils.sysconfig import get_python_lib;print(get_python_lib(prefix=\"$(prefix)\"))")
+site_package_dir=$(shell $(PYTHON) -c "from __future__ import print_function;from distutils.sysconfig import get_python_lib;print(get_python_lib(prefix=\"$(PREFIX)\"))")
 
 ifeq ($(PY_HAVE_SETUPTOOLS),1)
     setup_opts=--single-version-externally-managed --record=record.txt
@@ -80,7 +82,9 @@ ifdef DESTDIR
     setup_opts+=--root=$(DESTDIR)
 endif
 
-ifdef prefix
+ifdef PREFIX
+    setup_opts+=--prefix=$(PREFIX)
+else ifdef prefix
     ifeq ($(shell uname),Darwin)
         STD_UNIX_LAYOUT=$(shell $(PYTHON) -c "from __future__ import print_function;import sys;print(\"FALSE\" if \"framework\" in sys.prefix.lower() else \"TRUE\")")
         ifeq ($(STD_UNIX_LAYOUT),"TRUE")

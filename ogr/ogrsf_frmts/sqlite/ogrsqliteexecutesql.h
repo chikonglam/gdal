@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqliteexecutesql.h 35911 2016-10-24 15:03:26Z goatbar $
+ * $Id: ogrsqliteexecutesql.h c6d0d2bf754b99e206b37d544c2e3fb09046c1af 2017-06-27 19:59:42Z Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Run SQL requests with SQLite SQL engine
@@ -46,7 +46,7 @@ OGRLayer * OGRSQLiteExecuteSQL( GDALDataset* poDS,
 class LayerDesc
 {
     public:
-        LayerDesc() {};
+        LayerDesc() {}
 
         bool operator < ( const LayerDesc& other ) const
         {

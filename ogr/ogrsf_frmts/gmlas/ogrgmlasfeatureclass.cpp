@@ -31,7 +31,7 @@
 // Must be first for DEBUG_BOOL case
 #include "ogr_gmlas.h"
 
-CPL_CVSID("$Id: ogrgmlasfeatureclass.cpp 39652 2017-07-24 17:32:40Z rouault $");
+CPL_CVSID("$Id: ogrgmlasfeatureclass.cpp ec4b4866ec4d16a40f6850548b7740b7c912522a 2017-12-05 14:50:04Z Even Rouault $")
 
 /************************************************************************/
 /*                              GMLASField()                            */
@@ -101,6 +101,8 @@ GMLASFieldType GMLASField::GetTypeFromString( const CPLString& osType )
         return GMLAS_FT_DATE;
     else if( osType == szXS_GYEAR )
         return GMLAS_FT_GYEAR;
+    else if( osType == szXS_GYEAR_MONTH )
+        return GMLAS_FT_GYEAR_MONTH;
     else if( osType == szXS_TIME )
         return GMLAS_FT_TIME;
     else if( osType == szXS_DATETIME )

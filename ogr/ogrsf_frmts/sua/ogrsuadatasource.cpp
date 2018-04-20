@@ -30,15 +30,15 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrsuadatasource.cpp 35202 2016-08-25 15:43:35Z goatbar $");
+CPL_CVSID("$Id: ogrsuadatasource.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                          OGRSUADataSource()                          */
 /************************************************************************/
 
 OGRSUADataSource::OGRSUADataSource() :
-    pszName(NULL),
-    papoLayers(NULL),
+    pszName(nullptr),
+    papoLayers(nullptr),
     nLayers(0)
 {}
 
@@ -73,7 +73,7 @@ OGRLayer *OGRSUADataSource::GetLayer( int iLayer )
 
 {
     if( iLayer < 0 || iLayer >= nLayers )
-        return NULL;
+        return nullptr;
     else
         return papoLayers[iLayer];
 }
@@ -88,7 +88,7 @@ int OGRSUADataSource::Open( const char * pszFilename )
     pszName = CPLStrdup( pszFilename );
 
     VSILFILE* fp = VSIFOpenL(pszFilename, "rb");
-    if (fp == NULL)
+    if (fp == nullptr)
         return FALSE;
 
     nLayers = 1;

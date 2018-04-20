@@ -31,7 +31,7 @@
 #include "ogrgrass.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrgrasslayer.cpp 36368 2016-11-21 01:47:49Z rouault $");
+CPL_CVSID("$Id: ogrgrasslayer.cpp 4971449609881d6ffdca70188292293852d12691 2017-12-17 16:48:14Z Even Rouault $")
 
 /************************************************************************/
 /*                           OGRGRASSLayer()                            */
@@ -789,11 +789,9 @@ OGRFeature *OGRGRASSLayer::GetFeature( GIntBig nFeatureId )
                nFeatureId );
 
     int cat;
-    OGRFeature *poFeature = NULL;
-
     OGRGeometry *poOGR = GetFeatureGeometry ( nFeatureId, &cat );
 
-    poFeature = new OGRFeature( poFeatureDefn );
+    OGRFeature* poFeature = new OGRFeature( poFeatureDefn );
     poFeature->SetGeometryDirectly( poOGR );
     poFeature->SetFID ( nFeatureId );
 

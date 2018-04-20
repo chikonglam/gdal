@@ -40,7 +40,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ddsdataset.cpp 35986 2016-10-28 05:11:34Z goatbar $");
+CPL_CVSID("$Id: ddsdataset.cpp 3b0bbf7a8a012d69a783ee1f9cfeb5c52b370021 2017-06-27 20:57:02Z Even Rouault $")
 
 using namespace crnlib;
 

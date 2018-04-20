@@ -31,7 +31,7 @@
 
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: cpl_vsil_simple.cpp 36888 2016-12-15 19:26:17Z goatbar $");
+CPL_CVSID("$Id: cpl_vsil_simple.cpp ff8146d84de7cba8e09d212d5481ea7d2ede3e98 2017-06-27 20:47:31Z Even Rouault $")
 
 #ifdef WIN32
 #  include <sys/stat.h>
@@ -127,7 +127,7 @@ int VSIFCloseL( FILE * fp )
 int VSIFSeekL( FILE * fp, vsi_l_offset nOffset, int nWhence )
 
 {
-    return VSIFSeek(fp, static_ast<int>(nOffset), nWhence);
+    return VSIFSeek(fp, static_cast<int>(nOffset), nWhence);
 }
 
 /************************************************************************/

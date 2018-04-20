@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalconst.i 40765 2017-11-20 10:03:14Z rouault $
+ * $Id: gdalconst.i 7c224da8239ac7118f2ad410c1681e0e5c79eb09 2017-11-20 10:02:59Z Even Rouault $
  *
  * Name:     gdalconst.i
  * Project:  GDAL Python Interface

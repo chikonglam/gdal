@@ -1,4 +1,4 @@
-.TH "gdaladdo" 1 "Mon Mar 19 2018" "GDAL" \" -*- nroff -*-
+.TH "gdaladdo" 1 "Fri Apr 20 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,8 +8,8 @@ gdaladdo \- Builds or rebuilds overview images\&.
 .PP
 .nf
 gdaladdo [-r {nearest,average,gauss,cubic,cubicspline,lanczos,average_mp,average_magphase,mode}]
-         [-b band]*
-         [-ro] [-clean] [-oo NAME=VALUE]* [--help-general] filename levels
+         [-b band]* [-minsize val]
+         [-ro] [-clean] [-oo NAME=VALUE]* [--help-general] filename [levels]
 .fi
 .PP
 .SH "DESCRIPTION"
@@ -26,10 +26,12 @@ Select a resampling algorithm\&.
 (available from GDAL 1\&.7\&.0) remove all overviews\&.  
 .IP "\fB\fB-oo\fP \fINAME=VALUE\fP:\fP" 1c
 (starting with GDAL 2\&.0) Dataset open option (format specific) 
+.IP "\fB\fB-minsize\fP \fIval\fP:\fP" 1c
+(starting with GDAL 2\&.3) Maximum width or height of the smallest overview level\&. Only taken into account if explicit levels are not specified\&. Defaults to 256\&.  
 .IP "\fB\fIfilename\fP:\fP" 1c
 The file to build overviews for (or whose overviews must be removed)\&.  
 .IP "\fB\fIlevels\fP:\fP" 1c
-A list of integral overview levels to build\&. Ignored with -clean option\&. 
+A list of integral overview levels to build\&. Ignored with -clean option\&. Starting with GDAL 2\&.3, levels are no longer required to build overviews\&. In which case, appropriate overview power-of-two factors will be selected until the smallest overview is smaller than the value of the -minsize switch\&. 
 .PP
 .PP
 \fIMode\fP (available from GDAL 1\&.6\&.0) selects the value which appears most often of all the sampled points\&. \fIaverage_mp\fP is unsuitable for use\&. \fIAverage_magphase\fP averages complex data in mag/phase space\&. \fINearest\fP and \fIaverage\fP are applicable to normal image data\&. \fINearest\fP applies a nearest neighbour (simple sampling) resampler, while \fIaverage\fP computes the average of all non-NODATA contributing pixels\&. \fICubic\fP resampling (available from GDAL 1\&.7\&.0) applies a cubic convolution kernel\&. \fIGauss\fP resampling (available from GDAL 1\&.6\&.0) applies a Gaussian kernel before computing the overview, which can lead to better results than simple averaging in e\&.g case of sharp edges with high contrast or noisy patterns\&. The advised level values should be 2, 4, 8, \&.\&.\&. so that a 3x3 resampling Gaussian kernel is selected\&. \fICubicSpline\fP resampling (available from GDAL 2\&.0) applies a B-Spline convolution kernel\&. \fILanczos\fP resampling (available from GDAL 2\&.0) applies a Lanczos windowed sinc convolution kernel\&.
@@ -59,7 +61,7 @@ To produce the smallest possible JPEG-In-TIFF overviews, you should use :
 .fi
 .PP
 .PP
-Starting with GDAL 1\&.7\&.0, external overviews can be created in the BigTIFF format by using the BIGTIFF_OVERVIEW configuration option : --config BIGTIFF_OVERVIEW {IF_NEEDED|IF_SAFER|YES|NO}\&. The default value is IF_NEEDED\&. The behaviour of this option is exactly the same as the BIGTIFF creation option documented in the GeoTIFF driver documentation\&. 
+External overviews can be created in the BigTIFF format by using the BIGTIFF_OVERVIEW configuration option : --config BIGTIFF_OVERVIEW {IF_NEEDED|IF_SAFER|YES|NO}\&. The default value is IF_SAFER starting with GDAL 2\&.3\&.0 (previously was IF_NEEDED)\&. The behaviour of this option is exactly the same as the BIGTIFF creation option documented in the GeoTIFF driver documentation\&. 
 .PD 0
 
 .IP "\(bu" 2
@@ -79,6 +81,14 @@ See the documentation of the GeoTIFF driver for further explanations on all thos
 .PP
 Functionality of this utility can be done from C with GDALBuildOverviews()\&.
 .SH "EXAMPLE"
+.PP
+.PP
+Create overviews, embedded in the supplied TIFF file, with automatic computation of levels (GDAL 2\&.3 or later)
+.PP
+.PP
+.nf
+gdaladdo -r average abc.tif
+.fi
 .PP
 .PP
 Create overviews, embedded in the supplied TIFF file:

@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: geos.m4 35222 2016-08-28 06:06:11Z goatbar $
+dnl $Id: geos.m4 a951b211d2a2f5ee1180182f9722f85a05fbcb60 2018-04-11 20:56:15 +1000 Ben Elliston $
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Test for GEOS library presence
@@ -34,7 +34,7 @@ dnl GEOS_INIT (MINIMUM_VERSION)
 dnl
 dnl Test for GEOS: define HAVE_GEOS, GEOS_LIBS, GEOS_CFLAGS, GEOS_VERSION
 dnl
-dnl Call as GEOS_INIT or GEOS_INIT(minimum version) in configure.in. Test
+dnl Call as GEOS_INIT or GEOS_INIT(minimum version) in configure.ac. Test
 dnl HAVE_GEOS (yes|no) afterwards. If yes, all other vars above can be
 dnl used in program.
 dnl

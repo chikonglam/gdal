@@ -8,7 +8,7 @@
 #  - Run the VCVARS32.BAT script to initialize the VC++ environment variables
 #  - Start the build with:  nmake /f makefile.vc
 #
-# $Id: makefile.vc 39863 2017-08-18 20:27:45Z tamas $
+# $Id$
 #
 
 GDAL_ROOT	=	..\..

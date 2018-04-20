@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jpipkakdataset.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: jpipkakdataset.h e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $
  *
  * Project:  jpip read driver
  * Purpose:  GDAL bindings for JPIP.
@@ -65,15 +65,15 @@ private:
     int bIsFinal;
     int bIsEOR;
 public:
-    long GetId(){return nId;}
-    long GetAux(){return nAux;}
-    long GetClassId(){return nClassId;}
-    long GetCodestreamIdx(){return nCodestream;}
-    long GetOffset(){return nOffset;}
-    long GetLen(){return nLen;}
+    long GetId() const {return nId;}
+    long GetAux() const {return nAux;}
+    long GetClassId() const {return nClassId;}
+    long GetCodestreamIdx() const {return nCodestream;}
+    long GetOffset() const {return nOffset;}
+    long GetLen() const {return nLen;}
     GByte* GetData(){return pabyData;}
-    int IsFinal(){return bIsFinal;}
-    int IsEOR(){return bIsEOR;}
+    int IsFinal() const {return bIsFinal;}
+    int IsEOR() const {return bIsEOR;}
 
     void SetId(long nIdIn){this->nId = nIdIn;}
     void SetAux(long nAuxIn){this->nAux = nAuxIn;}
@@ -165,15 +165,15 @@ public:
                                               char **papszOptions) override;
 
     virtual void EndAsyncReader(GDALAsyncReader *) override;
-    int GetNQualityLayers(){return nQualityLayers;}
-    int GetNResolutionLevels(){return nResLevels;}
-    int GetNComponents(){return nComps;}
+    int GetNQualityLayers() const {return nQualityLayers;}
+    int GetNResolutionLevels() const {return nResLevels;}
+    int GetNComponents() const {return nComps;}
 
     int ReadFromInput(GByte* pabyData, int nLen, int& bError );
 
     int TestUseBlockIO( int nXOff, int nYOff, int nXSize, int nYSize,
                         int nBufXSize, int nBufYSize, GDALDataType eDataType,
-                        int nBandCount, int *panBandList );
+                        int nBandCount, int *panBandList ) const;
 
     //gdaldataset methods
     virtual CPLErr GetGeoTransform( double * ) override;
@@ -278,7 +278,7 @@ public:
                                                      int* pnybufoff,
                                                      int* pnxbufsize,
                                                      int* pnybufsize) override;
-    void SetComplete(int bFinished){this->bComplete = bFinished;};
+    void SetComplete(int bFinished){this->bComplete = bFinished;}
 
     friend class JPIPKAKDataset;
 

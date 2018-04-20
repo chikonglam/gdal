@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dgnlibp.h 35374 2016-09-09 13:32:13Z goatbar $
+ * $Id: dgnlibp.h 01d97526bd8cf1da723b27dc55ccc73887012973 2018-03-08 20:36:54Z Even Rouault $
  *
  * Project:  Microstation DGN Access Library
  * Purpose:  Internal (privatE) datastructures, and prototypes for DGN Access
@@ -31,14 +31,15 @@
 #ifndef DGNLIBP_H_INCLUDED
 #define DGNLIBP_H_INCLUDED
 
+#include "cpl_vsi.h"
 #include "dgnlib.h"
 
 typedef struct {
-    FILE        *fp;
+    VSILFILE   *fp;
     int         next_element_id;
 
     int         nElemBytes;
-    GByte       abyElem[131076];
+    GByte       abyElem[131076+1];
 
     bool        got_tcb;
     int         dimension;

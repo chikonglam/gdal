@@ -1,4 +1,4 @@
-.TH "gdal_edit" 1 "Mon Mar 19 2018" "GDAL" \" -*- nroff -*-
+.TH "gdal_edit" 1 "Fri Apr 20 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -11,6 +11,7 @@ gdal_edit [--help-general] [-ro] [-a_srs srs_def] [-a_ullr ulx uly lrx lry]
           [-tr xres yres] [-unsetgt] [-a_nodata value] [-unsetnodata]
           [-unsetstats] [-stats] [-approx_stats]
           [-scale value] [-offset value]
+          [-colorinterp_X red|green|blue|alpha|gray|undefined]*
           [-gcp pixel line easting northing [elevation]]*
           [-unsetmd] [-oo NAME=VALUE]* [-mo "META-TAG=VALUE"]*  datasetname
 .fi
@@ -62,6 +63,9 @@ Assign a specified nodata value to output bands\&.
 .PP
 .IP "\fB\fB-offset\fP \fIvalue\fP:\fP" 1c
 (GDAL >= 2\&.2) Assign a specified offset value to output bands\&. If no offset is needed, it recommended to set the value to 0\&. For more see scale\&.
+.PP
+.IP "\fB\fB-colorinterp_X\fP \fIred|green|blue|alpha|gray|undefined\fP:\fP" 1c
+(GDAL >= 2\&.3) Change the color interpretation of band X (where X is a valid band number, starting at 1) 
 .PP
 .IP "\fB\fB-gcp\fP \fIpixel line easting northing [elevation]\fP:\fP" 1c
 Add the indicated ground control point to the dataset\&. This option may be provided multiple times to provide a set of GCPs\&. 

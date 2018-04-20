@@ -40,7 +40,7 @@
 
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: vfkreader.cpp 38376 2017-05-15 11:16:16Z rouault $");
+CPL_CVSID("$Id: vfkreader.cpp 971391e2b775c1822243f56d70cf12ae6dd7c39f 2018-04-09 16:18:27 +0200 Martin Landa $")
 
 static char *GetDataBlockName(const char *);
 
@@ -66,16 +66,16 @@ IVFKReader *CreateVFKReader(const char *pszFilename)
 */
 VFKReader::VFKReader( const char *pszFilename ) :
     m_bLatin2(true),  // Encoding ISO-8859-2 or WINDOWS-1250.
-    m_poFD(NULL),
+    m_poFD(nullptr),
     m_pszFilename(CPLStrdup(pszFilename)),
-    m_poFStat((VSIStatBuf*) CPLMalloc(sizeof(VSIStatBuf))),
+    m_poFStat((VSIStatBuf*) CPLCalloc(1, sizeof(VSIStatBuf))),
     // VFK are provided in two forms - stative and amendment data.
     m_bAmendment(false),
     m_nDataBlockCount(0),
-    m_papoDataBlock(NULL)
+    m_papoDataBlock(nullptr)
 {
     // Open VFK file for reading.
-    CPLAssert(NULL != pszFilename);
+    CPLAssert(nullptr != pszFilename);
 
     if (CPLStat(pszFilename, m_poFStat) != 0 ||
         !VSI_ISREG(m_poFStat->st_mode)) {
@@ -84,7 +84,7 @@ VFKReader::VFKReader( const char *pszFilename ) :
     }
 
     m_poFD = VSIFOpenL(m_pszFilename, "rb");
-    if (m_poFD == NULL) {
+    if (m_poFD == nullptr) {
         CPLError(CE_Failure, CPLE_OpenFailed,
                  "Failed to open file %s.", m_pszFilename);
     }
@@ -116,7 +116,7 @@ char *GetDataBlockName(const char *pszLine)
         ;
 
     if( *pszLineChar == '\0' )
-        return NULL;
+        return nullptr;
 
     char *pszBlockName = (char *) CPLMalloc(n + 1);
     strncpy(pszBlockName, pszLine + 2, n);
@@ -134,9 +134,9 @@ char *GetDataBlockName(const char *pszLine)
 */
 char *VFKReader::ReadLine( bool bRecode )
 {
-    const char *pszRawLine = CPLReadLine2L(m_poFD, 100 * 1024, NULL);
-    if (pszRawLine == NULL)
-        return NULL;
+    const char *pszRawLine = CPLReadLine2L(m_poFD, 100 * 1024, nullptr);
+    if (pszRawLine == nullptr)
+        return nullptr;
 
     if( bRecode )
         return CPLRecode(pszRawLine,
@@ -155,16 +155,18 @@ char *VFKReader::ReadLine( bool bRecode )
 
   Call VFKReader::OpenFile() before this function.
 
+  \param bSuppressGeometry True for skipping geometry resolver (force wkbNone type)
+
   \return number of data blocks or -1 on error
 */
-int VFKReader::ReadDataBlocks()
+int VFKReader::ReadDataBlocks(bool bSuppressGeometry)
 {
-    CPLAssert(NULL != m_pszFilename);
+    CPLAssert(nullptr != m_pszFilename);
 
     VSIFSeekL(m_poFD, 0, SEEK_SET);
     bool bInHeader = true;
-    char *pszLine = NULL;
-    while ((pszLine = ReadLine()) != NULL) {
+    char *pszLine = nullptr;
+    while ((pszLine = ReadLine()) != nullptr) {
         if (strlen(pszLine) < 2 || pszLine[0] != '&') {
             CPLFree(pszLine);
             continue;
@@ -175,7 +177,7 @@ int VFKReader::ReadDataBlocks()
                 bInHeader = false; /* 'B' record closes the header section */
 
             char *pszBlockName = GetDataBlockName(pszLine);
-            if (pszBlockName == NULL) {
+            if (pszBlockName == nullptr) {
                 CPLError(CE_Failure, CPLE_NotSupported,
                          "Corrupted data - line\n%s\n", pszLine);
                 CPLFree(pszLine);
@@ -187,7 +189,7 @@ int VFKReader::ReadDataBlocks()
             {
                 IVFKDataBlock *poNewDataBlock =
                     (IVFKDataBlock *) CreateDataBlock(pszBlockName);
-                poNewDataBlock->SetGeometryType();
+                poNewDataBlock->SetGeometryType(bSuppressGeometry);
                 poNewDataBlock->SetProperties(pszLine); /* TODO: check consistency on property level */
                 AddDataBlock(poNewDataBlock, pszLine);
             }
@@ -230,8 +232,8 @@ int VFKReader::ReadDataBlocks()
 */
 int VFKReader::ReadDataRecords(IVFKDataBlock *poDataBlock)
 {
-    const char *pszName = NULL;
-    IVFKDataBlock *poDataBlockCurrent = NULL;
+    const char *pszName = nullptr;
+    IVFKDataBlock *poDataBlockCurrent = nullptr;
 
     if (poDataBlock) {  /* read only given data block */
         poDataBlockCurrent = poDataBlock;
@@ -245,7 +247,7 @@ int VFKReader::ReadDataRecords(IVFKDataBlock *poDataBlock)
             if (poDataBlockCurrent->GetFeatureCount(FALSE) < 0)
                 poDataBlockCurrent->SetFeatureCount(0);
         }
-        poDataBlockCurrent = NULL;
+        poDataBlockCurrent = nullptr;
     }
 
     VSIFSeekL(m_poFD, 0, SEEK_SET);
@@ -256,9 +258,9 @@ int VFKReader::ReadDataRecords(IVFKDataBlock *poDataBlock)
     int nRecords = 0;
     bool bInHeader = true;
     CPLString osBlockNameLast;
-    char *pszLine = NULL;
+    char *pszLine = nullptr;
 
-    while ((pszLine = ReadLine()) != NULL) {
+    while ((pszLine = ReadLine()) != nullptr) {
         iLine++;
         size_t nLength = strlen(pszLine);
         if (nLength < 2) {
@@ -292,7 +294,7 @@ int VFKReader::ReadDataRecords(IVFKDataBlock *poDataBlock)
                     CPLString osMultiLine(pszLine);
                     CPLFree(pszLine);
 
-                    while ((pszLine = ReadLine()) != NULL &&
+                    while ((pszLine = ReadLine()) != nullptr &&
                            pszLine[0] != '\0' &&
                            pszLine[strlen(pszLine) - 1] == '\244') {
                         /* append line */
@@ -331,6 +333,7 @@ int VFKReader::ReadDataRecords(IVFKDataBlock *poDataBlock)
                 }
                 if (!poDataBlockCurrent) {
                     CPLFree(pszBlockName);
+                    CPLFree(pszLine);
                     continue; // assert ?
                 }
 
@@ -436,7 +439,7 @@ OGRErr VFKReader::AddFeature(IVFKDataBlock *poDataBlock, VFKFeature *poFeature)
 IVFKDataBlock *VFKReader::GetDataBlock(int i) const
 {
     if (i < 0 || i >= m_nDataBlockCount)
-        return NULL;
+        return nullptr;
 
     return m_papoDataBlock[i];
 }
@@ -455,7 +458,7 @@ IVFKDataBlock *VFKReader::GetDataBlock(const char *pszName) const
             return GetDataBlock(i);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 /*!
@@ -570,7 +573,7 @@ void VFKReader::AddInfo(const char *pszLine)
 const char *VFKReader::GetInfo(const char *key)
 {
     if (poInfo.find(key) == poInfo.end())
-        return NULL;
+        return nullptr;
 
     return poInfo[key].c_str();
 }

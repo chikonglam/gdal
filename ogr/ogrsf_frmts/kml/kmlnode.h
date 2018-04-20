@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlnode.h 38371 2017-05-15 10:59:39Z rouault $
+ * $Id: kmlnode.h f2eb8781ae5db589bee4dcdb93a5be1e36e986a1 2018-02-19 13:28:36Z Even Rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for building up the node structure of the kml file.
@@ -30,6 +30,8 @@
 #ifndef OGR_KMLNODE_H_INCLUDED
 #define OGR_KMLNODE_H_INCLUDED
 
+#ifdef HAVE_EXPAT
+
 #include "kml.h"
 #include "kmlutility.h"
 // std
@@ -41,7 +43,7 @@ std::string Nodetype2String(Nodetype const& type);
 
 class KMLNode
 {
-    CPL_DISALLOW_COPY_ASSIGN( KMLNode );
+    CPL_DISALLOW_COPY_ASSIGN( KMLNode )
 public:
 
     KMLNode();
@@ -113,5 +115,7 @@ private:
 
     void unregisterLayerIfMatchingThisNode(KML* poKML);
 };
+
+#endif // HAVE_EXPAT
 
 #endif /* KMLNODE_H_INCLUDED */

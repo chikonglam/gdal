@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: ogr_fgdb.h 36687 2016-12-04 22:28:14Z rouault $
+* $Id: ogr_fgdb.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Standard includes and class definitions ArcObjects OGR driver.
@@ -298,7 +298,7 @@ public:
 
   OGRLayer*   GetLayer( int ) override;
 
-  virtual OGRLayer* ICreateLayer( const char *, OGRSpatialReference* = NULL, OGRwkbGeometryType = wkbUnknown, char** = NULL ) override;
+  virtual OGRLayer* ICreateLayer( const char *, OGRSpatialReference* = nullptr, OGRwkbGeometryType = wkbUnknown, char** = nullptr ) override;
 
   virtual OGRErr DeleteLayer( int ) override;
 
@@ -382,7 +382,7 @@ public:
   virtual const char *GetName() override;
   virtual OGRDataSource *Open( const char *, int ) override;
   virtual int TestCapability( const char * ) override;
-  virtual OGRDataSource *CreateDataSource( const char *pszName, char ** = NULL) override;
+  virtual OGRDataSource *CreateDataSource( const char *pszName, char ** = nullptr) override;
   virtual OGRErr DeleteDataSource( const char *pszDataSource ) override;
 
   /* From IOGRTransactionBehaviour */

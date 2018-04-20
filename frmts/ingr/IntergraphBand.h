@@ -1,5 +1,5 @@
 /*****************************************************************************
-* $Id: IntergraphBand.h 36501 2016-11-25 14:09:24Z rouault $
+* $Id: IntergraphBand.h e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $
 *
 * Project:  Intergraph Raster Format support
 * Purpose:  Read selected types of Intergraph Raster Format
@@ -68,8 +68,8 @@ public:
         GDALDataType eType = GDT_Unknown);
     virtual ~IntergraphRasterBand();
 
-    virtual double GetMinimum( int *pbSuccess = NULL ) override;
-    virtual double GetMaximum( int *pbSuccess = NULL ) override;
+    virtual double GetMinimum( int *pbSuccess = nullptr ) override;
+    virtual double GetMaximum( int *pbSuccess = nullptr ) override;
     virtual GDALColorTable *GetColorTable() override;
     virtual GDALColorInterp GetColorInterpretation() override;
     virtual CPLErr IReadBlock( int nBlockXOff, int nBlockYOff, void *pImage ) override;
@@ -79,7 +79,7 @@ public:
 
 protected:
     int  HandleUninstantiatedTile( int nBlockXOff, int nBlockYOff, void* pImage);
-    int  LoadBlockBuf( int nBlockXOff, int nBlockYOff, int nBlockBytes, GByte *pabyBlock );
+    int  LoadBlockBuf( int nBlockXOff, int nBlockYOff, int nBlockBytes, GByte *pabyBlock ) const;
     bool ReshapeBlock( int nBlockXOff, int nBlockYOff, int nBlockBytes, GByte *pabyBlock );
     void FlushBandHeader();
     void BlackWhiteCT( bool bReverse = false );

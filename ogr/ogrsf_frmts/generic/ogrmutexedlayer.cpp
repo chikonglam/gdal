@@ -31,7 +31,7 @@
 #include "ogrmutexedlayer.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: ogrmutexedlayer.cpp 35910 2016-10-24 14:08:24Z goatbar $");
+CPL_CVSID("$Id: ogrmutexedlayer.cpp ff8146d84de7cba8e09d212d5481ea7d2ede3e98 2017-06-27 20:47:31Z Even Rouault $")
 
 OGRMutexedLayer::OGRMutexedLayer( OGRLayer* poDecoratedLayer,
                                   int bTakeOwnership,

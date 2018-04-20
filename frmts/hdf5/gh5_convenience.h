@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gh5_convenience.h 37931 2017-04-09 06:26:02Z goatbar $
+ * $Id: gh5_convenience.h 475c4f64011c31db50d159b5b4d0399ef32303d2 2017-04-09 06:26:02Z Kurt Schwehr $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  HDF5 convenience functions.

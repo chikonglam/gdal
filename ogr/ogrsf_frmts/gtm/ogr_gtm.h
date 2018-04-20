@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gtm.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_gtm.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  GTM Driver
  * Purpose:  Declarations for OGR wrapper classes for GTM, and OGR->GTM
@@ -173,9 +173,9 @@ public:
     OGRLayer* GetLayer( int ) override;
 
     OGRLayer* ICreateLayer(const char *pszName,
-                           OGRSpatialReference *poSpatialRef=NULL,
+                           OGRSpatialReference *poSpatialRef=nullptr,
                            OGRwkbGeometryType eGType=wkbUnknown,
-                           char **papszOptions=NULL) override;
+                           char **papszOptions=nullptr) override;
     int TestCapability( const char * ) override;
 
     // OGRGTMDataSource Methods
@@ -207,11 +207,11 @@ public:
                      float newLon);
     int getNumWaypoints() { return numWaypoints; }
     int getNumTrackpoints() { return numTrackpoints; }
-    int getTracks() { return numTracks; };
+    int getTracks() { return numTracks; }
 
     int incNumWaypoints() { return ++numWaypoints; }
     int incNumTrackpoints() { return ++numTrackpoints; }
-    int incNumTracks() { return ++numTracks; };
+    int incNumTracks() { return ++numTracks; }
 private:
     VSILFILE* fpOutput;
 

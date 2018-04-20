@@ -26,13 +26,18 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
+
+#include "cpl_port.h"
 #include "kmlvector.h"
-#include "kmlnode.h"
-#include "cpl_conv.h"
 
 #include <string>
 
-CPL_CVSID("$Id: kmlvector.cpp 34717 2016-07-19 15:29:22Z goatbar $");
+#include "cpl_conv.h"
+#include "cpl_error.h"
+// #include "kmlnode.h"
+#include "kmlutility.h"
+
+CPL_CVSID("$Id: kmlvector.cpp cbd6969d4cd9888733e328281bab59828a735905 2018-02-18 16:16:59Z Kurt Schwehr $")
 
 KMLVector::~KMLVector() {}
 
@@ -78,7 +83,7 @@ void KMLVector::findLayers(KMLNode* poNode, int bKeepEmptyContainers)
     bool bEmpty = true;
 
     // Start with the trunk
-    if( NULL == poNode )
+    if( nullptr == poNode )
     {
         nNumLayers_ = 0;
         poNode = poTrunk_;
@@ -138,7 +143,7 @@ void KMLVector::findLayers(KMLNode* poNode, int bKeepEmptyContainers)
     {
         CPLDebug( "KML",
                   "There is something wrong!  Define KML_DEBUG to see details");
-        if( CPLGetConfigOption("KML_DEBUG", NULL) != NULL )
+        if( CPLGetConfigOption("KML_DEBUG", nullptr) != nullptr )
             print();
     }
 }

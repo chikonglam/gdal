@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_odbc.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_odbc.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/ODBC driver.
@@ -223,7 +223,7 @@ class OGRODBCDriver : public OGRSFDriver
     OGRDataSource *Open( const char *, int ) override;
 
     virtual OGRDataSource *CreateDataSource( const char *pszName,
-                                             char ** = NULL ) override;
+                                             char ** = nullptr ) override;
 
     int                 TestCapability( const char * ) override;
 };

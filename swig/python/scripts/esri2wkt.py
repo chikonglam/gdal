@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-#******************************************************************************
-#  $Id: esri2wkt.py 32555 2015-12-30 19:26:44Z goatbar $
+# ******************************************************************************
+#  $Id: esri2wkt.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
 #
 #  Project:  GDAL
 #  Purpose:  Simple command line program for translating ESRI .prj files
 #            into WKT.
 #  Author:   Frank Warmerdam, warmerda@home.com
 #
-#******************************************************************************
+# ******************************************************************************
 #  Copyright (c) 2000, Frank Warmerdam
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a
@@ -27,7 +27,7 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
-#******************************************************************************
+# ******************************************************************************
 
 import string
 import sys
@@ -39,15 +39,15 @@ if len(sys.argv) < 2:
     print('Usage: esri2wkt.py <esri .prj file>')
     sys.exit(1)
 
-prj_fd = open( sys.argv[1] )
+prj_fd = open(sys.argv[1])
 prj_lines = prj_fd.readlines()
 prj_fd.close()
 
 for i in range(len(prj_lines)):
-    prj_lines[i] = string.rstrip( prj_lines[i] )
+    prj_lines[i] = string.rstrip(prj_lines[i])
 
 prj_srs = osr.SpatialReference()
-err = prj_srs.ImportFromESRI( prj_lines )
+err = prj_srs.ImportFromESRI(prj_lines)
 if err != 0:
     print('Error = %d' % err)
 else:

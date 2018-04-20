@@ -30,15 +30,15 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrsegydatasource.cpp 35627 2016-10-06 15:20:13Z goatbar $");
+CPL_CVSID("$Id: ogrsegydatasource.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                        OGRSEGYDataSource()                       */
 /************************************************************************/
 
 OGRSEGYDataSource::OGRSEGYDataSource() :
-    pszName(NULL),
-    papoLayers(NULL),
+    pszName(nullptr),
+    papoLayers(nullptr),
     nLayers(0)
 {}
 
@@ -73,7 +73,7 @@ OGRLayer *OGRSEGYDataSource::GetLayer( int iLayer )
 
 {
     if( iLayer < 0 || iLayer >= nLayers )
-        return NULL;
+        return nullptr;
     else
         return papoLayers[iLayer];
 }
@@ -113,7 +113,7 @@ int OGRSEGYDataSource::Open( const char *pszFilename,
     pszName = CPLStrdup( pszFilename );
 
     VSILFILE* fp = VSIFOpenL(pszFilename, "rb");
-    if( fp == NULL )
+    if( fp == nullptr )
         return FALSE;
 
     VSIFSeekL(fp, 3200, SEEK_SET);

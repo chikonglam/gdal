@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: ogr_openfilegdb.h 37643 2017-03-07 22:41:04Z rouault $
+* $Id: ogr_openfilegdb.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Implements Open FileGDB OGR driver.
@@ -55,7 +55,7 @@ typedef enum
     SPI_INVALID,
 } SPIState;
 
-class OGROpenFileGDBLayer : public OGRLayer
+class OGROpenFileGDBLayer final: public OGRLayer
 {
     friend class OGROpenFileGDBGeomFieldDefn;
     friend class OGROpenFileGDBFeatureDefn;
@@ -101,13 +101,13 @@ public:
                                             const char* pszName,
                                             const std::string& osDefinition,
                                             const std::string& osDocumentation,
-                                            const char* pszGeomName = NULL,
+                                            const char* pszGeomName = nullptr,
                                             OGRwkbGeometryType eGeomType = wkbUnknown);
   virtual              ~OGROpenFileGDBLayer();
 
   const std::string&    GetXMLDefinition() { return m_osDefinition; }
   const std::string&    GetXMLDocumentation() { return m_osDocumentation; }
-  int                   GetAttrIndexUse() { return (m_poIterator == NULL) ? 0 : (m_bIteratorSufficientToEvaluateFilter) ? 2 : 1; }
+  int                   GetAttrIndexUse() { return (m_poIterator == nullptr) ? 0 : (m_bIteratorSufficientToEvaluateFilter) ? 2 : 1; }
   const OGRField*       GetMinMaxValue(OGRFieldDefn* poFieldDefn, int bIsMin,
                                        int& eOutType);
   int                   GetMinMaxSumCount(OGRFieldDefn* poFieldDefn,
@@ -150,7 +150,7 @@ public:
 /*                       OGROpenFileGDBDataSource                       */
 /************************************************************************/
 
-class OGROpenFileGDBDataSource : public OGRDataSource
+class OGROpenFileGDBDataSource final: public OGRDataSource
 {
   char                          *m_pszName;
   CPLString                      m_osDirName;

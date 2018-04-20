@@ -28,20 +28,11 @@
 #include "marfa.h"
 #include <vector>
 
-CPL_CVSID("$Id: mrf_overview.cpp 35929 2016-10-25 16:09:00Z goatbar $");
+CPL_CVSID("$Id: mrf_overview.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 using std::vector;
 
 NAMESPACE_MRF_START
-
-// Count the values in a buffer that match a specific value
-template<typename T> static int MatchCount(T *buff, int sz, T val) {
-    int ncount=0;
-    for (int i=0; i < sz; i++)
-        if (buff[i] == val)
-            ncount++;
-    return ncount;
-}
 
 //
 // Scales by 2x2 a buffer in place, using Nearest resampling
@@ -339,7 +330,7 @@ CPLErr GDALMRFDataset::PatchOverview(int BlockX,int BlockY,
                     eDataType, // Requested type
                     pixel_size, 2 * line_size
 #if GDAL_VERSION_MAJOR >= 2
-                    ,NULL
+                    ,nullptr
 #endif
                     ); // Pixel and line space
                 if( eErr != CE_None )
@@ -423,7 +414,7 @@ CPLErr GDALMRFDataset::PatchOverview(int BlockX,int BlockY,
                     eDataType, // Requested type
                     pixel_size, line_size
 #if GDAL_VERSION_MAJOR >= 2
-                    ,NULL
+                    ,nullptr
 #endif
                 ); // Pixel and line space
                 if( eErr != CE_None )

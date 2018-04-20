@@ -35,7 +35,7 @@
 #include "gdal.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: gdalallvalidmaskband.cpp 36522 2016-11-26 16:04:27Z goatbar $");
+CPL_CVSID("$Id: gdalallvalidmaskband.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 //! @cond Doxygen_Suppress
 /************************************************************************/
@@ -45,7 +45,7 @@ CPL_CVSID("$Id: gdalallvalidmaskband.cpp 36522 2016-11-26 16:04:27Z goatbar $");
 GDALAllValidMaskBand::GDALAllValidMaskBand( GDALRasterBand *poParent ) :
     GDALRasterBand(FALSE)
 {
-    poDS = NULL;
+    poDS = nullptr;
     nBand = 0;
 
     nRasterXSize = poParent->GetXSize();

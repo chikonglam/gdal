@@ -1,4 +1,4 @@
-.TH "gdal_translate" 1 "Mon Mar 19 2018" "GDAL" \" -*- nroff -*-
+.TH "gdal_translate" 1 "Fri Apr 20 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -17,7 +17,10 @@ gdal_translate [--help-general]
        [-srcwin xoff yoff xsize ysize] [-epo] [-eco]
        [-projwin ulx uly lrx lry] [-projwin_srs srs_def]
        [-a_srs srs_def] [-a_ullr ulx uly lrx lry] [-a_nodata value]
+       [-a_scale value] [-a_offset value]
        [-gcp pixel line easting northing [elevation]]*
+       |-colorinterp{_bn} {red|green|blue|alpha|gray|undefined}]
+       |-colorinterp {red|green|blue|alpha|gray|undefined},...]
        [-mo "META-TAG=VALUE"]* [-q] [-sds]
        [-co "NAME=VALUE"]* [-stats] [-norat]
        [-oo NAME=VALUE]*
@@ -33,7 +36,7 @@ For the output bands to be of the indicated data type\&.
 .IP "\fB\fB-strict\fP:\fP" 1c
 Don't be forgiving of mismatches and lost data when translating to the output format\&. 
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
-Select the output format\&. The default is GeoTIFF (GTiff)\&. Use the short format name\&. 
+Select the output format\&. Starting with GDAL 2\&.3, if not specified, the format is guessed from the extension (previously was GTiff)\&. Use the short format name\&. 
 .IP "\fB\fB-b\fP \fIband\fP:\fP" 1c
 Select an input band \fIband\fP for output\&. Bands are numbered from 1\&. Multiple \fB-b\fP switches may be used to select a set of input bands to write to the output file, or to reorder bands\&. Starting with GDAL 1\&.8\&.0, \fIband\fP can also be set to 'mask,1' (or just 'mask') to mean the mask band of the first band of the input dataset\&. 
 .IP "\fB\fB-mask\fP \fIband\fP:\fP" 1c
@@ -63,11 +66,19 @@ Selects a subwindow from the source image for copying (like \fB-srcwin\fP) but w
 .IP "\fB\fB-eco\fP: (Error when Completely Outside)\fP" 1c
 (GDAL >= 1\&.10) Same as \fB-epo\fP, except that the criterion for erroring out is when the request falls completely outside the source raster extent\&. 
 .IP "\fB\fB-a_srs\fP \fIsrs_def\fP:\fP" 1c
-Override the projection for the output file\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&.  
+Override the projection for the output file\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&. No reprojection is done\&. 
+.IP "\fB\fB-a_scale\fP \fIvalue\fP:\fP" 1c
+(GDAL >=2\&.3 )Set band scaling value(no modification of pixel values is done) 
+.IP "\fB\fB-a_offset\fP \fIvalue\fP:\fP" 1c
+(GDAL >=2\&.3 )Set band offset value (no modification of pixel values is done) 
 .IP "\fB\fB-a_ullr\fP \fIulx uly lrx lry\fP:\fP" 1c
 Assign/override the georeferenced bounds of the output file\&. This assigns georeferenced bounds to the output file, ignoring what would have been derived from the source file\&. So this does not cause reprojection to the specified SRS\&.  
 .IP "\fB\fB-a_nodata\fP \fIvalue\fP:\fP" 1c
 Assign a specified nodata value to output bands\&. Starting with GDAL 1\&.8\&.0, can be set to \fInone\fP to avoid setting a nodata value to the output file if one exists for the source file\&. Note that, if the input dataset has a nodata value, this does not cause pixel values that are equal to that nodata value to be changed to the value specified with this option\&. 
+.IP "\fB\fB-colorinterp_X\fP \fIred|green|blue|alpha|gray|undefined\fP:\fP" 1c
+(GDAL >= 2\&.3) Override the color interpretation of band X (where X is a valid band number, starting at 1)  
+.IP "\fB\fB-colorinterp\fP \fIred|green|blue|alpha|gray|undefined[,red|green|blue|alpha|gray|undefined]*\fP:\fP" 1c
+(GDAL >= 2\&.3) Override the color interpretation of all specified bands\&. For example -colorinterp red,green,blue,alpha for a 4 band output dataset\&.  
 .IP "\fB\fB-mo\fP \fI'META-TAG=VALUE'\fP:\fP" 1c
 Passes a metadata key and value to set on the output dataset if possible\&. 
 .IP "\fB\fB-co\fP \fI'NAME=VALUE'\fP:\fP" 1c

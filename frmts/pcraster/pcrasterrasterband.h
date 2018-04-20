@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pcrasterrasterband.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: pcrasterrasterband.h e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $
  *
  * Project:  PCRaster Integration
  * Purpose:  PCRaster raster band declaration.
@@ -67,7 +67,8 @@ private:
                    PCRasterRasterBand  (const PCRasterRasterBand&);
 
 protected:
-  double           GetNoDataValue      (int* success=NULL) override;
+  // cppcheck-suppress functionConst
+  double           GetNoDataValue      (int* success=nullptr) override;
   double           GetMinimum          (int* success) override;
   double           GetMaximum          (int* success) override;
 

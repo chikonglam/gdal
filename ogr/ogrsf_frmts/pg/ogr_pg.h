@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pg.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_pg.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/PostgreSQL driver.
@@ -76,7 +76,7 @@
 #define NUMERICOID              1700
 #define NUMERICARRAYOID         1231
 
-CPLString OGRPGEscapeString(PGconn *hPGConn,
+CPLString OGRPGEscapeString(void *hPGConn,
                             const char* pszStrValue, int nMaxLength = -1,
                             const char* pszTableName = "",
                             const char* pszFieldName = "");
@@ -109,7 +109,7 @@ typedef struct
 /*                         OGRPGGeomFieldDefn                           */
 /************************************************************************/
 
-class OGRPGGeomFieldDefn : public OGRGeomFieldDefn
+class OGRPGGeomFieldDefn final: public OGRGeomFieldDefn
 {
     protected:
         OGRPGLayer* poLayer;
@@ -122,23 +122,23 @@ class OGRPGGeomFieldDefn : public OGRGeomFieldDefn
             {
             }
 
-        virtual OGRSpatialReference* GetSpatialRef() override;
+        virtual OGRSpatialReference* GetSpatialRef() const override;
 
-        void UnsetLayer() { poLayer = NULL; }
+        void UnsetLayer() { poLayer = nullptr; }
 
-        int nSRSId;
-        int GeometryTypeFlags;
-        PostgisType   ePostgisType;
+        mutable int nSRSId;
+        mutable int GeometryTypeFlags;
+        mutable PostgisType   ePostgisType;
 };
 
 /************************************************************************/
 /*                          OGRPGFeatureDefn                            */
 /************************************************************************/
 
-class OGRPGFeatureDefn : public OGRFeatureDefn
+class OGRPGFeatureDefn: public OGRFeatureDefn
 {
     public:
-        explicit OGRPGFeatureDefn( const char * pszName = NULL ) :
+        explicit OGRPGFeatureDefn( const char * pszName = nullptr ) :
             OGRFeatureDefn(pszName)
         {
             SetGeomType(wkbNone);
@@ -238,14 +238,14 @@ class OGRPGLayer : public OGRLayer
 
     OGRPGDataSource    *GetDS() { return poDS; }
 
-    virtual void        ResolveSRID(OGRPGGeomFieldDefn* poGFldDefn) = 0;
+    virtual void        ResolveSRID(const OGRPGGeomFieldDefn* poGFldDefn) = 0;
 };
 
 /************************************************************************/
 /*                           OGRPGTableLayer                            */
 /************************************************************************/
 
-class OGRPGTableLayer : public OGRPGLayer
+class OGRPGTableLayer final: public OGRPGLayer
 {
     int                 bUpdateAccess;
 
@@ -276,7 +276,7 @@ class OGRPGTableLayer : public OGRPGLayer
     int                 bPreservePrecision;
     int                 bUseCopy;
     int                 bCopyActive;
-    int                 bFIDColumnInCopyFields;
+    bool                bFIDColumnInCopyFields;
     int                 bFirstInsertion;
 
     OGRErr              CreateFeatureViaCopy( OGRFeature *poFeature );
@@ -297,6 +297,7 @@ class OGRPGTableLayer : public OGRPGLayer
 
     int                 bAutoFIDOnCreateViaCopy;
     int                 bUseCopyByDefault;
+    bool                bNeedToUpdateSequence;
 
     int                 bDeferredCreation;
     CPLString           osCreateTable;
@@ -309,6 +310,8 @@ class OGRPGTableLayer : public OGRPGLayer
 
     OGRErr              RunAddGeometryColumn( OGRPGGeomFieldDefn *poGeomField );
     OGRErr              RunCreateSpatialIndex( OGRPGGeomFieldDefn *poGeomField );
+
+    void                UpdateSequenceIfNeeded();
 
 public:
                         OGRPGTableLayer( OGRPGDataSource *,
@@ -393,14 +396,14 @@ public:
     void                SetDeferredCreation(int bDeferredCreationIn, CPLString osCreateTable);
     OGRErr              RunDeferredCreationIfNecessary();
 
-    virtual void        ResolveSRID(OGRPGGeomFieldDefn* poGFldDefn) override;
+    virtual void        ResolveSRID(const OGRPGGeomFieldDefn* poGFldDefn) override;
 };
 
 /************************************************************************/
 /*                           OGRPGResultLayer                           */
 /************************************************************************/
 
-class OGRPGResultLayer : public OGRPGLayer
+class OGRPGResultLayer final: public OGRPGLayer
 {
     void                BuildFullQueryStatement();
 
@@ -431,13 +434,13 @@ class OGRPGResultLayer : public OGRPGLayer
 
     virtual OGRFeature *GetNextFeature() override;
 
-    virtual void        ResolveSRID(OGRPGGeomFieldDefn* poGFldDefn) override;
+    virtual void        ResolveSRID(const OGRPGGeomFieldDefn* poGFldDefn) override;
 };
 
 /************************************************************************/
 /*                           OGRPGDataSource                            */
 /************************************************************************/
-class OGRPGDataSource : public OGRDataSource
+class OGRPGDataSource final: public OGRDataSource
 {
     typedef struct
     {
@@ -534,9 +537,9 @@ class OGRPGDataSource : public OGRDataSource
     virtual void        FlushCache() override;
 
     virtual OGRLayer    *ICreateLayer( const char *,
-                                      OGRSpatialReference * = NULL,
+                                      OGRSpatialReference * = nullptr,
                                       OGRwkbGeometryType = wkbUnknown,
-                                      char ** = NULL ) override;
+                                      char ** = nullptr ) override;
 
     int                 TestCapability( const char * ) override;
 

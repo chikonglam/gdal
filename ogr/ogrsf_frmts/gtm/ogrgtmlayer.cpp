@@ -28,14 +28,14 @@
 
 #include "ogr_gtm.h"
 
-CPL_CVSID("$Id: ogrgtmlayer.cpp 35911 2016-10-24 15:03:26Z goatbar $");
+CPL_CVSID("$Id: ogrgtmlayer.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 OGRGTMLayer::OGRGTMLayer() :
-    poDS(NULL),
-    poSRS(NULL),
-    poCT(NULL),
-    pszName(NULL),
-    poFeatureDefn(NULL),
+    poDS(nullptr),
+    poSRS(nullptr),
+    poCT(nullptr),
+    pszName(nullptr),
+    poFeatureDefn(nullptr),
     nNextFID(0),
     nTotalFCount(0),
     bError(false)
@@ -43,22 +43,22 @@ OGRGTMLayer::OGRGTMLayer() :
 
 OGRGTMLayer::~OGRGTMLayer()
 {
-    if (poFeatureDefn != NULL)
+    if (poFeatureDefn != nullptr)
     {
         poFeatureDefn->Release();
-        poFeatureDefn = NULL;
+        poFeatureDefn = nullptr;
     }
 
-    if (poSRS != NULL)
+    if (poSRS != nullptr)
     {
         poSRS->Release();
-        poSRS = NULL;
+        poSRS = nullptr;
     }
 
-    if (poCT != NULL)
+    if (poCT != nullptr)
     {
         delete poCT;
-        poCT = NULL;
+        poCT = nullptr;
     }
 
     CPLFree( pszName );
@@ -80,14 +80,14 @@ OGRFeatureDefn* OGRGTMLayer::GetLayerDefn()
 int OGRGTMLayer::TestCapability( const char * pszCap )
 {
     if (EQUAL(pszCap,OLCFastFeatureCount) &&
-        m_poFilterGeom == NULL && m_poAttrQuery == NULL )
+        m_poFilterGeom == nullptr && m_poAttrQuery == nullptr )
         return TRUE;
 
     if( EQUAL(pszCap,OLCCreateField) )
-        return poDS != NULL && poDS->getOutputFP() != NULL;
+        return poDS != nullptr && poDS->getOutputFP() != nullptr;
 
     if( EQUAL(pszCap,OLCSequentialWrite) )
-        return poDS != NULL && poDS->getOutputFP() != NULL;
+        return poDS != nullptr && poDS->getOutputFP() != nullptr;
 
     return FALSE;
 }

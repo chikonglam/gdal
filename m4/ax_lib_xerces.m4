@@ -1,4 +1,4 @@
-dnl $Id: ax_lib_xerces.m4 35650 2016-10-08 10:17:38Z rouault $
+dnl $Id: ax_lib_xerces.m4 e7bd64d34359a508d7cfab7355c4418dc8e142fc 2016-10-08 10:17:38Z Even Rouault $
 dnl
 dnl @synopsis AX_LIB_XERCES([MINIMUM-VERSION])
 dnl
@@ -28,7 +28,7 @@ dnl
 dnl @category InstalledPackages
 dnl @category Cxx
 dnl @author Mateusz Loskot <mateusz@loskot.net>
-dnl @version $Date: 2016-10-08 03:17:38 -0700 (Sat, 08 Oct 2016) $
+dnl @version $Date$
 dnl @license AllPermissive
 dnl          Copying and distribution of this file, with or without modification,
 dnl          are permitted in any medium without royalty provided the copyright notice and

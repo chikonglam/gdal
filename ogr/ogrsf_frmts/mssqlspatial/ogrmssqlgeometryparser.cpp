@@ -29,7 +29,7 @@
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlgeometryparser.cpp 35911 2016-10-24 15:03:26Z goatbar $");
+CPL_CVSID("$Id: ogrmssqlgeometryparser.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /*   SqlGeometry serialization format
 
@@ -113,7 +113,7 @@ ShapeType (1 byte)
 OGRMSSQLGeometryParser::OGRMSSQLGeometryParser(int nGeomColumnType)
 {
     nColType = nGeomColumnType;
-    pszData = NULL;
+    pszData = nullptr;
     chProps = 0;
     nPointSize = 0;
     nPointPos = 0;
@@ -153,7 +153,7 @@ OGRPoint* OGRMSSQLGeometryParser::ReadPoint(int iShape)
             }
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 /************************************************************************/
@@ -168,7 +168,7 @@ OGRMultiPoint* OGRMSSQLGeometryParser::ReadMultiPoint(int iShape)
 
     for (i = iShape + 1; i < nNumShapes; i++)
     {
-        poGeom = NULL;
+        poGeom = nullptr;
         if (ParentOffset(i) == (unsigned int)iShape)
         {
             if  ( ShapeType(i) == ST_POINT )
@@ -231,7 +231,7 @@ OGRMultiLineString* OGRMSSQLGeometryParser::ReadMultiLineString(int iShape)
 
     for (i = iShape + 1; i < nNumShapes; i++)
     {
-        poGeom = NULL;
+        poGeom = nullptr;
         if (ParentOffset(i) == (unsigned int)iShape)
         {
             if  ( ShapeType(i) == ST_LINESTRING )
@@ -298,7 +298,7 @@ OGRMultiPolygon* OGRMSSQLGeometryParser::ReadMultiPolygon(int iShape)
 
     for (i = iShape + 1; i < nNumShapes; i++)
     {
-        poGeom = NULL;
+        poGeom = nullptr;
         if (ParentOffset(i) == (unsigned int)iShape)
         {
             if ( ShapeType(i) == ST_POLYGON )
@@ -323,7 +323,7 @@ OGRGeometryCollection* OGRMSSQLGeometryParser::ReadGeometryCollection(int iShape
 
     for (i = iShape + 1; i < nNumShapes; i++)
     {
-        poGeom = NULL;
+        poGeom = nullptr;
         if (ParentOffset(i) == (unsigned int)iShape)
         {
             switch (ShapeType(i))

@@ -1,5 +1,5 @@
 /* port/cpl_config.h.in.  Generated from configure.in by autoheader.  */
-/* $Id: cpl_config.h.in 38508 2017-05-20 09:35:37Z rouault $ */
+/* $Id$ */
 
 /* Define if you want to use pthreads based multiprocessing support */
 #undef CPL_MULTIPROC_PTHREAD
@@ -162,6 +162,9 @@
 /* Define to 1 if you have the `mmap' function. */
 #undef HAVE_MMAP
 
+/* Define to 1 if you have the `sigaction' function. */
+#undef HAVE_SIGACTION
+
 /* Define to 1 if you have the statvfs' function. */
 #undef HAVE_STATVFS
 
@@ -261,3 +264,6 @@
 
 /* Define to 1 if you have the `std::isnan' function. */
 #undef HAVE_STD_IS_NAN
+
+/* Define to 1 if the compiler supports -Wzero-as-null-pointer-constant */
+#undef HAVE_GCC_WARNING_ZERO_AS_NULL_POINTER_CONSTANT

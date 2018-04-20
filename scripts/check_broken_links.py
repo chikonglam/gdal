@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id$
+# $Id: check_broken_links.py 74acee3f54d28a04e4c8c89f72be43ad15d9f36d 2018-04-14 00:39:31 +1000 Ben Elliston $
 #
 #  Project:  GDAL
 #  Purpose:  Check validity of <a href="XXXX"> links
@@ -63,17 +63,12 @@ def check(filename):
                 print('ERROR: Broken link %s in %s' % (url, filename))
             print('Checking %s...' % url)
             if url.startswith('http'):
-                ok = False
-                try:
-                    r = requests.get(url, verify=False)
-                    ok = r.status_code == 200
-                except:
-                    pass
-                if not ok:
+                r = requests.get(url, verify=False)
+                if r.status_code == requests.codes.ok:
+                    ok_set[url] = True
+                else:
                     print('ERROR: Broken link %s in %s' % (url, filename))
                     broken_set[url] = True
-                else:
-                    ok_set[url] = True
             else:
                 checked_filename = os.path.join(os.path.dirname(filename), url)
                 # print(checked_filename)
@@ -82,6 +77,7 @@ def check(filename):
                     broken_set[url] = True
                 else:
                     ok_set[url] = True
+
 
 for filename in sys.argv[1:]:
     check(filename)

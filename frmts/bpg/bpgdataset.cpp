@@ -41,7 +41,7 @@ void CPL_DLL GDALRegister_BPG();
 #include "libbpg.h"
 CPL_C_END
 
-CPL_CVSID("$Id: bpgdataset.cpp 36501 2016-11-25 14:09:24Z rouault $");
+CPL_CVSID("$Id: bpgdataset.cpp 6f51856470aecacbcb25254e6a6e263e5b1a5aae 2017-12-19 05:31:03Z Kurt Schwehr $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -83,8 +83,8 @@ class BPGRasterBand : public GDALPamRasterBand
 
                    BPGRasterBand( BPGDataset *, int nbits );
 
-    virtual CPLErr IReadBlock( int, int, void * ) override;
-    virtual GDALColorInterp GetColorInterpretation() override;
+    CPLErr IReadBlock( int, int, void * ) override;
+    GDALColorInterp GetColorInterpretation() override;
 };
 
 /************************************************************************/

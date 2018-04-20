@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_java.i 34525 2016-07-03 02:53:47Z goatbar $
+ * $Id: ogr_java.i 19f708c8a21ace821b243cbb6833e12dffcb82b3 2018-01-08 19:18:49Z Even Rouault $
  *
  * Name:     ogr_java.i
  * Project:  GDAL SWIG Interface
@@ -13,27 +13,13 @@
 #endif
 
 %pragma(java) jniclasscode=%{
-  private static boolean available = false;
 
   static {
-    try {
-      System.loadLibrary("ogrjni");
-      available = true;
-
-      if (org.gdal.gdal.gdal.HasThreadSupport() == 0)
-      {
-        System.err.println("WARNING : GDAL should be compiled with thread support for safe execution in Java.");
-      }
-
-    } catch (UnsatisfiedLinkError e) {
-      available = false;
-      System.err.println("Native library load failed.");
-      System.err.println(e);
-    }
+    gdalJNI.isAvailable();   // force gdalJNI static initializer to run and load library
   }
 
   public static boolean isAvailable() {
-    return available;
+    return gdalJNI.isAvailable();
   }
 %}
 
@@ -52,6 +38,7 @@
 import org.gdal.osr.SpatialReference;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.gdal.MajorObject;
+import org.gdal.gdal.gdalJNI;
 %}
 
 %pragma(java) moduleimports=%{

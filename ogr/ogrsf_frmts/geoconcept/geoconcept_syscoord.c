@@ -33,7 +33,7 @@
 #include "geoconcept_syscoord.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: geoconcept_syscoord.c 36471 2016-11-23 16:36:44Z rouault $")
+CPL_CVSID("$Id: geoconcept_syscoord.c 7eb5fc0b4dd0a6df3b94dccf36730770d3e11427 2018-04-05 17:48:43 +0200 Even Rouault $")
 
 /* -------------------------------------------------------------------- */
 /*      GCSRS globals                                                   */
@@ -372,7 +372,7 @@ static const GCSpheroidInfo GCSRSAPI_CALL1(*) _findSpheroid_GCSRS ( double a, do
   double e, p[]= {1e-10, 1e-8};
 
   /* f = 1 - sqrt(1 - e^2) */
-  e= 1.0/rf;
+  e= (rf == 0.0) ? 0.0 : 1.0/rf;
   e= sqrt(e*(2.0-e));
 ell_relax:
   for( iSpheroid= 0, ell= &(gk_asSpheroidList[0]);
@@ -746,8 +746,8 @@ GCSysCoord GCSRSAPI_CALL1(*) OGRSpatialReference2SysCoord_GCSRS ( OGRSpatialRefe
   datum= _findDatum_GCSRS(p[0], p[1], p[2], GetInfoSpheroidSemiMajor_GCSRS(ell), f);
   if( GetInfoDatumID_GCSRS(datum)==-1 )
   {
-    CPLDebug("GEOCONCEPT", "Unsupported datum : %.4f %.4f; %.4f %.4f %.10f",
-             p[0], p[1], p[2], a, 1.0/rf);
+    CPLDebug("GEOCONCEPT", "Unsupported datum : %.4f %.4f; %.4f a=%.4f rf=%.10f",
+             p[0], p[1], p[2], a, rf);
     goto onError;
   }
   /* FIXME : WGS 84 and GRS 80 assimilation by Geoconcept : */

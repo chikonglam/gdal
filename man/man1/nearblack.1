@@ -1,4 +1,4 @@
-.TH "nearblack" 1 "Mon Mar 19 2018" "GDAL" \" -*- nroff -*-
+.TH "nearblack" 1 "Fri Apr 20 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -16,9 +16,9 @@ nearblack [-of format] [-white | [-color c1,c2,c3...cn]*] [-near dist] [-nb non_
 This utility will scan an image and try to set all pixels that are nearly or exactly black, white or one or more custom colors around the collar to black or white\&. This is often used to 'fix up' lossy compressed air photos so that color pixels can be treated as transparent when mosaicing\&.
 .PP
 .IP "\fB\fB-o\fP \fIoutfile\fP:\fP" 1c
-The name of the output file to be created\&. Newly created files are created with the HFA driver by default (Erdas Imagine - \&.img) 
+The name of the output file to be created\&. 
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
-(GDAL 1\&.8\&.0 or later) Select the output format\&. Use the short format name (GTiff for GeoTIFF for example)\&. 
+(GDAL 1\&.8\&.0 or later) Select the output format\&. Starting with GDAL 2\&.3, if not specified, the format is guessed from the extension (previously was ERDAS Imagine \&.img)\&. Use the short format name (GTiff for GeoTIFF for example)\&. 
 .IP "\fB\fB-co\fP \fI'NAME=VALUE'\fP:\fP" 1c
 (GDAL 1\&.8\&.0 or later) Passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See \fCformat specific documentation for legal creation options for each format\fP\&. Only valid when creating a new file 
 .IP "\fB\fB-white\fP:\fP" 1c

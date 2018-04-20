@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ods_formula.h 36411 2016-11-21 22:03:48Z rouault $
+ * $Id: ods_formula.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Component: ODS formula Engine
  * Purpose: Implementation of the ods_formula_node class used to represent a
@@ -111,6 +111,7 @@ typedef enum {
 
 class IODSCellEvaluator;
 
+// cppcheck-suppress copyCtorAndEqOperator
 class ods_formula_node {
   private:
     void           FreeSubExpr();
@@ -186,9 +187,9 @@ class ods_formula_parse_context {
 public:
     ods_formula_parse_context() :
         nStartToken(0),
-        pszInput(NULL),
-        pszNext(NULL),
-        poRoot(NULL) {}
+        pszInput(nullptr),
+        pszNext(nullptr),
+        poRoot(nullptr) {}
 
     int        nStartToken;
     const char *pszInput;

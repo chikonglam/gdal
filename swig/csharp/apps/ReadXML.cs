@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ReadXML.cs 35222 2016-08-28 06:06:11Z goatbar $
+ * $Id: ReadXML.cs f070adf64950cae1c6cc86b104ba835c29df06b1 2016-08-28 06:06:11Z Kurt Schwehr $
  *
  * Name:     ReadXML.cs
  * Project:  GDAL CSharp Interface

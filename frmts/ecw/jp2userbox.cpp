@@ -31,7 +31,7 @@
 
 #include "gdal_ecw.h"
 
-CPL_CVSID("$Id: jp2userbox.cpp 36012 2016-10-29 01:50:11Z goatbar $");
+CPL_CVSID("$Id: jp2userbox.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 #if defined(HAVE_COMPRESS)
 
@@ -41,7 +41,7 @@ CPL_CVSID("$Id: jp2userbox.cpp 36012 2016-10-29 01:50:11Z goatbar $");
 
 JP2UserBox::JP2UserBox()
 {
-    pabyData = NULL;
+    pabyData = nullptr;
     nDataLength = 0;
 
     m_nTBox = 0;
@@ -54,10 +54,10 @@ JP2UserBox::JP2UserBox()
 JP2UserBox::~JP2UserBox()
 
 {
-    if( pabyData != NULL )
+    if( pabyData != nullptr )
     {
         CPLFree( pabyData );
-        pabyData = NULL;
+        pabyData = nullptr;
     }
 }
 
@@ -68,7 +68,7 @@ JP2UserBox::~JP2UserBox()
 void JP2UserBox::SetData( int nLengthIn, const unsigned char *pabyDataIn )
 
 {
-    if( pabyData != NULL )
+    if( pabyData != nullptr )
         CPLFree( pabyData );
 
     nDataLength = nLengthIn;

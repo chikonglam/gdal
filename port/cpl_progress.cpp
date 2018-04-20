@@ -35,7 +35,7 @@
 
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: cpl_progress.cpp 36768 2016-12-10 01:32:06Z goatbar $");
+CPL_CVSID("$Id: cpl_progress.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                         GDALDummyProgress()                          */
@@ -83,7 +83,7 @@ int CPL_STDCALL GDALScaledProgress( double dfComplete, const char *pszMessage,
 
     // Optimization if GDALCreateScaledProgress() provided with
     // GDALDummyProgress.
-    if( psInfo == NULL )
+    if( psInfo == nullptr )
         return TRUE;
 
     return psInfo->pfnProgress( dfComplete * (psInfo->dfMax - psInfo->dfMin)
@@ -144,8 +144,8 @@ void * CPL_STDCALL GDALCreateScaledProgress( double dfMin, double dfMax,
                                              void * pData )
 
 {
-    if( pfnProgress == NULL || pfnProgress == GDALDummyProgress )
-        return NULL;
+    if( pfnProgress == nullptr || pfnProgress == GDALDummyProgress )
+        return nullptr;
 
     GDALScaledProgressInfo *psInfo =
         static_cast<GDALScaledProgressInfo *>(

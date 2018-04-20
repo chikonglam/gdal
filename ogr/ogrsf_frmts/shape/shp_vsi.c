@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shp_vsi.c 37091 2017-01-10 17:25:57Z rouault $
+ * $Id: shp_vsi.c dae19934cb8852265339c697a23f82b0d59f7976 2017-07-05 13:27:02Z Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  IO Redirection via VSI services for shp/dbf io.
@@ -32,8 +32,9 @@
 #include "cpl_error.h"
 #include "cpl_conv.h"
 #include "cpl_vsi_error.h"
+#include <limits.h>
 
-CPL_CVSID("$Id: shp_vsi.c 37091 2017-01-10 17:25:57Z rouault $");
+CPL_CVSID("$Id: shp_vsi.c dae19934cb8852265339c697a23f82b0d59f7976 2017-07-05 13:27:02Z Even Rouault $")
 
 typedef struct
 {
@@ -129,7 +130,7 @@ SAOffset VSI_SHP_Read( void *p, SAOffset size, SAOffset nmemb, SAFile file )
 int VSI_SHP_WriteMoreDataOK( SAFile file, SAOffset nExtraBytes )
 {
     OGRSHPDBFFile* pFile = (OGRSHPDBFFile*) file;
-    if( pFile->nCurOffset + nExtraBytes > 0x7FFFFFFF )
+    if( pFile->nCurOffset + nExtraBytes > INT_MAX )
     {
         if( pFile->bEnforce2GBLimit )
         {

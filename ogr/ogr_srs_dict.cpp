@@ -34,11 +34,12 @@
 
 #include "cpl_conv.h"
 #include "cpl_error.h"
+#include "cpl_string.h"
 #include "cpl_vsi.h"
 #include "ogr_core.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogr_srs_dict.cpp 36289 2016-11-19 06:41:23Z goatbar $");
+CPL_CVSID("$Id: ogr_srs_dict.cpp 4942e6b19a5f82ab343ec686154644effd0fcbde 2018-04-18 21:13:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           importFromDict()                           */
@@ -73,21 +74,22 @@ OGRErr OGRSpatialReference::importFromDict( const char *pszDictFile,
 /* -------------------------------------------------------------------- */
 /*      Find and open file.                                             */
 /* -------------------------------------------------------------------- */
+    CPLString osDictFile(pszDictFile);
     const char *pszFilename = CPLFindFile( "gdal", pszDictFile );
-    if( pszFilename == NULL )
+    if( pszFilename == nullptr )
         return OGRERR_UNSUPPORTED_SRS;
 
     VSILFILE *fp = VSIFOpenL( pszFilename, "rb" );
-    if( fp == NULL )
+    if( fp == nullptr )
         return OGRERR_UNSUPPORTED_SRS;
 
 /* -------------------------------------------------------------------- */
 /*      Process lines.                                                  */
 /* -------------------------------------------------------------------- */
     OGRErr eErr = OGRERR_UNSUPPORTED_SRS;
-    const char *pszLine = NULL;
+    const char *pszLine = nullptr;
 
-    while( (pszLine = CPLReadLineL(fp)) != NULL )
+    while( (pszLine = CPLReadLineL(fp)) != nullptr )
 
     {
         if( pszLine[0] == '#' )
@@ -101,15 +103,19 @@ OGRErr OGRSpatialReference::importFromDict( const char *pszDictFile,
             continue;
         }
 
-        if( strstr(pszLine, ",") == NULL )
+        if( strstr(pszLine, ",") == nullptr )
             continue;
 
         if( EQUALN(pszLine, pszCode, strlen(pszCode))
             && pszLine[strlen(pszCode)] == ',' )
         {
-            char *pszWKT = const_cast<char *>(pszLine) + strlen(pszCode)+1;
+            const char *pszWKT = pszLine + strlen(pszCode)+1;
 
-            eErr = importFromWkt( &pszWKT );
+            eErr = importFromWkt( pszWKT );
+            if( eErr == OGRERR_NONE && osDictFile.find("esri_") == 0 )
+            {
+                morphFromESRI();
+            }
             break;
         }
     }

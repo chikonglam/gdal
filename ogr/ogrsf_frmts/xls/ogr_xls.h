@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_xls.h 40701 2017-11-13 15:58:20Z rouault $
+ * $Id: ogr_xls.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  XLS Translator
  * Purpose:  Definition of classes for OGR .xls driver.
@@ -76,7 +76,7 @@ class OGRXLSLayer : public OGRLayer
 
     virtual int                 TestCapability( const char * ) override;
 
-    virtual OGRSpatialReference *GetSpatialRef() override { return NULL; }
+    virtual OGRSpatialReference *GetSpatialRef() override { return nullptr; }
 };
 
 /************************************************************************/

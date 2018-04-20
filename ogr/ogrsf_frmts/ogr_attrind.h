@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_attrind.h 34921 2016-08-04 22:26:31Z rouault $
+ * $Id: ogr_attrind.h 2bc98a67d106359cbf36780cb385979e6c9a3b59 2016-08-04 22:26:31Z Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes related to generic implementation of attribute indexing.

@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: configure.ac 41784 2018-03-13 20:20:56Z rouault $
+dnl $Id$
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Configure source file.
@@ -87,6 +87,15 @@ dnl GCC 6 warnings
 AX_CHECK_COMPILE_FLAG([-Wnull-dereference], [C_WFLAGS="$C_WFLAGS -Wnull-dereference" CXX_WFLAGS="$CXX_WFLAGS -Wnull-dereference"],,[$ERROR_ON_UNKNOWN_OPTIONS])
 AX_CHECK_COMPILE_FLAG([-Wduplicated-cond], [C_WFLAGS="$C_WFLAGS -Wduplicated-cond" CXX_WFLAGS="$CXX_WFLAGS -Wduplicated-cond"],,[$ERROR_ON_UNKNOWN_OPTIONS])
 
+dnl GCC 7 warnings
+dnl Do not enable yet. Causes warning in alg/gdalthinplate.cpp due to armadillo templates
+dnl AX_CHECK_COMPILE_FLAG([-Wduplicated-branches], [C_WFLAGS="$C_WFLAGS -Wduplicated-branches" CXX_WFLAGS="$CXX_WFLAGS -Wduplicated-branches"],,[$ERROR_ON_UNKNOWN_OPTIONS])
+
+dnl GCC 8 warnings
+AC_LANG_PUSH([C++])
+AX_CHECK_COMPILE_FLAG([-Wextra-semi], [CXX_WFLAGS="$CXX_WFLAGS -Wextra-semi"],,[$ERROR_ON_UNKNOWN_OPTIONS])
+AC_LANG_POP([C++])
+
 AX_CHECK_COMPILE_FLAG([-Wno-sign-compare], [NO_SIGN_COMPARE="-Wno-sign-compare"],,[$ERROR_ON_UNKNOWN_OPTIONS])
 
 dnl clang >= 3.9
@@ -98,6 +107,20 @@ AX_CHECK_COMPILE_FLAG([-Wfloat-conversion], [C_WFLAGS="$C_WFLAGS -Wfloat-convers
 dnl clang >= 3.2
 AX_CHECK_COMPILE_FLAG([-Wdocumentation -Wno-documentation-deprecated-sync], [C_WFLAGS="$C_WFLAGS -Wdocumentation -Wno-documentation-deprecated-sync" CXX_WFLAGS="$CXX_WFLAGS -Wdocumentation -Wno-documentation-deprecated-sync"],,[$ERROR_ON_UNKNOWN_OPTIONS])
 
+dnl gnu89 is a reasonable target to get MSVC compatibility.
+dnl but only apply it with gcc, since clang will throw a lot of warnings
+SAVED_CFLAGS=$CFLAGS
+CFLAGS="$CFLAGS $ERROR_ON_UNKNOWN_OPTIONS -std=gnu89"
+AC_MSG_CHECKING([if -std=gnu89 can be enabled])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+  [[#if defined(__clang__) || !defined(__GNUC__)
+    #error "not gcc"
+    #endif]])],
+  [C_WFLAGS="$C_WFLAGS -std=gnu89"]
+  [AC_MSG_RESULT([yes])],
+  [AC_MSG_RESULT([no])])
+CFLAGS=$SAVED_CFLAGS
+
 dnl C++ specific stuff
 
 AC_LANG_PUSH([C++])
@@ -105,6 +128,8 @@ AX_CHECK_COMPILE_FLAG([-Wunused-private-field], [CXX_WFLAGS="$CXX_WFLAGS -Wunuse
 AX_CHECK_COMPILE_FLAG([-Wmissing-prototypes], [CXX_WFLAGS="$CXX_WFLAGS -Wmissing-prototypes"],,[$ERROR_ON_UNKNOWN_OPTIONS])
 AX_CHECK_COMPILE_FLAG([-Wmissing-declarations], [CXX_WFLAGS="$CXX_WFLAGS -Wmissing-declarations"],,[$ERROR_ON_UNKNOWN_OPTIONS])
 AX_CHECK_COMPILE_FLAG([-Wnon-virtual-dtor], [CXX_WFLAGS="$CXX_WFLAGS -Wnon-virtual-dtor" NO_NON_VIRTUAL_DTOR_FLAG="-Wno-non-virtual-dtor"],,[$ERROR_ON_UNKNOWN_OPTIONS])
+AX_CHECK_COMPILE_FLAG([-Wold-style-cast], [WARN_OLD_STYLE_CAST="-Wold-style-cast"],,[$ERROR_ON_UNKNOWN_OPTIONS])
+
 
 dnl Clang enables -Woverloaded-virtual if -Wall is defined, but not GCC
 AX_CHECK_COMPILE_FLAG([-Woverloaded-virtual], [CXX_WFLAGS="$CXX_WFLAGS -Woverloaded-virtual"],,[$ERROR_ON_UNKNOWN_OPTIONS])
@@ -112,34 +137,43 @@ AX_CHECK_COMPILE_FLAG([-Woverloaded-virtual], [CXX_WFLAGS="$CXX_WFLAGS -Woverloa
 dnl Forbid use of 'or', 'and', ... alias operators
 AX_CHECK_COMPILE_FLAG([-fno-operator-names], [CXX_WFLAGS="$CXX_WFLAGS -fno-operator-names"],,[$ERROR_ON_UNKNOWN_OPTIONS])
 
+HAVE_GCC_WARNING_ZERO_AS_NULL_POINTER_CONSTANT=no
+AX_CHECK_COMPILE_FLAG([-Wzero-as-null-pointer-constant], [CXX_WFLAGS="$CXX_WFLAGS -Wzero-as-null-pointer-constant" HAVE_GCC_WARNING_ZERO_AS_NULL_POINTER_CONSTANT=yes],,[$ERROR_ON_UNKNOWN_OPTIONS])
+if test "$HAVE_GCC_WARNING_ZERO_AS_NULL_POINTER_CONSTANT" = "yes"; then
+AC_DEFINE_UNQUOTED(HAVE_GCC_WARNING_ZERO_AS_NULL_POINTER_CONSTANT, 1,
+          [Define to 1 if the compiler supports -Wzero-as-null-pointer-constant])
+fi
+
 AC_LANG_POP([C++])
 
-CXX11_SUPPORT=no
-AC_ARG_WITH([cpp11],
-	    AS_HELP_STRING([--without-cpp11],
-	       [Disable C++11 compiler options]),,)
+CXX14_SUPPORT=no
+AC_ARG_WITH([cpp14],
+	    AS_HELP_STRING([--with-cpp14],
+	       [Enable C++14 compiler options]),,)
 
-AC_MSG_CHECKING([if use C++11 compiler options])
-if test "$with_cpp11" = "yes" -o "$with_cpp11" = "" ; then
-    dnl Check C++ compiler compatibility with C++11
-    AC_MSG_CHECKING([C++ compiler compatibility with C++11])
-    AX_CXX_COMPILE_STDCXX_11([ext],[optional])
+AC_MSG_CHECKING([if use C++14 compiler options])
+if test "$with_cpp14" = "yes"; then
+    dnl Check C++ compiler compatibility with C++14
+    AC_MSG_CHECKING([C++ compiler compatibility with C++14])
+    AX_CXX_COMPILE_STDCXX([14],[noext],[optional])
 
-    if [test "$HAVE_CXX11" = "1"]; then
-        CXX11_SUPPORT=yes
+    if [test "$HAVE_CXX14" = "1"]; then
+        CXX14_SUPPORT=yes
     fi
     AC_MSG_RESULT([enabled])
 else
     AC_MSG_RESULT([disabled by user])
 fi
-AC_SUBST(CXX11_SUPPORT,$CXX11_SUPPORT)
+AC_SUBST(CXX14_SUPPORT,$CXX14_SUPPORT)
 
-if [test "$CXX11_SUPPORT" = "yes"]; then
-    dnl Available in GCC 5.1
-    AC_LANG_PUSH([C++])
-        AX_CHECK_COMPILE_FLAG([-Wsuggest-override], [CXX_WFLAGS="$CXX_WFLAGS -Wsuggest-override"],,[$ERROR_ON_UNKNOWN_OPTIONS])
-    AC_LANG_POP([C++])
+if [test "$CXX14_SUPPORT" = "no"]; then
+    AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 fi
+
+dnl Available in GCC 5.1
+AC_LANG_PUSH([C++])
+    AX_CHECK_COMPILE_FLAG([-Wsuggest-override], [CXX_WFLAGS="$CXX_WFLAGS -Wsuggest-override"],,[$ERROR_ON_UNKNOWN_OPTIONS])
+AC_LANG_POP([C++])
 
 dnl Enable -Wimplicit-fallthrough only if C++11 is enabled since CPL_FALLTHROUGH is only active then
 AC_LANG_PUSH([C++])
@@ -163,6 +197,7 @@ AC_SUBST(NO_UNUSED_PARAMETER_FLAG,$NO_UNUSED_PARAMETER_FLAG)
 AC_SUBST(NO_SIGN_COMPARE,$NO_SIGN_COMPARE)
 AC_SUBST(NO_NON_VIRTUAL_DTOR_FLAG,$NO_NON_VIRTUAL_DTOR_FLAG)
 AC_SUBST(NO_LOGICAL_OP_FLAG,$NO_LOGICAL_OP_FLAG)
+AC_SUBST(WARN_OLD_STYLE_CAST,$WARN_OLD_STYLE_CAST)
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -294,6 +329,7 @@ AC_CHECK_FUNCS(posix_spawnp)
 AC_CHECK_FUNCS(posix_memalign)
 AC_CHECK_FUNCS(vfork)
 AC_CHECK_FUNCS(mmap)
+AC_CHECK_FUNCS(sigaction)
 AC_CHECK_FUNCS(statvfs)
 AC_CHECK_FUNCS(statvfs64)
 
@@ -306,6 +342,7 @@ AC_CHECK_FUNC_CUSTOM(localtime_r,[#include <time.h>],[time_t t; struct tm ltime;
 AC_LANG_POP(C++)
 
 AC_MSG_CHECKING([for uselocale])
+AC_LANG_PUSH(C++)
 AC_TRY_COMPILE(
   [
 #define _XOPEN_SOURCE 700
@@ -324,6 +361,7 @@ AC_TRY_COMPILE(
   ], [
     AC_MSG_RESULT([no])
 ])
+AC_LANG_POP(C++)
 
 
 OPT_GDAL_FORMATS=
@@ -805,9 +843,19 @@ dnl Check if user requests renaming internal libtiff symbols
 dnl ---------------------------------------------------------------------------
 
 AC_ARG_WITH(rename_internal_libtiff_symbols,[  --with-rename-internal-libtiff-symbols[=ARG] Prefix internal libtiff symbols with gdal_ (ARG=yes/no)],,)
-if test "$with_rename_internal_libtiff_symbols" = ""; then
+
+if test "$HAVE_HIDE_INTERNAL_SYMBOLS" = "yes" ; then
+    with_rename_internal_libtiff_symbols=yes
+    if test "x$with_rename_internal_libtiff_symbols" = "x$no"; then
+        with_rename_internal_libtiff_symbols=no
+    fi
+else
     with_rename_internal_libtiff_symbols=no
+    if test "x$with_rename_internal_libtiff_symbols" = "x$yes" -o "x$with_rename_internal_libtiff_symbols" = "x"; then
+        with_rename_internal_libtiff_symbols=yes
+    fi
 fi
+
 AC_SUBST(RENAME_INTERNAL_LIBTIFF_SYMBOLS,$with_rename_internal_libtiff_symbols)
 
 dnl ---------------------------------------------------------------------------
@@ -815,10 +863,39 @@ dnl Check if user requests renaming internal libgeotiff symbols
 dnl ---------------------------------------------------------------------------
 
 AC_ARG_WITH(rename_internal_libgeotiff_symbols,[  --with-rename-internal-libgeotiff-symbols[=ARG] Prefix internal libgeotiff symbols with gdal_ (ARG=yes/no)],,)
-if test "$with_rename_internal_libgeotiff_symbols" = ""; then
+
+if test "$HAVE_HIDE_INTERNAL_SYMBOLS" = "yes" ; then
+    with_rename_internal_libgeotiff_symbols=yes
+    if test "x$with_rename_internal_libgeotiff_symbols" = "x$no"; then
+        with_rename_internal_libgeotiff_symbols=no
+    fi
+else
     with_rename_internal_libgeotiff_symbols=no
+    if test "x$with_rename_internal_libgeotiff_symbols" = "x$yes" -o "x$with_rename_internal_libgeotiff_symbols" = "x"; then
+        with_rename_internal_libgeotiff_symbols=yes
+    fi
 fi
+
 AC_SUBST(RENAME_INTERNAL_LIBGEOTIFF_SYMBOLS,$with_rename_internal_libgeotiff_symbols)
+
+dnl ---------------------------------------------------------------------------
+dnl Check if user requests renaming internal shapelib symbols
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH(rename_internal_shapelib_symbols,[  --with-rename-internal-shapelib-symbols[=ARG] Prefix internal shapelib symbols with gdal_ (ARG=yes/no)],,)
+
+if test "$HAVE_HIDE_INTERNAL_SYMBOLS" = "yes" ; then
+    with_rename_internal_shapelib_symbols=yes
+    if test "x$with_rename_internal_shapelib_symbols" = "x$no"; then
+        with_rename_internal_shapelib_symbols=no
+    fi
+else
+    with_rename_internal_shapelib_symbols=no
+    if test "x$with_rename_internal_shapelib_symbols" = "x$yes" -o "x$with_rename_internal_shapelib_symbols" = "x"; then
+        with_rename_internal_shapelib_symbols=yes
+    fi
+fi
+AC_SUBST(RENAME_INTERNAL_SHAPELIB_SYMBOLS,$with_rename_internal_shapelib_symbols)
 
 
 dnl ---------------------------------------------------------------------------
@@ -1075,15 +1152,54 @@ AC_ARG_WITH(liblzma,[  --with-liblzma[=ARG]       Include liblzma support (ARG=y
 
 if test "$with_liblzma" = "yes" ; then
   AC_CHECK_LIB(lzma,lzma_code,LIBLZMA_SETTING=yes,LIBLZMA_SETTING=no,)
+  AC_CHECK_HEADERS(lzma.h)
 
-  if test "$LIBLZMA_SETTING" = "yes" ; then
+  if test "$LIBLZMA_SETTING" = "yes" -a "$ac_cv_header_lzma_h" = "yes" ; then
     LIBS="-llzma $LIBS"
+  else
+    LIBLZMA_SETTING=no
   fi
 else
     LIBLZMA_SETTING=no
 fi
 
 AC_SUBST(LIBLZMA_SETTING,$LIBLZMA_SETTING)
+
+
+dnl ---------------------------------------------------------------------------
+dnl Check if zstd is available.
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH(zstd,[  --with-zstd[=ARG]       Include zstd support (ARG=yes/no/installation_prefix)],,)
+
+if test "$with_zstd" = "" -o "$with_zstd" = "yes" ; then
+  AC_CHECK_LIB(zstd,ZSTD_decompressStream,ZSTD_SETTING=yes,ZSTD_SETTING=no,)
+
+  if test "$ZSTD_SETTING" = "yes" ; then
+    LIBS="-lzstd $LIBS"
+  else
+    if test "$with_zstd" = "yes" ; then
+      AC_MSG_ERROR([libzstd not found])
+    else
+      echo "libzstd not found - ZSTD support disabled"
+    fi
+  fi
+elif test "$with_zstd" != "" -a "$with_zstd" != "no"; then
+
+  AC_CHECK_LIB(zstd,ZSTD_decompressStream,ZSTD_SETTING=yes,ZSTD_SETTING=no,-L$with_zstd/lib)
+
+  if test "$ZSTD_SETTING" = "yes" -a -f "$with_zstd/include/zstd.h" ; then
+    LIBS="-L$with_zstd/lib -lzstd $LIBS"
+    EXTRA_INCLUDES="-I$with_zstd/include $EXTRA_INCLUDES"
+  else
+    AC_MSG_ERROR([libzstd not found])
+  fi
+
+else
+    ZSTD_SETTING=no
+fi
+
+AC_SUBST(ZSTD_SETTING,$ZSTD_SETTING)
 
 dnl ---------------------------------------------------------------------------
 dnl Select an PostgreSQL Library to use, or disable driver.
@@ -1496,6 +1612,10 @@ if test "x${with_libtiff}" = "xyes" -o "x${with_libtiff}" = "x" ; then
     AC_MSG_RESULT([using internal TIFF code.])
   fi
 
+elif test "x${with_libtiff}" = "xno" ; then
+
+  AC_MSG_ERROR([libtiff is a required dependency])
+
 elif test "x${with_libtiff}" = "xinternal" ; then
 
   TIFF_SETTING=internal
@@ -1579,6 +1699,10 @@ elif test "$with_geotiff" = "internal" ; then
   GEOTIFF_SETTING=internal
 
   echo "using internal GeoTIFF code."
+
+elif test "x${with_geotiff}" = "xno" ; then
+
+  AC_MSG_ERROR([libgeotiff is a required dependency])
 
 else
 
@@ -1673,6 +1797,32 @@ AC_SUBST(JPEG_SETTING,$JPEG_SETTING)
 if test "$JPEG_SETTING" != "no" ; then
   OPT_GDAL_FORMATS="jpeg $OPT_GDAL_FORMATS"
 fi
+
+
+dnl ---------------------------------------------------------------------------
+dnl Check for CharLS
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH(charls,
+            AS_HELP_STRING([--with-charls],[Include JPEG-Lossless support]),,)
+
+HAVE_CHARLS=no
+CHARLS_INC=
+
+if test "$with_charls" = "yes" -o "$with_charls" = "" ; then
+
+  AC_CHECK_HEADERS([CharLS/interface.h])
+  if test "$ac_cv_header_CharLS_interface_h" = "yes"; then
+    AC_CHECK_LIB(CharLS,JpegLsDecode,HAVE_CHARLS=yes)
+    if test "$HAVE_CHARLS" = "yes"; then
+        LIBS="-lCharLS $LIBS"
+        CHARLS_INC="-DCHARLS_INTERFACE_H"
+    fi
+  fi
+fi
+
+AC_SUBST(HAVE_CHARLS,$HAVE_CHARLS)
+AC_SUBST(CHARLS_INC,$CHARLS_INC)
 
 dnl ---------------------------------------------------------------------------
 dnl Check for BSB in the local tree.
@@ -1848,10 +1998,6 @@ fi
 
 AC_SUBST(HAVE_OGDI,$HAVE_OGDI)
 AC_SUBST(OGDI_INCLUDE,$OGDI_INCLUDE)
-
-if test "$HAVE_OGDI" != "no" ; then
-  OPT_GDAL_FORMATS="ogdi $OPT_GDAL_FORMATS"
-fi
 
 dnl ---------------------------------------------------------------------------
 dnl Select FME_HOME or disable FME support.
@@ -2529,7 +2675,7 @@ dnl ---------------------------------------------------------------------------
 dnl Select a OpenJPEG Library to use, or disable driver.
 dnl ---------------------------------------------------------------------------
 
-AC_ARG_WITH(openjpeg,[  --with-openjpeg[=ARG]     Include JPEG-2000 support via OpenJPEG 2.0 library (ARG=path)],,)
+AC_ARG_WITH(openjpeg,[  --with-openjpeg     Include JPEG-2000 support via OpenJPEG 2.x library],,)
 
 HAVE_OPENJPEG=no
 
@@ -2537,75 +2683,31 @@ if test "$with_openjpeg" = "no" ; then
 
   AC_MSG_NOTICE([OpenJPEG (JPEG2000) support disabled.])
 
-elif test "$with_openjpeg" = "yes" -o "$with_openjpeg" = "" ; then
-
-
-  AC_CHECK_HEADERS([openjpeg-2.3/openjpeg.h])
-  if test "$ac_cv_header_openjpeg_2_3_openjpeg_h" = "yes"; then
-    AC_CHECK_LIB(openjp2,opj_stream_set_user_data_length,HAVE_OPENJPEG=yes,HAVE_OPENJPEG=no,)
-    if test "$HAVE_OPENJPEG" = "yes"; then
-        OPENJPEG_VERSION=20300
-        LIBS="-lopenjp2 $LIBS"
-    fi
-  else
-    AC_CHECK_HEADERS([openjpeg-2.2/openjpeg.h])
-    if test "$ac_cv_header_openjpeg_2_2_openjpeg_h" = "yes"; then
-        AC_CHECK_LIB(openjp2,opj_stream_set_user_data_length,HAVE_OPENJPEG=yes,HAVE_OPENJPEG=no,)
-        if test "$HAVE_OPENJPEG" = "yes"; then
-            OPENJPEG_VERSION=20200
-            LIBS="-lopenjp2 $LIBS"
-        fi
-    else
-        AC_CHECK_HEADERS([openjpeg-2.1/openjpeg.h])
-        if test "$ac_cv_header_openjpeg_2_1_openjpeg_h" = "yes"; then
-            AC_CHECK_LIB(openjp2,opj_stream_set_user_data_length,HAVE_OPENJPEG=yes,HAVE_OPENJPEG=no,)
-            if test "$HAVE_OPENJPEG" = "yes"; then
-                OPENJPEG_VERSION=20100
-                LIBS="-lopenjp2 $LIBS"
-            fi
-        else
-            AC_CHECK_HEADERS([openjpeg-2.0/openjpeg.h])
-            if test "$ac_cv_header_openjpeg_2_0_openjpeg_h" = "yes"; then
-                AC_CHECK_LIB(openjp2,opj_stream_set_user_data_length,HAVE_OPENJPEG=yes,HAVE_OPENJPEG=no,)
-                if test "$HAVE_OPENJPEG" = "yes"; then
-                    LIBS="-lopenjp2 $LIBS"
-                fi
-            fi
-        fi
-    fi
-  fi
 else
 
-  HAVE_OPENJPEG=yes
-  if test -r $with_openjpeg/include/openjpeg-2.0/openjpeg.h ; then
-    EXTRA_INCLUDES="-I$with_openjpeg/include $EXTRA_INCLUDES"
-  elif test -r $with_openjpeg/include/openjpeg-2.1/openjpeg.h ; then
-    OPENJPEG_VERSION=20100
-    EXTRA_INCLUDES="-I$with_openjpeg/include $EXTRA_INCLUDES"
-  elif test -r $with_openjpeg/include/openjpeg-2.2/openjpeg.h ; then
-    OPENJPEG_VERSION=20200
-    EXTRA_INCLUDES="-I$with_openjpeg/include $EXTRA_INCLUDES"
-  elif test -r $with_openjpeg/include/openjpeg-2.3/openjpeg.h ; then
-    OPENJPEG_VERSION=20300
-    EXTRA_INCLUDES="-I$with_openjpeg/include $EXTRA_INCLUDES"
-  else
-    AC_MSG_ERROR([openjpeg.h not found in $with_openjpeg/include/openjpeg-2.0 or $with_openjpeg/include/openjpeg-2.1 or $with_openjpeg/include/openjpeg-2.2 or $with_openjpeg/include/openjpeg-2.3])
-  fi
+  PKG_PROG_PKG_CONFIG([0.25])
+  PKG_CHECK_MODULES([OPENJPEG], [libopenjp2 >= 2.1.0],
+        [OPENJPEG_VERSION=`$PKG_CONFIG --modversion libopenjp2`],
+        [OPENJPEG_VERSION=;])
 
-  AC_CHECK_LIB(openjp2,opj_stream_set_user_data_length,HAVE_OPENJPEG=yes,HAVE_OPENJPEG=no,-L$with_openjpeg/lib)
+  if test -n "$OPENJPEG_CFLAGS"; then
 
-  if test "$HAVE_OPENJPEG" = "yes"; then
-      LIBS="-L$with_openjpeg/lib -lopenjp2 $LIBS"
-      AC_MSG_NOTICE([using OpenJPEG v2 library from $with_openjpeg.])
+    # Test that the package found is for the right architecture
+    saved_LIBS="$LIBS"
+    LIBS="$OPENJPEG_LIBS"
+    AC_CHECK_LIB(openjp2,opj_setup_decoder, [HAVE_OPENJPEG=yes], [HAVE_OPENJPEG=no])
+    LIBS="$saved_LIBS"
+
+    if test "$HAVE_OPENJPEG" = "yes"; then
+        EXTRA_INCLUDES="$OPENJPEG_CFLAGS $EXTRA_INCLUDES"
+        LIBS="$OPENJPEG_LIBS $LIBS"
+    fi
   fi
 fi
 
 if test "$HAVE_OPENJPEG" != "no" ; then
   OPT_GDAL_FORMATS="openjpeg $OPT_GDAL_FORMATS"
 fi
-
-AC_SUBST([HAVE_OPENJPEG],$HAVE_OPENJPEG)
-AC_SUBST([OPENJPEG_VERSION],$OPENJPEG_VERSION)
 
 dnl ---------------------------------------------------------------------------
 dnl Select a FGDB API to use, or disable driver.
@@ -3538,7 +3640,7 @@ if test "$CURL_SETTING" = "yes" ; then
 
   CURL_INC=`$LIBCURL_CONFIG --cflags`
   CURL_LIB=`$LIBCURL_CONFIG --libs`
-  OPT_GDAL_FORMATS="wcs wms plmosaic wmts $OPT_GDAL_FORMATS"
+  OPT_GDAL_FORMATS="wcs wms plmosaic wmts rda $OPT_GDAL_FORMATS"
 
 fi
 
@@ -3784,6 +3886,7 @@ dnl Check for Teigha.
 dnl ---------------------------------------------------------------------------
 
 TEIGHA_DIR=
+TEIGHA_CPPFLAGS=
 
 AC_MSG_CHECKING(Checking for Teigha)
 AC_ARG_WITH(teigha,
@@ -3812,6 +3915,9 @@ else
         LIBS="${LIBS} -L${TEIGHA_DIR}/bin/${TEIGHA_PLT} -lTD_Root"
         LIBS="${LIBS} -L${TEIGHA_DIR}/bin/${TEIGHA_PLT} -lTD_Ge"
         LIBS="${LIBS} -L${TEIGHA_DIR}/bin/${TEIGHA_PLT} -lTD_Alloc"
+        if test -f "${TEIGHA_DIR}/bin/${TEIGHA_PLT}/libTD_Db.so"; then
+            TEIGHA_CPPFLAGS="-D_TOOLKIT_IN_DLL_"
+        fi
     else
         AC_MSG_ERROR([--with-teigha-plt not specified])
     fi
@@ -3819,6 +3925,7 @@ fi
 
 AC_SUBST(TEIGHA_DIR)
 AC_SUBST(HAVE_TEIGHA)
+AC_SUBST(TEIGHA_CPPFLAGS)
 
 dnl ---------------------------------------------------------------------------
 dnl Select Informix DataBlade support
@@ -4685,81 +4792,130 @@ dnl ---------------------------------------------------------------------------
 dnl PROJ.4 related stuff.
 dnl ---------------------------------------------------------------------------
 
-AC_MSG_CHECKING([how to link PROJ.4 library])
+AC_MSG_CHECKING([how to link PROJ library])
 
-AC_ARG_WITH(static_proj4,[  --with-static-proj4=ARG Compile with PROJ.4 statically (ARG=no or path)],,)
+AC_ARG_WITH(proj,[  --with-proj=ARG Compile with PROJ.x (ARG=no or path)],,)
 
-if test "x$with_static_proj4" = "xno" -o "x$with_static_proj4" = "x"; then
+dnl Could probably be removed once proj 5.0.1 is OK. There are known issues proj 5.0.0.
+AC_ARG_WITH(proj5_api,[  --with-proj5-api=ARG Allow using PROJ.5 new API  (ARG=no/yes, default to yes)],,)
+
+dnl Legacy
+AC_ARG_WITH(static_proj4,[  --with-static-proj4=ARG Compile with PROJ.4 statically (deprecated, use --with-proj instead) (ARG=no or path)],,)
+if test "x$with_static_proj4" != "x" -a "x$with_proj" != "x" ; then
+    AC_MSG_ERROR([only one of --static-proj4 and --proj can be used])
+fi
+if test "x$with_static_proj4" != "x"; then
+    AC_MSG_WARN([--with-static-proj4 is deprecated. Please use --with-proj])
+    with_proj=$with_static_proj4
+fi
+
+if test "x$with_proj" = "xno" -o "x$with_proj" = "x"; then
 
   PROJ_STATIC=no
   AC_MSG_RESULT([link dynamically.])
 
 else
 
-  PROJ_STATIC=yes
+  PROJ_STATIC=no
   AC_MSG_RESULT([link statically.])
 
   ORIG_LIBS="$LIBS"
   PROJ_LIB="-lproj"
 
-  if test "x$with_static_proj4" = "xyes" ; then
+  if test "x$with_proj" = "xyes" ; then
     LIBS="$PROJ_LIB $ORIG_LIBS"
-    AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
+    if test "$with_proj5_api" = "yes" -o "$with_proj5_api" = ""; then
+        AC_CHECK_LIB(proj,proj_create,PROJ_STATIC=yes,PROJ_STATIC=no,)
+    fi
+    if test "$PROJ_STATIC" = "yes"; then
+        AC_CHECK_HEADERS([proj.h])
+        if test "$ac_cv_header_proj_h" = "yes" ; then
+            AC_MSG_NOTICE([proj >= 5 detected])
+            PROJ_VERSION=5
+        else
+            PROJ_STATIC=no
+        fi
+    else
+        AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
+        AC_MSG_NOTICE([proj 4.x detected])
+        PROJ_VERSION=4
+    fi
   else
 
-    LIBS="-L$with_static_proj4/lib $PROJ_LIB $ORIG_LIBS"
-    AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
-
-    if test "$PROJ_STATIC" = "no"; then
-      dnl Disable previous value cached by the previous AC_CHECK_LIB test :
-      dnl AC_CHECK_LIB caches the result value for a couple (function, library)
-      dnl in a variable named "ac_cv_lib_<library name>_<function name>".
-      dnl In order to try to locate the library in different locations, using
-      dnl different values of LIBS, we have to 'unset' this variable after
-      dnl each negative test.
-
-      unset ac_cv_lib_proj_pj_init
-
-      LIBS="-L$with_static_proj4/src $PROJ_LIB $ORIG_LIBS"
-      AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
+    LIBS="-L$with_proj/lib $PROJ_LIB $ORIG_LIBS"
+    if test "$with_proj5_api" = "yes" -o "$with_proj5_api" = ""; then
+        AC_CHECK_LIB(proj,proj_create,PROJ_STATIC=yes,PROJ_STATIC=no,)
     fi
+    if test "$PROJ_STATIC" = "yes"; then
+        if test -r "$with_proj/include/proj.h" ; then
+          PROJ_INCLUDE="-I$with_proj/include"
+          AC_MSG_NOTICE([proj >= 5 detected])
+          PROJ_VERSION=5
+        else
+          AC_MSG_ERROR([proj.h not found])
+        fi
+    else
+        AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
 
-    if test "$PROJ_STATIC" = "no"; then
-      unset ac_cv_lib_proj_pj_init
-      LIBS="-L$with_static_proj4/src/.libs $PROJ_LIB $ORIG_LIBS"
-      AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
+        if test "$PROJ_STATIC" = "no"; then
+            dnl Disable previous value cached by the previous AC_CHECK_LIB test :
+            dnl AC_CHECK_LIB caches the result value for a couple (function, library)
+            dnl in a variable named "ac_cv_lib_<library name>_<function name>".
+            dnl In order to try to locate the library in different locations, using
+            dnl different values of LIBS, we have to 'unset' this variable after
+            dnl each negative test.
+
+            unset ac_cv_lib_proj_pj_init
+
+            LIBS="-L$with_proj/src $PROJ_LIB $ORIG_LIBS"
+            AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
+        fi
+
+        if test "$PROJ_STATIC" = "no"; then
+            unset ac_cv_lib_proj_pj_init
+            LIBS="-L$with_proj/src/.libs $PROJ_LIB $ORIG_LIBS"
+            AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
+        fi
+
+        if test "$PROJ_STATIC" = "no"; then
+            unset ac_cv_lib_proj_pj_init
+            LIBS="-L$with_proj $PROJ_LIB $ORIG_LIBS"
+            AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
+        fi
+
+        if test "$PROJ_STATIC" = "no"; then
+            unset ac_cv_lib_proj_pj_init
+            LIBS="$PROJ_LIB $ORIG_LIBS"
+            AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
+        fi
+
+        if test "$PROJ_STATIC" = "yes"; then
+            AC_MSG_NOTICE([proj 4.x detected])
+            PROJ_VERSION=4
+        fi
     fi
-
-    if test "$PROJ_STATIC" = "no"; then
-      unset ac_cv_lib_proj_pj_init
-      LIBS="-L$with_static_proj4 $PROJ_LIB $ORIG_LIBS"
-      AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
-    fi
-
-    if test "$PROJ_STATIC" = "no"; then
-      unset ac_cv_lib_proj_pj_init
-      LIBS="$PROJ_LIB $ORIG_LIBS"
-      AC_CHECK_LIB(proj,pj_init,PROJ_STATIC=yes,PROJ_STATIC=no,)
-    fi
-
   fi
-
   if test "$PROJ_STATIC" = "no"; then
-    LIBS="$ORIG_LIBS"
+      LIBS="$ORIG_LIBS"
   fi
 
-  if test -r "$with_static_proj4/src/proj_api.h" ; then
-    PROJ_INCLUDE="-I$with_static_proj4/src"
-  elif test -r "$with_static_proj4/include/proj_api.h" ; then
-    PROJ_INCLUDE="-I$with_static_proj4/include"
-  elif test -r "$with_static_proj4/proj_api.h" ; then
-    PROJ_INCLUDE="-I$with_static_proj4"
+  if test "$PROJ_VERSION" = "4"; then
+      if test -r "$with_proj/src/proj_api.h" ; then
+          PROJ_INCLUDE="-I$with_proj/src"
+      elif test -r "$with_proj/include/proj_api.h" ; then
+          PROJ_INCLUDE="-I$with_proj/include"
+      elif test -r "$with_proj/proj_api.h" ; then
+          PROJ_INCLUDE="-I$with_proj"
+      fi
   fi
-
+  if test "$PROJ_STATIC" = "no"; then
+    AC_MSG_ERROR([cannot find proj])
+  fi
 fi
 
 AC_SUBST(PROJ_STATIC)
 AC_SUBST(PROJ_INCLUDE)
+AC_SUBST(PROJ_VERSION)
 
 dnl ---------------------------------------------------------------------------
 dnl Get/override version.
@@ -4767,11 +4923,11 @@ dnl ---------------------------------------------------------------------------
 
 
 AC_ARG_WITH(gdal-ver,[  --with-gdal-ver=ARG   Override GDAL version ],,)
-GDAL_VERSION_MAJOR=`grep "#*define.GDAL_VERSION_MAJOR.*" gcore/gdal_version.h | awk '{print $4}'`
-GDAL_VERSION_MINOR=`grep "#*define.GDAL_VERSION_MINOR.*" gcore/gdal_version.h | awk '{print $4}'`
-GDAL_VERSION_REV=`grep "#*define.GDAL_VERSION_REV.*" gcore/gdal_version.h | awk '{print $4}'`
+GDAL_VERSION_MAJOR=`grep "#*define.GDAL_VERSION_MAJOR.*" gcore/gdal_version.h.in | awk '{print $4}'`
+GDAL_VERSION_MINOR=`grep "#*define.GDAL_VERSION_MINOR.*" gcore/gdal_version.h.in | awk '{print $4}'`
+GDAL_VERSION_REV=`grep "#*define.GDAL_VERSION_REV.*" gcore/gdal_version.h.in | awk '{print $4}'`
 
-AC_MSG_RESULT([checking GDAL version information from gdal_version.h: $GDAL_VERSION_MAJOR.$GDAL_VERSION_MINOR.$GDAL_VERSION_REV])
+AC_MSG_RESULT([checking GDAL version information from gdal_version.h.in: $GDAL_VERSION_MAJOR.$GDAL_VERSION_MINOR.$GDAL_VERSION_REV])
 
 AC_SUBST(GDAL_VERSION_MAJOR,    "$GDAL_VERSION_MAJOR")
 AC_SUBST(GDAL_VERSION_MINOR,    "$GDAL_VERSION_MINOR")
@@ -5446,6 +5602,34 @@ fi
 AC_SUBST(HAVE_CRYPTOPP,$HAVE_CRYPTOPP)
 AC_SUBST(USE_ONLY_CRYPTODLL_ALG,$USE_ONLY_CRYPTODLL_ALG)
 
+dnl ---------------------------------------------------------------------------
+dnl crypto
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH(crypto,[  --with-crypto[=ARG]       Include crypto (from openssl) support (ARG=yes, no or path)],,)
+
+HAVE_OPENSSL_CRYPTO=no
+
+AC_MSG_CHECKING([for crypto])
+
+if test "$with_crypto" = "no" ; then
+
+  AC_MSG_RESULT([disabled])
+
+elif test "$with_crypto" = "yes" -o \( "$with_crypto" = "" -a "$HAVE_CRYPTOPP" = "no" \) ; then
+
+    AC_CHECK_LIB(crypto,EVP_sha256,HAVE_OPENSSL_CRYPTO=yes)
+    if test "$HAVE_OPENSSL_CRYPTO" = "yes"; then
+        AC_CHECK_HEADERS([openssl/bio.h])
+        if test "$ac_cv_header_openssl_bio_h" = "no"; then
+            HAVE_OPENSSL_CRYPTO=no
+        else
+            LIBS="-lcrypto $LIBS"
+        fi
+    fi
+fi
+
+AC_SUBST(HAVE_OPENSSL_CRYPTO,$HAVE_OPENSSL_CRYPTO)
 
 dnl ---------------------------------------------------------------------------
 dnl Whether to include MRF in the build
@@ -5463,6 +5647,23 @@ if test "$with_mrf" = yes -o x"$with_mrf" = x ; then
 else
     HAVE_MRF=no
     AC_MSG_RESULT([disabled by user])
+fi
+
+
+dnl ---------------------------------------------------------------------------
+dnl Whether to include NULL driver in the build
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH([null],
+	    AS_HELP_STRING([--with-null],
+	       [Enable NULL driver (only useful for development purposes]),,)
+
+AC_MSG_CHECKING([for NULL])
+if test "$with_null" = "yes" ; then
+    OPT_GDAL_FORMATS="null $OPT_GDAL_FORMATS"
+    AC_MSG_RESULT([enabled])
+else
+    AC_MSG_RESULT([disabled])
 fi
 
 dnl ---------------------------------------------------------------------------
@@ -5489,6 +5690,35 @@ fi
 rm -f testdeprecated.*
 rm -f testdeprecated
 
+dnl Use -municode for mingw
+case "${host_os}" in
+    mingw32*)
+        AC_MSG_CHECKING([if mingw supports wmain])
+        rm -f testwmain*
+        echo '#include <wchar.h>' > testwmain.cpp
+        echo '#include <stdlib.h>' >> testwmain.cpp
+        echo 'extern "C" int wmain( int argc, wchar_t ** argv_w );' >> testwmain.cpp
+        echo 'extern "C" int wmain( int , wchar_t **  ) { return 0; } ' >> testwmain.cpp
+        ${CXX} ${CXXFLAGS} ${LDFLAGS} testwmain.cpp -o testwmain.exe -municode 2>/dev/null
+        RETVAL=$?
+        rm -f testwmain*
+        if test $RETVAL -eq 0; then
+            AC_MSG_RESULT([yes])
+            CXXFLAGS="$CXXFLAGS -DSUPPORTS_WMAIN"
+            LDFLAGS="$LDFLAGS -municode"
+        else
+            AC_MSG_RESULT([no])
+        fi
+        ;;
+    *)
+        ;;
+esac
+
+dnl FileGDB v1.5
+if test "$PROJ_STATIC" = "no" -a "$FGDB_ENABLED" = "yes" -a "$FGDB_HAS_PROJ4" = "yes"; then
+    AC_MSG_ERROR([--without-static-proj and --with-fgdb are both available. There might be some incompatibility between system libproj and the embedded copy within libFileGDBAPI])
+fi
+
 AC_OUTPUT(GDALmake.opt)
 
 dnl ---------------------------------------------------------------------------
@@ -5501,13 +5731,15 @@ LOC_MSG()
 LOC_MSG([  Installation directory:    ${prefix}])
 LOC_MSG([  C compiler:                ${CC} ${CFLAGS}])
 LOC_MSG([  C++ compiler:              ${CXX} ${CXXFLAGS}])
-LOC_MSG([  C++11 support:             ${CXX11_SUPPORT}])
+LOC_MSG([  C++14 support:             ${CXX14_SUPPORT}])
 LOC_MSG()
 LOC_MSG([  LIBTOOL support:           ${with_libtool}])
 LOC_MSG()
 LOC_MSG([  LIBZ support:              ${LIBZ_SETTING}])
 LOC_MSG([  LIBLZMA support:           ${LIBLZMA_SETTING}])
+LOC_MSG([  ZSTD support:              ${ZSTD_SETTING}])
 LOC_MSG([  cryptopp support:          ${HAVE_CRYPTOPP}])
+LOC_MSG([  crypto/openssl support:    ${HAVE_OPENSSL_CRYPTO}])
 LOC_MSG([  GRASS support:             ${GRASS_SETTING}])
 LOC_MSG([  CFITSIO support:           ${FITS_SETTING}])
 LOC_MSG([  PCRaster support:          ${PCRASTER_SETTING}])
@@ -5520,6 +5752,7 @@ LOC_MSG([  LIBJPEG support:           ${JPEG_SETTING}])
 LOC_MSG([  12 bit JPEG:               ${JPEG12_ENABLED}])
 LOC_MSG([  12 bit JPEG-in-TIFF:       ${TIFF_JPEG12_ENABLED}])
 LOC_MSG([  LIBGIF support:            ${GIF_SETTING}])
+LOC_MSG([  JPEG-Lossless/CharLS:      ${HAVE_CHARLS}])
 LOC_MSG([  OGDI support:              ${HAVE_OGDI}])
 LOC_MSG([  HDF4 support:              ${HAVE_HDF4}])
 LOC_MSG([  HDF5 support:              ${HAVE_HDF5}])
@@ -5592,7 +5825,7 @@ else
 fi
 LOC_MSG([  SWIG Bindings:             ${WHAT_BINDINGS}])
 LOC_MSG()
-LOC_MSG([  Statically link PROJ.4:    ${PROJ_STATIC}])
+LOC_MSG([  Statically link PROJ:      ${PROJ_STATIC}])
 LOC_MSG([  enable GNM building:       ${GNM_ENABLED}])
 LOC_MSG([  enable pthread support:    ${PTHREAD_ENABLED}])
 LOC_MSG([  enable POSIX iconv support:${am_cv_func_iconv}])
@@ -5613,9 +5846,8 @@ if test "$HAVE_LIBXML2" = "yes" -a "$FGDB_ENABLED" = "yes"; then
     AC_MSG_WARN([--with-libxml2 and --with-fgdb are both available. There might be some incompatibility between system libxml2 and the embedded copy within libFileGDBAPI])
 fi
 
-dnl FileGDB v1.5
-if test "$PROJ_STATIC" = "no" -a "$FGDB_ENABLED" = "yes" -a "$FGDB_HAS_PROJ4" = "yes"; then
-    AC_MSG_WARN([--without-static-proj and --with-fgdb are both available. There might be some incompatibility between system libproj and the embedded copy within libFileGDBAPI])
+if test "$HAVE_CRYPTOPP" = "yes" -a "$HAVE_OPENSSL_CRYPTO" = "yes"; then
+    AC_MSG_WARN([--with-crypto and --with-cryptopp available. This is unusual setup, but will work.])
 fi
 
 if test "$HAVE_TEIGHA" = "yes" -a "$ECW_54" = "yes"; then

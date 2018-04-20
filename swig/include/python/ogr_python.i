@@ -1,5 +1,5 @@
 /*
- * $Id: ogr_python.i 38101 2017-04-22 16:49:11Z rouault $
+ * $Id: ogr_python.i 235775cf5b433746f5a8f8be2db10dc7fba22495 2018-04-18 17:56:54 +0200 Even Rouault $
  *
  * python specific code for ogr bindings.
  */
@@ -41,6 +41,10 @@
 %rename (RegisterAll) OGRRegisterAll();
 
 #ifndef FROM_GDAL_I
+%{
+#define MODULE_NAME           "ogr"
+%}
+
 %include "python_exceptions.i"
 %include "python_strings.i"
 
@@ -258,10 +262,14 @@
     # This makes it possible to fetch fields in the form "feature['area']".
     def __getitem__(self, key):
         """Returns the values of fields by the given name / field_index"""
-        if isinstance(key, str):
+        if isinstance(key, str) or isinstance(key, type(u'')):
             fld_index = self.GetFieldIndex(key)
+        else:
+            fld_index = key
+            if key == self.GetFieldCount():
+                raise IndexError
         if fld_index < 0:
-            if isinstance(key, str):
+            if isinstance(key, str) or isinstance(key, type(u'')):
                 fld_index = self.GetGeomFieldIndex(key)
             if fld_index < 0:
                 raise ValueError("Illegal field requested in GetField()")
@@ -273,10 +281,14 @@
     # This makes it possible to set fields in the form "feature['area'] = 123".
     def __setitem__(self, key, value):
         """Returns the value of a field by field name / index"""
-        if isinstance(key, str):
+        if isinstance(key, str) or isinstance(key, type(u'')):
             fld_index = self.GetFieldIndex(key)
+        else:
+            fld_index = key
+            if key == self.GetFieldCount():
+                raise IndexError
         if fld_index < 0:
-            if isinstance(key, str):
+            if isinstance(key, str) or isinstance(key, type(u'')):
                 fld_index = self.GetGeomFieldIndex(key)
             if fld_index < 0:
                 raise ValueError("Illegal field requested in SetField()")

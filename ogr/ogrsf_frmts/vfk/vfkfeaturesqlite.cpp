@@ -34,7 +34,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: vfkfeaturesqlite.cpp 37796 2017-03-19 19:18:10Z martinl $");
+CPL_CVSID("$Id: vfkfeaturesqlite.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /*!
   \brief VFKFeatureSQLite constructor (from DB)
@@ -47,7 +47,7 @@ VFKFeatureSQLite::VFKFeatureSQLite( IVFKDataBlock *poDataBlock ) :
     IVFKFeature(poDataBlock),
     // Starts at 1.
     m_iRowId(static_cast<int>(poDataBlock->GetFeatureCount() + 1)),
-    m_hStmt(NULL)
+    m_hStmt(nullptr)
 {
     // Set FID from DB.
     SetFIDFromDB();  // -> m_nFID
@@ -64,7 +64,7 @@ VFKFeatureSQLite::VFKFeatureSQLite( IVFKDataBlock *poDataBlock, int iRowId,
                                     GIntBig nFID) :
     IVFKFeature(poDataBlock),
     m_iRowId(iRowId),
-    m_hStmt(NULL)
+    m_hStmt(nullptr)
 {
     m_nFID = nFID;
 }
@@ -104,7 +104,7 @@ void VFKFeatureSQLite::SetRowId(int iRowId)
 void VFKFeatureSQLite::FinalizeSQL()
 {
     sqlite3_finalize(m_hStmt);
-    m_hStmt = NULL;
+    m_hStmt = nullptr;
 }
 
 /*!
@@ -120,13 +120,13 @@ OGRErr VFKFeatureSQLite::ExecuteSQL(const char *pszSQLCommand)
     sqlite3  *poDB = poReader->m_poDB;
 
     int rc = sqlite3_prepare_v2(poDB, pszSQLCommand, -1,
-                         &m_hStmt, NULL);
+                         &m_hStmt, nullptr);
     if (rc != SQLITE_OK) {
         CPLError(CE_Failure, CPLE_AppDefined,
                  "In ExecuteSQL(): sqlite3_prepare_v2(%s):\n  %s",
                  pszSQLCommand, sqlite3_errmsg(poDB));
 
-        if(m_hStmt != NULL) {
+        if(m_hStmt != nullptr) {
             FinalizeSQL();
         }
         return OGRERR_FAILURE;
@@ -157,7 +157,7 @@ VFKFeatureSQLite::VFKFeatureSQLite( const VFKFeature *poVFKFeature ) :
     // Starts at 1.
     m_iRowId(static_cast<int>(
         poVFKFeature->m_poDataBlock->GetFeatureCount() + 1)),
-    m_hStmt(NULL)
+    m_hStmt(nullptr)
 {
     m_nFID = poVFKFeature->m_nFID;
 }

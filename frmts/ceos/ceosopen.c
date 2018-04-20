@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ceosopen.c 39139 2017-06-16 15:32:12Z rouault $
+ * $Id: ceosopen.c 3b0bbf7a8a012d69a783ee1f9cfeb5c52b370021 2017-06-27 20:57:02Z Even Rouault $
  *
  * Project:  CEOS Translator
  * Purpose:  Implementation of non-GDAL dependent CEOS support.
@@ -30,7 +30,7 @@
 
 #include "ceosopen.h"
 
-CPL_CVSID("$Id: ceosopen.c 39139 2017-06-16 15:32:12Z rouault $");
+CPL_CVSID("$Id: ceosopen.c 3b0bbf7a8a012d69a783ee1f9cfeb5c52b370021 2017-06-27 20:57:02Z Even Rouault $")
 
 CPL_INLINE static void CPL_IGNORE_RET_VAL_INT(CPL_UNUSED int unused) {}
 
@@ -96,17 +96,17 @@ CEOSRecord * CEOSReadRecord( CEOSImage *psImage )
         CPL_SWAP32PTR( abyHeader + 8 );
     }
 
-    nRecordNumUInt32 = (abyHeader[0] << 24)
+    nRecordNumUInt32 = ((unsigned)abyHeader[0] << 24)
                          + (abyHeader[1] << 16)
                          + (abyHeader[2] << 8)
                          + abyHeader[3];
 
-    psRecord->nRecordType = (abyHeader[4] << 24)
+    psRecord->nRecordType = ((unsigned)abyHeader[4] << 24)
                          + (abyHeader[5] << 16)
                          + (abyHeader[6] << 8)
                          + abyHeader[7];
 
-    nLengthUInt32 = (abyHeader[8] << 24)
+    nLengthUInt32 = ((unsigned)abyHeader[8] << 24)
                          + (abyHeader[9] << 16)
                          + (abyHeader[10] << 8)
                          + abyHeader[11];
@@ -148,6 +148,7 @@ CEOSRecord * CEOSReadRecord( CEOSImage *psImage )
     {
         CPLError( CE_Failure, CPLE_FileIO,
                   "Short read on CEOS record data.\n" );
+        CPLFree( psRecord->pachData );
         CPLFree( psRecord );
         return NULL;
     }

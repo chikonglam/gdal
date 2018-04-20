@@ -1,4 +1,4 @@
-# $Id: GNUmakefile 35922 2016-10-25 05:46:08Z goatbar $
+# $Id$
 #
 # Makefile to build libpng using GNU Make and GCC.
 #

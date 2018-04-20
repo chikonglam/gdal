@@ -29,7 +29,7 @@
 #include "ntf.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrntffeatureclasslayer.cpp 35191 2016-08-24 01:33:06Z goatbar $");
+CPL_CVSID("$Id: ogrntffeatureclasslayer.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                      OGRNTFFeatureClassLayer()                       */
@@ -40,7 +40,7 @@ CPL_CVSID("$Id: ogrntffeatureclasslayer.cpp 35191 2016-08-24 01:33:06Z goatbar $
 
 OGRNTFFeatureClassLayer::OGRNTFFeatureClassLayer( OGRNTFDataSource *poDSIn ) :
     poFeatureDefn(new OGRFeatureDefn("FEATURE_CLASSES")),
-    poFilterGeom(NULL),
+    poFilterGeom(nullptr),
     poDS(poDSIn),
     iCurrentFC(0)
 {
@@ -72,7 +72,7 @@ OGRNTFFeatureClassLayer::~OGRNTFFeatureClassLayer()
     if( poFeatureDefn )
         poFeatureDefn->Release();
 
-    if( poFilterGeom != NULL )
+    if( poFilterGeom != nullptr )
         delete poFilterGeom;
 }
 
@@ -83,13 +83,13 @@ OGRNTFFeatureClassLayer::~OGRNTFFeatureClassLayer()
 void OGRNTFFeatureClassLayer::SetSpatialFilter( OGRGeometry * poGeomIn )
 
 {
-    if( poFilterGeom != NULL )
+    if( poFilterGeom != nullptr )
     {
         delete poFilterGeom;
-        poFilterGeom = NULL;
+        poFilterGeom = nullptr;
     }
 
-    if( poGeomIn != NULL )
+    if( poGeomIn != nullptr )
         poFilterGeom = poGeomIn->clone();
 }
 
@@ -111,7 +111,7 @@ OGRFeature *OGRNTFFeatureClassLayer::GetNextFeature()
 
 {
     if( iCurrentFC >= GetFeatureCount() )
-        return NULL;
+        return nullptr;
 
     return GetFeature( (long) iCurrentFC++ );
 }
@@ -126,7 +126,7 @@ OGRFeature *OGRNTFFeatureClassLayer::GetFeature( GIntBig nFeatureId )
     char        *pszFCName, *pszFCId;
 
     if( nFeatureId < 0 || nFeatureId >= poDS->GetFCCount() )
-        return NULL;
+        return nullptr;
 
     poDS->GetFeatureClass( (int)nFeatureId, &pszFCId, &pszFCName );
 

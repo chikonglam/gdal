@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgutility.h 35631 2016-10-07 13:45:32Z rouault $
+ * $Id: ogrpgutility.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private utilities for OGR/PostgreSQL driver.
@@ -46,10 +46,10 @@ PGresult *OGRPG_PQexec(PGconn *conn, const char *query,
 
 inline void OGRPGClearResult( PGresult*& hResult )
 {
-    if( NULL != hResult )
+    if( nullptr != hResult )
     {
         PQclear( hResult );
-        hResult = NULL;
+        hResult = nullptr;
     }
 }
 

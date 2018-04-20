@@ -29,7 +29,7 @@
 #include <limits.h>
 #include "fit.h"
 
-CPL_CVSID("$Id: fit.cpp 36776 2016-12-10 11:17:47Z rouault $");
+CPL_CVSID("$Id: fit.cpp 3b0bbf7a8a012d69a783ee1f9cfeb5c52b370021 2017-06-27 20:57:02Z Even Rouault $")
 
 GDALDataType fitDataType(int dtype) {
     switch (dtype) {

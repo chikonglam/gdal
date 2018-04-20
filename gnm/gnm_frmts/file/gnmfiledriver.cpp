@@ -32,7 +32,7 @@
 #include "gnm_frmts.h"
 #include "gnm_priv.h"
 
-CPL_CVSID("$Id: gnmfiledriver.cpp 36302 2016-11-19 16:54:08Z bishop $");
+CPL_CVSID("$Id: gnmfiledriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 static int GNMFileDriverIdentify( GDALOpenInfo* poOpenInfo )
 
@@ -51,7 +51,7 @@ static int GNMFileDriverIdentify( GDALOpenInfo* poOpenInfo )
     bool bHasMeta(false), bHasGraph(false), bHasFeatures(false);
 
     // search for base GNM files
-    for( int i = 0; papszFiles[i] != NULL; i++ )
+    for( int i = 0; papszFiles[i] != nullptr; i++ )
     {
         if( EQUAL(papszFiles[i],".") || EQUAL(papszFiles[i],"..") )
             continue;
@@ -76,14 +76,14 @@ static GDALDataset *GNMFileDriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
     if( !GNMFileDriverIdentify(poOpenInfo) )
-        return NULL;
+        return nullptr;
 
     GNMFileNetwork* poFN = new GNMFileNetwork();
 
     if( poFN->Open( poOpenInfo ) != CE_None)
     {
         delete poFN;
-        poFN = NULL;
+        poFN = nullptr;
     }
 
     return poFN;
@@ -96,7 +96,7 @@ static GDALDataset *GNMFileDriverCreate( const char * pszName,
                                         CPL_UNUSED GDALDataType eDT,
                                         char **papszOptions )
 {
-    CPLAssert( NULL != pszName );
+    CPLAssert( nullptr != pszName );
     CPLDebug( "GNM", "Attempt to create network at: %s", pszName );
 
     GNMFileNetwork *poFN = new GNMFileNetwork();
@@ -104,7 +104,7 @@ static GDALDataset *GNMFileDriverCreate( const char * pszName,
     if( poFN->Create( pszName, papszOptions ) != CE_None )
     {
         delete poFN;
-        poFN = NULL;
+        poFN = nullptr;
     }
 
     return poFN;
@@ -126,7 +126,7 @@ static CPLErr GNMFileDriverDelete( const char *pszDataSource )
 
 void RegisterGNMFile()
 {
-    if( GDALGetDriverByName( "GNMFile" ) == NULL )
+    if( GDALGetDriverByName( "GNMFile" ) == nullptr )
     {
         GDALDriver  *poDriver = new GDALDriver();
 

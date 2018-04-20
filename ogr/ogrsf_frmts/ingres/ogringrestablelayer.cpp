@@ -30,7 +30,7 @@
 #include "cpl_string.h"
 #include "ogr_ingres.h"
 
-CPL_CVSID("$Id: ogringrestablelayer.cpp 37371 2017-02-13 11:41:59Z rouault $");
+CPL_CVSID("$Id: ogringrestablelayer.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                         OGRIngresTableLayer()                         */
@@ -253,7 +253,7 @@ OGRFeatureDefn *OGRIngresTableLayer::ReadTableDefinition( const char *pszTable )
     oStatement.Close();
 
     // Fetch the SRID for this table now
-    // But only if it's the new Ingres Geospatial
+    // But only if it is the new Ingres Geospatial
     if(poDS->IsNewIngres() == TRUE)
         nSRSId = FetchSRSId(poDefn);
 

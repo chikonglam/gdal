@@ -32,7 +32,7 @@
 #include <cstdlib>
 #include <cstdio>
 
-CPL_CVSID("$Id: msgcommand.cpp 35929 2016-10-25 16:09:00Z goatbar $");
+CPL_CVSID("$Id: msgcommand.cpp e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $")
 
 using namespace std;
 
@@ -241,7 +241,7 @@ std::string MSGCommand::parse(std::string const& command_line)
   return sErr;
 }
 
-int MSGCommand::iNrChannels()
+int MSGCommand::iNrChannels() const
 {
   int iRet = 0;
   for (int i=0; i<12; ++i)
@@ -251,7 +251,7 @@ int MSGCommand::iNrChannels()
   return iRet;
 }
 
-int MSGCommand::iChannel(int iChannelNumber)
+int MSGCommand::iChannel(int iChannelNumber) const
 {
   // return the iChannelNumber-th channel
   // iChannelNumber is a value between 1 and 12

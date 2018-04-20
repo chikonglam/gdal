@@ -23,7 +23,7 @@ Prerequisites:
     new members. Only non-virtual methods can be added.
 
     It may also be helpful to check:
-      http://upstream-tracker.org/versions/gdal.html
+      https://abi-laboratory.pro/tracker/timeline/gdal/
 
 2) Delete existing fix_typos directory and run scripts/fix_typos.sh
 
@@ -40,7 +40,7 @@ Process :
       if new command line switches have been added. scripts/completionFinder.py
       must also be edited before if new utilities/scripts are added/removed.
 
-2) Update the release date, and number information in gcore/gdal_version.h.
+2) Update the release date, and number information in gcore/gdal_version.h.in
    Note: the format of GDAL_RELEASE_DATE should be YYYYMMDD.
 
 3) Update the VERSION file.
@@ -60,10 +60,9 @@ Perl module maintainer to make a CPAN release.
    - Adding interfaces, bump CURRENT/AGE, set REVISION to 0.
    - Deleting interfaces / compatibility issues - bump CURRENT, others to zero.
 
-5) Prepare release overview in the NEWS file.  The Trac revision log for
-   trunk or the stable branch can be helpful.
-
-    http://trac.osgeo.org/gdal/log/branches/1.4
+5) Prepare release overview in the NEWS file. For example, to get all changes
+   from v2.2.0 to current HEAD (from gdal/ subdirectory)
+     git log --reverse -v v2.2.0..HEAD .
 
   - commit new version to NEWS file.
 
@@ -74,13 +73,17 @@ Perl module maintainer to make a CPAN release.
 
 7) If this is a major release, prepare a branch.
 
-   svn copy https://svn.osgeo.org/gdal/trunk \
-            https://svn.osgeo.org/gdal/branches/1.5
+   git checkout master
+   git pull origin master
+   git checkout -b release/2.3
+   git push origin release/2.3
 
-8) Tag the release set in SVN:
+8) Tag the release set in git:
 
-   svn copy https://svn.osgeo.org/gdal/branches/1.4 \
-            https://svn.osgeo.org/gdal/tags/1.4.1
+   git checkout release/2.3
+   git pull origin release/2.3
+   git tag -a -m "Create tag v2.3.0" v2.3.0
+   git push origin v2.3.0
 
 9) Create the source distributions using the mkgdaldist.sh script.  The
    argument should be the version number (i.e. 1.4.2). As our process involves
@@ -88,7 +91,7 @@ Perl module maintainer to make a CPAN release.
    information (after promotion to official release, filename renaming will have
    to be done)
 
-   % mkgdaldist.sh 1.4.2 -branch tags/1.4.2 -rc RC1
+   % mkgdaldist.sh 1.4.2 -branch v1.4.2 -rc RC1
 
 10) Create a snapshot of the documentation.
 
@@ -96,18 +99,6 @@ Perl module maintainer to make a CPAN release.
  % cd /var/www/gdal
  % ./gdal-web-refresh.sh
  % zip -r ~/gdal210doc.zip gdal-web/*.* gdal-web/java gdal-web/python
-
-11) Create a snapshot of autotest suite:
-
-  svn export http://svn.osgeo.org/gdal/branches/1.6/autotest gdalautotest-1.6.0
-  tar czvf gdalautotest-1.6.0.tar.gz gdalautotest-1.6.0
-  zip -r gdalautotest-1.6.0.zip gdalautotest-1.6.0
-
-11.5) If changes have been made in the frmts/grass or ogr/ogrsf_frmts/grass dir,
-      generate an up-to-date gdal-grass snapshot:
-
-  % cd frmts/grass
-  % make dist
 
 12) Publish the resulting files in download.osgeo.org/gdal/X.Y.Z (where X.Y.Z is the version number)
     and add a symlink from X.Y.Z to CURRENT (except for stable releases in a "old" branch).
@@ -151,12 +142,12 @@ index-servers = pypi
                 pypitest
 
 [pypi] # authentication details for live PyPI
-repository: https://pypi.python.org/pypi
+repository: https://upload.pypi.org/legacy/
 username: yourlogin
 password: yourpassword
 
 [pypitest] # authentication details for test PyPI
-repository: https://testpypi.python.org/pypi
+repository: https://test.pypi.org/legacy/
 username: yourlogin
 password: yourpassword
 
@@ -271,5 +262,4 @@ f) Select the staging repository. If all is well You should see the option to
 e) Click the "Release" button and that is it! The release should be available in
    Maven Central shortly. You can verify this by going to search.maven.org and
    searching for "gdal".
-
 

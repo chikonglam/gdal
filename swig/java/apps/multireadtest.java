@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id$
+ * $Id: multireadtest.java 722615ce67507f9d5f09a5351aff143dafc1a85e 2016-01-08 21:22:17Z Kurt Schwehr $
  *
  * Name:     multireadtest.java
  * Project:  GDAL Java Interface

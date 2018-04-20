@@ -1,4 +1,4 @@
-dnl $Id: ax_lib_expat.m4 20303 2010-08-15 10:35:05Z rouault $
+dnl $Id: ax_lib_expat.m4 d0d07dfd31adafd408dc545d4b19313512b730ef 2010-08-15 10:35:05Z Even Rouault $
 dnl
 dnl @synopsis AX_LIB_EXPAT([MINIMUM-VERSION])
 dnl
@@ -28,7 +28,7 @@ dnl
 dnl @category InstalledPackages
 dnl @category Cxx
 dnl @author Mateusz Loskot <mateusz@loskot.net>
-dnl @version $Date: 2010-08-15 03:35:05 -0700 (Sun, 15 Aug 2010) $
+dnl @version $Date$
 dnl @license AllPermissive
 dnl          Copying and distribution of this file, with or without modification,
 dnl          are permitted in any medium without royalty provided the copyright notice and

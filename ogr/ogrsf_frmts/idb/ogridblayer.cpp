@@ -32,7 +32,7 @@
 #include "ogr_idb.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogridblayer.cpp 36394 2016-11-21 14:30:55Z rouault $");
+CPL_CVSID("$Id: ogridblayer.cpp 7d078e0357d2998edfa713422e607cbadf77f9ff 2018-04-08 22:11:28 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            OGRIDBLayer()                            */
@@ -310,7 +310,7 @@ OGRFeature *OGRIDBLayer::GetNextRawFeature()
                 const char *pszGeomText = v->Printable();
                 if ( pszGeomText != NULL )
                 eErr =
-                    OGRGeometryFactory::createFromWkt((char **) &pszGeomText,
+                    OGRGeometryFactory::createFromWkt(pszGeomText,
                                                     poSRS, &poGeom);
             }
             else if( ! v->IsNull() && bGeomColumnWKB )

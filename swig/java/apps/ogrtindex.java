@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrtindex.java 35222 2016-08-28 06:06:11Z goatbar $
+ * $Id: ogrtindex.java f070adf64950cae1c6cc86b104ba835c29df06b1 2016-08-28 06:06:11Z Kurt Schwehr $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Program to generate a UMN MapServer compatible tile index for a

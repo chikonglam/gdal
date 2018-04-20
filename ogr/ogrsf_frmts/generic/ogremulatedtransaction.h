@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogremulatedtransaction.h 35910 2016-10-24 14:08:24Z goatbar $
+ * $Id: ogremulatedtransaction.h 40ea9cecccbfbe063a1b22181b0b9cd8e2788744 2016-10-24 14:08:24Z Kurt Schwehr $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRDataSourceWithTransaction class

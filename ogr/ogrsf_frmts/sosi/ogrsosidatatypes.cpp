@@ -1,7 +1,7 @@
 #include <map>
 #include "ogr_sosi.h"
 
-CPL_CVSID("$Id: ogrsosidatatypes.cpp 36347 2016-11-20 20:43:39Z rouault $");
+CPL_CVSID("$Id: ogrsosidatatypes.cpp ff8146d84de7cba8e09d212d5481ea7d2ede3e98 2017-06-27 20:47:31Z Even Rouault $")
 
 C2F oTypes;
 C2F::iterator iTypes;

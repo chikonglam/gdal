@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gpsbabel.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_gpsbabel.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/GPSBabel driver.
@@ -37,7 +37,7 @@
 /*                        OGRGPSBabelDataSource                         */
 /************************************************************************/
 
-class OGRGPSBabelDataSource : public OGRDataSource
+class OGRGPSBabelDataSource final: public OGRDataSource
 {
     int                 nLayers;
     OGRLayer*           apoLayers[5];
@@ -71,7 +71,7 @@ class OGRGPSBabelDataSource : public OGRDataSource
 /*                   OGRGPSBabelWriteDataSource                         */
 /************************************************************************/
 
-class OGRGPSBabelWriteDataSource : public OGRDataSource
+class OGRGPSBabelWriteDataSource final: public OGRDataSource
 {
     char               *pszName;
     char               *pszGPSBabelDriverName;

@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: mitab_ogr_driver.h 37335 2017-02-09 14:29:57Z goatbar $
+ * $Id: mitab_ogr_driver.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Name:     mitab_ogr_drive.h
  * Project:  Mid/mif tab ogr support
@@ -72,11 +72,15 @@ class OGRTABDataSource : public OGRDataSource
     int          TestCapability( const char * ) override;
 
     OGRLayer    *ICreateLayer(const char *,
-                             OGRSpatialReference * = NULL,
+                             OGRSpatialReference * = nullptr,
                              OGRwkbGeometryType = wkbUnknown,
-                             char ** = NULL ) override;
+                             char ** = nullptr ) override;
 
     char        **GetFileList() override;
+
+    virtual OGRLayer *  ExecuteSQL( const char *pszStatement,
+                                    OGRGeometry *poSpatialFilter,
+                                    const char *pszDialect ) override;
 };
 
 void CPL_DLL RegisterOGRTAB();

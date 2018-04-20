@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlutils.h 36158 2016-11-08 13:53:11Z rouault $
+ * $Id: gmlutils.h 01bef679e9a9127167b60c6603fae595b99b48fa 2016-11-08 13:53:11Z Even Rouault $
  *
  * Project:  GML Utils
  * Purpose:  GML reader

@@ -1570,9 +1570,10 @@ typedef char retStringAndCPLFree;
 #include <iostream>
 using namespace std;
 
+#define CPL_SUPRESS_CPLUSPLUS
+
 #include "gdal.h"
 #include "ogr_api.h"
-#include "ogr_p.h"
 #include "ogr_core.h"
 #include "cpl_port.h"
 #include "cpl_string.h"
@@ -1704,7 +1705,8 @@ SWIG_FromCharPtr(const char *cptr)
 
 
     void do_confess(const char *error, int push_to_error_stack) {
-        SV *sv = newSVpv(error, 0);
+        SV *sv = newSVpv("", 0);
+        sv_setpvf(sv, "%s\n", error);
         if (push_to_error_stack) {
             AV* error_stack = get_av("Geo::GDAL::error", 0);
             av_push(error_stack, sv);
@@ -3022,6 +3024,9 @@ SWIGINTERN OGRErr OGRGeometryShadow_AddGeometryDirectly(OGRGeometryShadow *self,
 SWIGINTERN OGRErr OGRGeometryShadow_AddGeometry(OGRGeometryShadow *self,OGRGeometryShadow *other){
     return OGR_G_AddGeometry( self, other );
   }
+SWIGINTERN OGRErr OGRGeometryShadow_RemoveGeometry(OGRGeometryShadow *self,int iSubGeom){
+    return OGR_G_RemoveGeometry( self, iSubGeom, TRUE );
+  }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Clone(OGRGeometryShadow *self){
     return (OGRGeometryShadow*) OGR_G_Clone(self);
   }
@@ -3082,6 +3087,9 @@ SWIGINTERN void OGRGeometryShadow_SetPointZM(OGRGeometryShadow *self,int point,d
 SWIGINTERN void OGRGeometryShadow_SetPoint_2D(OGRGeometryShadow *self,int point,double x,double y){
     OGR_G_SetPoint_2D(self, point, x, y);
   }
+SWIGINTERN void OGRGeometryShadow_SwapXY(OGRGeometryShadow *self){
+    OGR_G_SwapXY(self);
+  }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_GetGeometryRef(OGRGeometryShadow *self,int geom){
     return (OGRGeometryShadow*) OGR_G_GetGeometryRef(self, geom);
   }
@@ -3093,6 +3101,9 @@ SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_SimplifyPreserveTopology(OGRGeom
   }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_DelaunayTriangulation(OGRGeometryShadow *self,double dfTolerance=0.0,int bOnlyEdges=FALSE){
     return (OGRGeometryShadow*) OGR_G_DelaunayTriangulation(self, dfTolerance, bOnlyEdges);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Polygonize(OGRGeometryShadow *self){
+    return (OGRGeometryShadow*) OGR_G_Polygonize(self);
   }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Boundary(OGRGeometryShadow *self){
     return (OGRGeometryShadow*) OGR_G_Boundary(self);
@@ -8059,7 +8070,7 @@ XS(_wrap_Feature_SetGeometryDirectly) {
 }
 
 
-XS(_wrap_Feature_GetGeometryRef) {
+XS(_wrap_Feature__GetGeometryRef) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     void *argp1 = 0 ;
@@ -8069,11 +8080,11 @@ XS(_wrap_Feature_GetGeometryRef) {
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: Feature_GetGeometryRef(self);");
+      SWIG_croak("Usage: Feature__GetGeometryRef(self);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetGeometryRef" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__GetGeometryRef" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
@@ -17953,6 +17964,74 @@ XS(_wrap_Geometry_AddGeometry) {
 }
 
 
+XS(_wrap_Geometry_RemoveGeometry) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    int arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Geometry_RemoveGeometry(self,iSubGeom);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_RemoveGeometry" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_RemoveGeometry" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRGeometryShadow_RemoveGeometry(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
+      }
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_Geometry_Clone) {
   {
     OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
@@ -19244,7 +19323,59 @@ XS(_wrap_Geometry_SetPoint_2D) {
 }
 
 
-XS(_wrap_Geometry_GetGeometryRef) {
+XS(_wrap_Geometry_SwapXY) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Geometry_SwapXY(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_SwapXY" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    {
+      CPLErrorReset();
+      OGRGeometryShadow_SwapXY(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry__GetGeometryRef) {
   {
     OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
     int arg2 ;
@@ -19257,16 +19388,16 @@ XS(_wrap_Geometry_GetGeometryRef) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Geometry_GetGeometryRef(self,geom);");
+      SWIG_croak("Usage: Geometry__GetGeometryRef(self,geom);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_GetGeometryRef" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry__GetGeometryRef" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
     ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_GetGeometryRef" "', argument " "2"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry__GetGeometryRef" "', argument " "2"" of type '" "int""'");
     } 
     arg2 = static_cast< int >(val2);
     {
@@ -19496,6 +19627,57 @@ XS(_wrap_Geometry_DelaunayTriangulation) {
   fail:
     
     
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_Polygonize) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    OGRGeometryShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Geometry_Polygonize(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_Polygonize" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (OGRGeometryShadow *)OGRGeometryShadow_Polygonize(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
     
     SWIG_croak_null();
   }
@@ -24113,7 +24295,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Feature_GetDefnRef", _wrap_Feature_GetDefnRef},
 {"Geo::OGRc::Feature__SetGeometry", _wrap_Feature__SetGeometry},
 {"Geo::OGRc::Feature_SetGeometryDirectly", _wrap_Feature_SetGeometryDirectly},
-{"Geo::OGRc::Feature_GetGeometryRef", _wrap_Feature_GetGeometryRef},
+{"Geo::OGRc::Feature__GetGeometryRef", _wrap_Feature__GetGeometryRef},
 {"Geo::OGRc::Feature_SetGeomField", _wrap_Feature_SetGeomField},
 {"Geo::OGRc::Feature_SetGeomFieldDirectly", _wrap_Feature_SetGeomFieldDirectly},
 {"Geo::OGRc::Feature_GetGeomFieldRef", _wrap_Feature_GetGeomFieldRef},
@@ -24246,6 +24428,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Geometry_AddPoint_2D", _wrap_Geometry_AddPoint_2D},
 {"Geo::OGRc::Geometry_AddGeometryDirectly", _wrap_Geometry_AddGeometryDirectly},
 {"Geo::OGRc::Geometry_AddGeometry", _wrap_Geometry_AddGeometry},
+{"Geo::OGRc::Geometry_RemoveGeometry", _wrap_Geometry_RemoveGeometry},
 {"Geo::OGRc::Geometry_Clone", _wrap_Geometry_Clone},
 {"Geo::OGRc::Geometry_GetGeometryType", _wrap_Geometry_GetGeometryType},
 {"Geo::OGRc::Geometry_GetGeometryName", _wrap_Geometry_GetGeometryName},
@@ -24265,10 +24448,12 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Geometry_SetPointM", _wrap_Geometry_SetPointM},
 {"Geo::OGRc::Geometry_SetPointZM", _wrap_Geometry_SetPointZM},
 {"Geo::OGRc::Geometry_SetPoint_2D", _wrap_Geometry_SetPoint_2D},
-{"Geo::OGRc::Geometry_GetGeometryRef", _wrap_Geometry_GetGeometryRef},
+{"Geo::OGRc::Geometry_SwapXY", _wrap_Geometry_SwapXY},
+{"Geo::OGRc::Geometry__GetGeometryRef", _wrap_Geometry__GetGeometryRef},
 {"Geo::OGRc::Geometry_Simplify", _wrap_Geometry_Simplify},
 {"Geo::OGRc::Geometry_SimplifyPreserveTopology", _wrap_Geometry_SimplifyPreserveTopology},
 {"Geo::OGRc::Geometry_DelaunayTriangulation", _wrap_Geometry_DelaunayTriangulation},
+{"Geo::OGRc::Geometry_Polygonize", _wrap_Geometry_Polygonize},
 {"Geo::OGRc::Geometry_Boundary", _wrap_Geometry_Boundary},
 {"Geo::OGRc::Geometry_GetBoundary", _wrap_Geometry_GetBoundary},
 {"Geo::OGRc::Geometry_ConvexHull", _wrap_Geometry_ConvexHull},
@@ -25332,12 +25517,11 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   
-  
-  /*UseExceptions(); is set by GDAL module */
+  /* %init code */
+  UseExceptions();
   if ( OGRGetDriverCount() == 0 ) {
     OGRRegisterAll();
   }
-  
   
   SWIG_TypeClientData(SWIGTYPE_p_OGRStyleTableShadow, (void*) "Geo::OGR::StyleTable");
   SWIG_TypeClientData(SWIGTYPE_p_OGRLayerShadow, (void*) "Geo::OGR::Layer");

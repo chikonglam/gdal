@@ -36,7 +36,7 @@
 #include "ogr_core.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrmultilinestring.cpp 36328 2016-11-20 13:44:29Z goatbar $");
+CPL_CVSID("$Id: ogrmultilinestring.cpp 99132fd3803311ecc233f6d375b94f8c7a016aef 2018-03-28 01:33:40 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                        OGRMultiLineString()                          */
@@ -167,14 +167,7 @@ OGRBoolean OGRMultiLineString::hasCurveGeometry(
 
 OGRMultiCurve* OGRMultiLineString::CastToMultiCurve( OGRMultiLineString* poMLS )
 {
-    OGRMultiCurve *poMultiCurve = dynamic_cast<OGRMultiCurve *>(
-        TransferMembersAndDestroy(poMLS, new OGRMultiCurve()) );
-    if( poMultiCurve == NULL )
-    {
-        CPLError( CE_Fatal, CPLE_AppDefined,
-                  "OGRMultiCurve dynamic_cast failed." );
-        return NULL;
-    }
-
-    return poMultiCurve;
+    OGRMultiCurve* poMLC = new OGRMultiCurve();
+    TransferMembersAndDestroy(poMLS, poMLC);
+    return poMLC;
 }

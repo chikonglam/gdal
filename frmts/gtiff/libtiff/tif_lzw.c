@@ -1,5 +1,3 @@
-/* $Id: tif_lzw.c,v 1.54 2017-02-18 18:46:00 erouault Exp $ */
-
 /*
  * Copyright (c) 1988-1997 Sam Leffler
  * Copyright (c) 1991-1997 Silicon Graphics, Inc.
@@ -275,7 +273,8 @@ LZWPreDecode(TIFF* tif, uint16 s)
 	/*
 	 * Check for old bit-reversed codes.
 	 */
-	if (tif->tif_rawdata[0] == 0 && (tif->tif_rawdata[1] & 0x1)) {
+	if (tif->tif_rawcc >= 2 &&
+	    tif->tif_rawdata[0] == 0 && (tif->tif_rawdata[1] & 0x1)) {
 #ifdef LZW_COMPAT
 		if (!sp->dec_decode) {
 			TIFFWarningExt(tif->tif_clientdata, module,
@@ -318,7 +317,7 @@ LZWPreDecode(TIFF* tif, uint16 s)
 	sp->dec_restart = 0;
 	sp->dec_nbitsmask = MAXCODE(BITS_MIN);
 #ifdef LZW_CHECKEOS
-	sp->dec_bitsleft = ((uint64)tif->tif_rawcc) << 3;
+	sp->dec_bitsleft = 0;
 #endif
 	sp->dec_free_entp = sp->dec_codetab + CODE_FIRST;
 	/*
@@ -425,6 +424,9 @@ LZWDecode(TIFF* tif, uint8* op0, tmsize_t occ0, uint16 s)
 	}
 
 	bp = (unsigned char *)tif->tif_rawcp;
+#ifdef LZW_CHECKEOS
+	sp->dec_bitsleft = (((uint64)tif->tif_rawcc) << 3);
+#endif
 	nbits = sp->lzw_nbits;
 	nextdata = sp->lzw_nextdata;
 	nextbits = sp->lzw_nextbits;
@@ -549,6 +551,7 @@ LZWDecode(TIFF* tif, uint8* op0, tmsize_t occ0, uint16 s)
 		}
 	}
 
+	tif->tif_rawcc -= (tmsize_t)( (uint8*) bp - tif->tif_rawcp );
 	tif->tif_rawcp = (uint8*) bp;
 	sp->lzw_nbits = (unsigned short) nbits;
 	sp->lzw_nextdata = nextdata;
@@ -651,6 +654,9 @@ LZWDecodeCompat(TIFF* tif, uint8* op0, tmsize_t occ0, uint16 s)
 	}
 
 	bp = (unsigned char *)tif->tif_rawcp;
+#ifdef LZW_CHECKEOS
+	sp->dec_bitsleft = (((uint64)tif->tif_rawcc) << 3);
+#endif
 	nbits = sp->lzw_nbits;
 	nextdata = sp->lzw_nextdata;
 	nextbits = sp->lzw_nextbits;
@@ -760,6 +766,7 @@ LZWDecodeCompat(TIFF* tif, uint8* op0, tmsize_t occ0, uint16 s)
 		}
 	}
 
+	tif->tif_rawcc -= (tmsize_t)( (uint8*) bp - tif->tif_rawcp );
 	tif->tif_rawcp = (uint8*) bp;
 	sp->lzw_nbits = (unsigned short)nbits;
 	sp->lzw_nextdata = nextdata;

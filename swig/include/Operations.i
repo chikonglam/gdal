@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: Operations.i 37723 2017-03-16 17:07:53Z rouault $
+ * $Id: Operations.i 535bfe70e164efb6b647eef686f7cc5b1d1066ba 2017-12-08 21:20:43Z Even Rouault $
  *
  * Name:     Operations.i
  * Project:  GDAL Python Interface
@@ -596,13 +596,17 @@ GDALDatasetShadow*  CreatePansharpenedVRT( const char* pszXML,
 /*                             Transformer                              */
 /************************************************************************/
 
+#ifndef SWIGPYTHON
 %rename (Transformer) GDALTransformerInfoShadow;
+#endif
+
 class GDALTransformerInfoShadow {
 private:
   GDALTransformerInfoShadow();
 public:
 %extend {
 
+#ifndef SWIGPYTHON
   GDALTransformerInfoShadow( GDALDatasetShadow *src, GDALDatasetShadow *dst,
                              char **options ) {
     GDALTransformerInfoShadow *obj = (GDALTransformerInfoShadow*)
@@ -610,6 +614,7 @@ public:
                                          options );
     return obj;
   }
+#endif
 
   ~GDALTransformerInfoShadow() {
     GDALDestroyTransformer( self );
@@ -693,6 +698,19 @@ public:
 
 } /*extend */
 };
+
+#ifdef SWIGPYTHON
+%newobject Transformer;
+%inline %{
+  GDALTransformerInfoShadow* Transformer( GDALDatasetShadow *src, GDALDatasetShadow *dst,
+                             char **options ) {
+    GDALTransformerInfoShadow *obj = (GDALTransformerInfoShadow*)
+       GDALCreateGenImgProjTransformer2( (GDALDatasetH)src, (GDALDatasetH)dst,
+                                         options );
+    return obj;
+  }
+%}
+#endif
 
 /************************************************************************/
 /*                        ApplyVerticalShiftGrid()                      */

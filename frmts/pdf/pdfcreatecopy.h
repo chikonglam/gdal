@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdfcreatecopy.h 36347 2016-11-20 20:43:39Z rouault $
+ * $Id: pdfcreatecopy.h e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
@@ -118,7 +118,7 @@ class GDALPDFPageContext
         std::vector<int> anAnnotationsId;
 
         GDALPDFPageContext() :
-            poClippingDS( NULL ),
+            poClippingDS( nullptr ),
             eStreamCompressMethod( COMPRESS_NONE ),
             dfDPI( 0.0 ),
             nPageId( 0 ),
@@ -197,8 +197,8 @@ class GDALPDFWriter
 
        void Close();
 
-       int  GetCatalogNum() { return nCatalogId; }
-       int  GetCatalogGen() { return nCatalogGen; }
+       int  GetCatalogNum() const { return nCatalogId; }
+       int  GetCatalogGen() const { return nCatalogGen; }
 
        int  ParseTrailerAndXRef();
        void UpdateProj(GDALDataset* poSrcDS,

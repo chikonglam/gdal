@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_xplane.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_xplane.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  X-Plane aeronautical data reader
  * Purpose:  Definition of classes for OGR X-Plane aeronautical data driver.
@@ -39,7 +39,7 @@ class OGRXPlaneDataSource;
 /*                             OGRXPlaneLayer                           */
 /************************************************************************/
 
-class OGRXPlaneLayer : public OGRLayer
+class OGRXPlaneLayer: public OGRLayer
 {
   private:
     int                nFID;
@@ -83,7 +83,7 @@ class OGRXPlaneLayer : public OGRLayer
 /*                           OGRXPlaneDataSource                        */
 /************************************************************************/
 
-class OGRXPlaneDataSource : public OGRDataSource
+class OGRXPlaneDataSource final: public OGRDataSource
 {
     char*               pszName;
 
@@ -117,7 +117,7 @@ class OGRXPlaneDataSource : public OGRDataSource
 /*                             OGRXPlaneDriver                          */
 /************************************************************************/
 
-class OGRXPlaneDriver : public OGRSFDriver
+class OGRXPlaneDriver final: public OGRSFDriver
 {
   public:
 

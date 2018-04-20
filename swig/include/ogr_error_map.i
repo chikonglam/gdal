@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_error_map.i 34525 2016-07-03 02:53:47Z goatbar $
+ * $Id: ogr_error_map.i a2d4bcda7874bbc6de9942874f8d549219e9403d 2016-01-08 21:00:50Z Kurt Schwehr $
  *
  * Project:  GDAL SWIG Interfaces.
  * Purpose:  OGRErr handling typemap.

@@ -282,7 +282,7 @@ sub new {
 *GetDefnRef = *Geo::OGRc::Feature_GetDefnRef;
 *_SetGeometry = *Geo::OGRc::Feature__SetGeometry;
 *SetGeometryDirectly = *Geo::OGRc::Feature_SetGeometryDirectly;
-*GetGeometryRef = *Geo::OGRc::Feature_GetGeometryRef;
+*_GetGeometryRef = *Geo::OGRc::Feature__GetGeometryRef;
 *SetGeomField = *Geo::OGRc::Feature_SetGeomField;
 *SetGeomFieldDirectly = *Geo::OGRc::Feature_SetGeomFieldDirectly;
 *GetGeomFieldRef = *Geo::OGRc::Feature_GetGeomFieldRef;
@@ -413,7 +413,7 @@ sub new {
                     }
                 }
             }
-            
+
             if ($fd->{GeometryType} or ($fd->{Type} && s_exists(geometry_type => $fd->{Type}))) {
                 $d = Geo::OGR::GeomFieldDefn->new(%$fd);
             } else {
@@ -726,6 +726,7 @@ sub new {
 *AddPoint_2D = *Geo::OGRc::Geometry_AddPoint_2D;
 *AddGeometryDirectly = *Geo::OGRc::Geometry_AddGeometryDirectly;
 *AddGeometry = *Geo::OGRc::Geometry_AddGeometry;
+*RemoveGeometry = *Geo::OGRc::Geometry_RemoveGeometry;
 *Clone = *Geo::OGRc::Geometry_Clone;
 *GetGeometryType = *Geo::OGRc::Geometry_GetGeometryType;
 *GetGeometryName = *Geo::OGRc::Geometry_GetGeometryName;
@@ -745,10 +746,12 @@ sub new {
 *SetPointM = *Geo::OGRc::Geometry_SetPointM;
 *SetPointZM = *Geo::OGRc::Geometry_SetPointZM;
 *SetPoint_2D = *Geo::OGRc::Geometry_SetPoint_2D;
-*GetGeometryRef = *Geo::OGRc::Geometry_GetGeometryRef;
+*SwapXY = *Geo::OGRc::Geometry_SwapXY;
+*_GetGeometryRef = *Geo::OGRc::Geometry__GetGeometryRef;
 *Simplify = *Geo::OGRc::Geometry_Simplify;
 *SimplifyPreserveTopology = *Geo::OGRc::Geometry_SimplifyPreserveTopology;
 *DelaunayTriangulation = *Geo::OGRc::Geometry_DelaunayTriangulation;
+*Polygonize = *Geo::OGRc::Geometry_Polygonize;
 *Boundary = *Geo::OGRc::Geometry_Boundary;
 *GetBoundary = *Geo::OGRc::Geometry_GetBoundary;
 *ConvexHull = *Geo::OGRc::Geometry_ConvexHull;
@@ -960,7 +963,7 @@ package Geo::OGR;
 
 
 package Geo::OGR;
-our $VERSION = '2.0204'; # this needs to be the same as that in gdal_perl.i
+our $VERSION = '2.0300'; # this needs to be the same as that in gdal_perl.i
 
 Geo::GDAL->import(qw(:INTERNAL));
 
@@ -1309,6 +1312,14 @@ sub Feature {
     }
 }
 
+sub Features {
+    my $self = shift;
+    $self->ResetReading;
+    return sub {
+        return $self->GetNextFeature;
+    }
+}
+
 sub ForFeatures {
     my $self = shift;
     my $code = shift;
@@ -1319,6 +1330,16 @@ sub ForFeatures {
         $code->($f);
         $self->SetFeature($f) if $in_place;
     };
+}
+
+sub Geometries {
+    my $self = shift;
+    $self->ResetReading;
+    return sub {
+        my $f = $self->GetNextFeature;
+        return 0 unless $f;
+        return $f->Geometry;
+    }
 }
 
 sub ForGeometries {
@@ -1884,6 +1905,7 @@ sub Geometry {
             eval {
                 $geometry = Geo::OGR::Geometry->new($geometry);
             };
+            confess last_error() if $@;
             my $gtype = $geometry->GeometryType;
             error("The type of the inserted geometry ('$gtype') is not the same as the type of the field ('$type').")
                 if $type ne 'Unknown' and $type ne $gtype;
@@ -1900,6 +1922,7 @@ sub Geometry {
     return unless $geometry;
     keep($geometry, $self);
 }
+*GetGeometryRef = *_GetGeometryRef;
 *GetGeometry = *Geometry;
 *SetGeometry = *Geometry;
 
@@ -2515,11 +2538,21 @@ sub Dissolve {
     }
     return @c;
 }
+
+sub GetGeometryRef {
+    my ($self, $i) = @_;
+    my $ref = $self->_GetGeometryRef($i);
+    keep($ref, $self);
+    return $ref;
+}
+*Geometry = *GetGeometryRef;
+
 *AsText = *ExportToWkt;
 *AsBinary = *ExportToWkb;
 *AsGML = *ExportToGML;
 *AsKML = *ExportToKML;
 *AsJSON = *ExportToJson;
+*GeometryCount = *GetGeometryCount;
 *BuildPolygonFromEdges = *Geo::OGR::BuildPolygonFromEdges;
 *ForceToPolygon = *Geo::OGR::ForceToPolygon;
 

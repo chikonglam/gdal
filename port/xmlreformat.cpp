@@ -29,14 +29,14 @@
 #include "cpl_minixml.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: xmlreformat.cpp 36907 2016-12-16 17:16:35Z goatbar $");
+CPL_CVSID("$Id: xmlreformat.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 int main( int argc, char **argv )
 
 {
     // TODO(schwehr): Switch to using std::string.
     static char szXML[20000000] = {};
-    FILE *fp = NULL;
+    FILE *fp = nullptr;
 
     if( argc == 1 )
     {
@@ -50,7 +50,7 @@ int main( int argc, char **argv )
     else
     {
         fp = fopen( argv[1], "rt" );
-        if( fp == NULL )
+        if( fp == nullptr )
         {
             printf( "Failed to open file %s.\n", argv[1] );/*ok*/
             exit( 1 );
@@ -72,7 +72,7 @@ int main( int argc, char **argv )
     szXML[nLen] = '\0';
 
     CPLXMLNode *poTree = CPLParseXMLString( szXML );
-    if( poTree != NULL )
+    if( poTree != nullptr )
     {
         char *pszRawXML = CPLSerializeXMLTree( poTree );
         printf( "%s", pszRawXML );/*ok*/

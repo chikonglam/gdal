@@ -1,14 +1,14 @@
-# $Id: nmake.opt 40330 2017-10-05 12:56:50Z rouault $
+# $Id$
 #
 # nmake.opt - main configuration file for NMAKE makefiles.
 #
 # Usage examples (see details below):
 # nmake -f makefile.vc
-# nmake -f makefile.vc MSVC_VER=1400
-# nmake -f makefile.vc MSVC_VER=1500 DEBUG=1
-# nmake -f makefile.vc MSVC_VER=1600 DEBUG=1 ANALYZE=1
-# nmake -f makefile.vc MSVC_VER=1600 DEBUG=1 ANALYZE=1 WITH_PDB=1
-# nmake -f makefile.vc MSVC_VER=1400 WIN64=1
+# nmake -f makefile.vc MSVC_VER=1900
+# nmake -f makefile.vc MSVC_VER=1900 DEBUG=1
+# nmake -f makefile.vc MSVC_VER=1900 DEBUG=1 ANALYZE=1
+# nmake -f makefile.vc MSVC_VER=1900 DEBUG=1 ANALYZE=1 WITH_PDB=1
+# nmake -f makefile.vc MSVC_VER=1900 WIN64=1
 #
 # Options:
 #    DEBUG - set to disable optimizations and link with debug runtimes; also implies WITH_PDB.
@@ -32,20 +32,13 @@
 ###############################################################################
 # Check version of Visual C++ compiler:
 # nmake -f makefile.vc MSVC_VER=xxxx
-# where xxxx is one of following:
+# where xxxx is one of following (older versions no longer supported):
 # 1910 = 15.0(2017)
 # 1900 = 14.0(2015)
-# 1800 = 12.0(2013)
-# 1700 = 11.0(2012)
-# 1600 = 10.0(2010)
-# 1500 = 9.0 (2008)
-# 1400 = 8.0 (2005) - specific compilation flags, different from older VC++
-# 1310 = 7.1 (2003) # is it still supported ?
-# 1300 = 7.0 (2002) # is it still supported ?
 #
 !IFNDEF MSVC_VER
-#assume msvc VS2008.
-MSVC_VER=1500
+#assume msvc VS2015.
+MSVC_VER=1900
 !ENDIF
 
 ###############################################################################
@@ -128,19 +121,11 @@ CXX_PDB_FLAGS=
 !ENDIF
 
 !IFNDEF OPTFLAGS
-!IF $(MSVC_VER) >= 1400
 !IFNDEF DEBUG
 OPTFLAGS= $(CXX_ANALYZE_FLAGS) $(CXX_PDB_FLAGS) /nologo /MP /MD /EHsc /Ox /FC /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DNDEBUG
 !ELSE
-OPTFLAGS= $(CXX_ANALYZE_FLAGS) $(CXX_PDB_FLAGS) /nologo /MP /MD /EHsc /FC /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DDEBUG
+OPTFLAGS= $(CXX_ANALYZE_FLAGS) $(CXX_PDB_FLAGS) /nologo /MP /MDd /EHsc /FC /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DDEBUG
 !ENDIF
-!ELSE
-!IFNDEF DEBUG
-OPTFLAGS= $(CXX_PDB_FLAGS) /nologo /MD /EHsc /GR /Ox /FC /DNDEBUG
-!ELSE
-OPTFLAGS= $(CXX_PDB_FLAGS) /nologo /MD /EHsc /GR /FC /DDEBUG
-!ENDIF
-!ENDIF  #MSVC_VER
 !ENDIF  # OPTFLAGS
 
 # 
@@ -159,14 +144,6 @@ OPTFLAGS= $(CXX_PDB_FLAGS) /nologo /MD /EHsc /GR /FC /DDEBUG
 # 
 WARNFLAGS =	/W4 /wd4127 /wd4251 /wd4275 /wd4786 /wd4100 /wd4245 /wd4206 /wd4351 /wd4611
 
-!IF $(MSVC_VER) >= 1500
-!IF $(MSVC_VER) < 1700
-# VS 2008 / MSVC_VER = 1500 and VS 2010 / MSVC_VER = 1600 recognizes override, but as an extension.
-# warning C4481: nonstandard extension used: override specifier 'override'
-WARNFLAGS = $(WARNFLAGS) /wd4481
-!ENDIF
-!ENDIF
-
 !ENDIF
 
 # 
@@ -178,12 +155,9 @@ SSSE3FLAGS = /DHAVE_SSSE3_AT_COMPILE_TIME
 #SSE_ARCH_FLAGS = /arch:SSE
 !ENDIF
 
-# VS2010 SP1 or later in fact required for runtime detection of AVX instruction set
 !IFNDEF AVXFLAGS
-!IF $(MSVC_VER) >= 1600
 AVXFLAGS = /DHAVE_AVX_AT_COMPILE_TIME
 AVX_ARCH_FLAGS = /arch:AVX
-!ENDIF
 !ENDIF
 
 # The following are extra disables that can be applied to external source
@@ -212,29 +186,39 @@ WIN64=YES
 # If you don't want some entry points to have STDCALL conventions, 
 # comment out the following and add -DCPL_DISABLE_STDCALL in OPTFLAGS.
 # This option has no effect on 64-bit windows.
+!IFNDEF STDCALL
 STDCALL=YES
+!ENDIF
 
 # Version number embedded in DLL name. 
 # If GDAL version is X.Y.Z, VERSION = X * 100 + Y
 !IFNDEF VERSION
-VERSION =	202
+VERSION =	203
 !ENDIF
 
 # Comment the following out if you want PAM supported disabled
-# by default.  
+# by default.
+!IFNDEF PAM_SETTING
 PAM_SETTING=-DPAM_ENABLED
+!ENDIF
 
 # Uncomment the following to link OGR utilities against main GDAL DLL
 # instead of statically linking against OGR libraries.
+!IFNDEF DLLBUILD
 DLLBUILD=1
+!ENDIF
 
 # Enable all OGR formats, or only raster formats?  Comment out to disable
 # vector formats. 
+!IFNDEF INCLUDE_OGR_FRMTS
 INCLUDE_OGR_FRMTS = YES
+!ENDIF
 
 # Enable all GNM formats?  Comment out to disable
 # gnm formats.
+!IFNDEF INCLUDE_GNM_FRMTS
 INCLUDE_GNM_FRMTS = YES
+!ENDIF
 
 # To be enabled defined to point to setargv.obj from the Visual C++ directory,
 # when you want the utility programs to be able to expand wildcards. 
@@ -253,10 +237,15 @@ INCLUDE_GNM_FRMTS = YES
 #LIBICONV_CFLAGS = -DICONV_CONST=const
 
 # Comment out the following to disable BSB support.
+!IFNDEF BSB_SUPPORTED
 BSB_SUPPORTED = 1
+!ENDIF
 
 # Comment out the following to disable ODBC support.
+
+!IFNDEF ODBC_SUPPORTED
 ODBC_SUPPORTED = 1
+!ENDIF
 
 # Uncomment out the following to enable plugin with SQL Native Client support for MSSQL Bulk Copy.
 #SQLNCLI_VERSION = 11
@@ -265,10 +254,15 @@ ODBC_SUPPORTED = 1
 #SQLNCLI_INCLUDE = "-I$(SQLNCLI_DIR)\Include" -DSQLNCLI_VERSION=$(SQLNCLI_VERSION) -DMSSQL_BCP_SUPPORTED=1
 
 # Comment out the following to disable JPEG support.
+
+!IFNDEF JPEG_SUPPORTED
 JPEG_SUPPORTED = 1
+!ENDIF
 
 # This will enable 12bit libjpeg - use only with internal jpeg builds.
+!IFNDEF JPEG12_SUPPORTED
 JPEG12_SUPPORTED = 1
+!ENDIF
 
 #if using an external jpeg library uncomment the following lines
 #JPEG_EXTERNAL_LIB = 1
@@ -362,6 +356,7 @@ JPEG12_SUPPORTED = 1
 #TD_FLAGS = -D_TOOLKIT_IN_DLL_
 #TD_INCLUDE = -I$(TD_BASE)\TD\Include -I$(TD_BASE)\TD\Extensions\ExServices
 # The following works for Teigha 4.2.2
+# In TD_INCLUDE, add /D_TOOLKIT_IN_DLL_ if linking against the .dll
 #TD_INCLUDE = -I$(TD_BASE)\Core\Include -I$(TD_BASE)\Core\Extensions\ExServices -I$(TD_BASE)\Dgn\include -I$(TD_BASE)\Dgn\Extensions\ExServices
 #TD_LIBDIR = $(TD_BASE)\lib\vc14dll
 #TD_LIBS =  \
@@ -411,12 +406,19 @@ JPEG12_SUPPORTED = 1
 #JASPER_INCLUDE = $(JASPER_INCLUDE) -DHAVE_JASPER_UUID
 
 # Uncomment and adjust paths if you have Kakadu 6.0 or newer
-#KAKFLAGS=-DKDU_MAJOR_VERSION=6 -DKDU_MINOR_VERSION=0 -DKDU_PATCH_VERSION=0
-#KAKDIR = 	\warmerda\pkg\kakadu-6.2.1
-#KAKLIB =	$(KAKDIR)\lib_x86\kdu_v62R.lib
-#KAKSRC =	$(KAKDIR)\vt_2_1-00256N
-#KAKOBJDIR =  $(KAKDIR)\v6_generated_x86
-#KAKADU_7_5_OR_LATER = YES
+#
+# Starting with KKDU V7.9.1 (at least), it is possible to generate 
+# jp2ak and jpipkak with the 2 Kakadu DLLs instead of object files
+# In such case :
+#   o do NOT define KAKOBJDIR
+#   o define KAKLIB with BOTH Kakadu DLLs
+#KAKFLAGS=-DKDU_MAJOR_VERSION=7 -DKDU_MINOR_VERSION=9 -DKDU_PATCH_VERSION=1
+#KAKDIR = C:\0_PGH\SRC_CSD\CSD_INTEGRATION\cots\kakadu\download\dev
+#KAKLIB = $(KAKDIR)\lib_x64\kdu_v79R.lib 	$(KAKDIR)\lib_x64\kdu_a79R.lib
+#KAKSRC = $(KAKDIR)\v7_9_1-01156C
+#KAKOBJDIR =  $(KAKDIR)\v7_generated_x86
+KAKADU_7_5_OR_LATER = YES
+#JP2KAK_PLUGIN = YES
 
 # Uncomment the following and update to enable NCSA HDF Release 4 support.
 #HDF4_PLUGIN = NO
@@ -530,10 +532,14 @@ GRIB_SETTING=yes
 #NETCDF_HAS_NC4 = yes
 #NETCDF_HAS_HDF4 = yes
 
-# PROJ.4 stuff
-# Uncomment the following lines to link PROJ.4 library statically. Otherwise
+# PROJ stuff
+# Uncomment the following lines to link PROJ library statically. Otherwise
 # it will be linked dynamically during runtime.
-#PROJ_FLAGS = -DPROJ_STATIC
+# To use the new API of proj5 or later, use
+#PROJ_FLAGS = -DPROJ_STATIC -DPROJ_VERSION=5
+# for proj 4.x:
+#PROJ_FLAGS = -DPROJ_STATIC -DPROJ_VERSION=4
+
 #PROJ_INCLUDE = -Id:\projects\proj.4\src
 #PROJ_LIBRARY = d:\projects\proj.4\src\proj_i.lib
 
@@ -606,16 +612,12 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 #SOSI_INC_DIR = e:/sosi
 #SOSI_LIBS = e:/sosi/FYBA.lib e:/sosi/GM.lib e:/sosi/UT.lib
 
-# Uncomment for OpenJpeg (release v2.0.0) support
+# Uncomment for OpenJpeg (release v2.1 or later) support
 #OPENJPEG_ENABLED = YES
-#OPENJPEG_CFLAGS = -IC:\openjpeg\include
+# Note that, contrary to GDAL releases <= 2.2.X, this must point to the
+# directory where openjpeg.h and opj_config.h are set 
+#OPENJPEG_CFLAGS = -IC:\openjpeg\include\openjpeg-2.X
 #OPENJPEG_LIB = C:\openjpeg\lib\openjp2.lib
-# For OpenJpeg 2.1.x, uncomment
-#OPENJPEG_VERSION = 20100
-# For OpenJpeg 2.2.x, uncomment
-#OPENJPEG_VERSION = 20200
-# For OpenJpeg 2.3.x, uncomment
-#OPENJPEG_VERSION = 20300
 
 #if using an external zlib uncomment the following lines
 #ZLIB_EXTERNAL_LIB = 1
@@ -675,6 +677,10 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 # Uncomment for LZMA TIFF support
 #LZMA_CFLAGS = -IC:/gdal_trunk/xz-5.0.0-windows/include
 #LZMA_LIBS = C:/gdal_trunk/xz-5.0.0-windows/bin_i486/liblzma.lib
+
+# Uncomment for ZSTD TIFF support
+#ZSTD_CFLAGS = -IC:/install-zstd/include
+#ZSTD_LIBS = C:/install-zstd/lib/libzstd.lib
 
 # Uncomment for WEBP support
 #WEBP_ENABLED = YES
@@ -742,11 +748,19 @@ QHULL_SETTING = INTERNAL
 # When linking against the static lib:
 # CRYPTOPP_LIB = c:/install-cryptopp-x64/lib/cryptlib.lib
 
+# OpenSSL stuff (needed if using curl in multithreaded way, with OpenSSL backend)
+# OPENSSL_INC = -Ic:/install-openssl/include
+# OPENSSL_LIB = c:/instal-openssl/lib/ssleay32.lib c:/instal-openssl/lib/libeay32.lib crypt32.lib
+
 # Comment out to disable MRF support.
 MRF_SETTING=yes
 
 # Any extra libraries needed on this platform?
 ADD_LIBS	= 
+
+# Binding list. One or several in the following list
+# csharp, java, python
+#BINDINGS=java python
 
 # Comment out the following if you want to build with Python support, but
 # you don't have Numeric Python installed (with include files).  Numeric
@@ -775,7 +789,9 @@ MSVC_VLD_LIB=/LIBPATH:$(MSVC_VLD_DIR)/lib/Win32
 !ENDIF
 
 !IFDEF INCLUDE_GNM_FRMTS
+!IFNDEF GNM_FLAG
 GNM_FLAG = -DGNM_ENABLED
+!ENDIF
 !ENDIF
 
 #LINKER_FLAGS =	/NODEFAULTLIB:LIBC 
@@ -801,12 +817,8 @@ GDALLIB	=    $(GDAL_ROOT)/gdal.lib
 !ENDIF
 
 !IFDEF ODBC_SUPPORTED
-!IF $(MSVC_VER) >= 1900
 # legacy_stdio_definitions.lib : https://connect.microsoft.com/VisualStudio/feedback/details/1134693/vs-2015-ctp-5-c-vsnwprintf-s-and-other-functions-are-not-exported-in-appcrt140-dll-breaking-linkage-of-static-libraries
 ODBCLIB = legacy_stdio_definitions.lib odbc32.lib odbccp32.lib user32.lib
-!ELSE
-ODBCLIB = odbc32.lib odbccp32.lib user32.lib
-!ENDIF
 !ENDIF
 
 !IF DEFINED(MRSID_DIR) || DEFINED(MRSID_RASTER_DIR) || DEFINED(MRSID_LIDAR_DIR)
@@ -830,6 +842,14 @@ ECW_LIB_LINK=
 LURATECH_LIB_LINK= $(LURATECH_LIB)
 !ELSE
 LURATECH_LIB_LINK=
+!ENDIF
+!ENDIF
+
+!IFDEF KAKDIR
+!IF "$(JP2KAK_PLUGIN)" != "YES"
+KAK_LIB_LINK= $(KAKLIB)
+!ELSE
+KAK_LIB_LINK=
 !ENDIF
 !ENDIF
 
@@ -934,13 +954,13 @@ SYM_PREFIX=_
 !ENDIF
 
 EXTERNAL_LIBS =	$(OGDILIB) $(XERCES_LIB) $(EXPAT_LIB) $(OCI_LIB) $(PG_LIB) \
-	$(ECW_LIB_LINK) $(LURATECH_LIB_LINK) $(HDF4_LIB_LINK) $(FME_LIB) $(MRSID_LIB_LINK) \
+	$(KAK_LIB_LINK) $(ECW_LIB_LINK) $(LURATECH_LIB_LINK) $(HDF4_LIB_LINK) $(FME_LIB) $(MRSID_LIB_LINK) \
 	$(FITS_LIB_LINK) $(JPEG_LIB) $(NETCDF_LIB_LINK) $(PROJ4_LIB) \
 	$(GEOTIFF_LIB) $(TIFF_LIB) $(PROJ_LIBRARY) $(SQLITE_LIB) \
 	$(MYSQL_LIB) $(GEOS_LIB) $(HDF5_LIB_LINK) $(KEA_LIB_LINK) $(SDE_LIB) $(ARCOBJECTS_LIB) $(DWG_LIB_LINK) \
-	$(IDB_LIB) $(CURL_LIB) $(DODS_LIB) $(KAKLIB) $(PCIDSK_LIB) \
+	$(IDB_LIB) $(CURL_LIB) $(DODS_LIB) $(PCIDSK_LIB) \
 	$(ODBCLIB) $(JASPER_LIB) $(PNG_LIB) $(ZLIB_LIB) $(ADD_LIBS) $(OPENJPEG_LIB) \
-	$(MRSID_LIDAR_LIB) $(LIBKML_LIBS) $(SOSI_LIBS) $(PDF_LIB_LINK) $(LZMA_LIBS) \
+	$(MRSID_LIDAR_LIB) $(LIBKML_LIBS) $(SOSI_LIBS) $(PDF_LIB_LINK) $(LZMA_LIBS) $(ZSTD_LIBS) \
 	$(LIBICONV_LIBRARY) $(WEBP_LIBS) $(FGDB_LIB_LINK) $(FREEXL_LIBS) $(GTA_LIBS) \
-	$(INGRES_LIB) $(LIBXML2_LIB) $(PCRE_LIB) $(MONGODB_LIB_LINK) $(CRYPTOPP_LIB) ws2_32.lib \
+	$(INGRES_LIB) $(LIBXML2_LIB) $(PCRE_LIB) $(MONGODB_LIB_LINK) $(CRYPTOPP_LIB) $(OPENSSL_LIB) ws2_32.lib \
     kernel32.lib psapi.lib

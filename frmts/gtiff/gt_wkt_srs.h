@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_wkt_srs.h 34121 2016-04-26 14:24:38Z goatbar $
+ * $Id: gt_wkt_srs.h 0c297564d507a5c0bd9f7f3b0f1db2b4822dd99a 2016-04-26 14:24:38Z Kurt Schwehr $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements translation between GeoTIFF normalized projection

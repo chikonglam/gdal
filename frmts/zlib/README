@@ -1,4 +1,4 @@
-$Id: README 35222 2016-08-28 06:06:11Z goatbar $
+$Id$
 
 zlib 1.2.3 is a general purpose data compression library.
 All the code is thread safe. The data format used by the zlib library

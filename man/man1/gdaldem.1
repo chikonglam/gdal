@@ -1,4 +1,4 @@
-.TH "gdaldem" 1 "Mon Mar 19 2018" "GDAL" \" -*- nroff -*-
+.TH "gdaldem" 1 "Fri Apr 20 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -82,7 +82,7 @@ The input DEM raster to be processed
 .IP "\fB\fIoutput_xxx_map\fP:\fP" 1c
 The output raster produced 
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
-Select the output format\&. The default is GeoTIFF (GTiff)\&. Use the short format name\&. 
+Select the output format\&. Starting with GDAL 2\&.3, if not specified, the format is guessed from the extension (previously was GTiff)\&. Use the short format name\&. 
 .IP "\fB\fB-compute_edges\fP:\fP" 1c
 (GDAL >= 1\&.8\&.0) Do the computation at raster edges and near nodata values 
 .IP "\fB\fB-alg\fP \fIZevenbergenThorne\fP:\fP" 1c

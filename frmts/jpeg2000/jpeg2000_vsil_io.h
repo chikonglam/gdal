@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jpeg2000_vsil_io.h 35222 2016-08-28 06:06:11Z goatbar $
+ * $Id: jpeg2000_vsil_io.h f070adf64950cae1c6cc86b104ba835c29df06b1 2016-08-28 06:06:11Z Kurt Schwehr $
  *
  * Project:  JPEG-2000
  * Purpose:  Return a stream for a VSIL file

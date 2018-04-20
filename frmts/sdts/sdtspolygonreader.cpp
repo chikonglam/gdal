@@ -30,7 +30,7 @@
 
 #include <cmath>
 
-CPL_CVSID("$Id: sdtspolygonreader.cpp 35671 2016-10-09 23:46:52Z goatbar $");
+CPL_CVSID("$Id: sdtspolygonreader.cpp 013ed75c94b0d11fa37d1742c767067ae9dddee4 2017-12-20 12:40:35Z Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -47,13 +47,13 @@ CPL_CVSID("$Id: sdtspolygonreader.cpp 35671 2016-10-09 23:46:52Z goatbar $");
 
 SDTSRawPolygon::SDTSRawPolygon() :
     nEdges(0),
-    papoEdges(NULL),
+    papoEdges(nullptr),
     nRings(0),
     nVertices(0),
-    panRingStart(NULL),
-    padfX(NULL),
-    padfY(NULL),
-    padfZ(NULL)
+    panRingStart(nullptr),
+    padfX(nullptr),
+    padfY(nullptr),
+    padfZ(nullptr)
 {
     nAttributes = 0;
 }
@@ -90,9 +90,13 @@ int SDTSRawPolygon::Read( DDFRecord * poRecord )
     for( int iField = 0; iField < poRecord->GetFieldCount(); iField++ )
     {
         DDFField        *poField = poRecord->GetField( iField );
-        CPLAssert( poField != NULL );
+        if( poField == nullptr )
+            return FALSE;
+        DDFFieldDefn* poFieldDefn = poField->GetFieldDefn();
+        if( poFieldDefn == nullptr )
+            return FALSE;
 
-        const char *pszFieldName = poField->GetFieldDefn()->GetName();
+        const char *pszFieldName = poFieldDefn->GetName();
 
         if( EQUAL(pszFieldName,"POLY") )
         {
@@ -229,23 +233,6 @@ int SDTSRawPolygon::AssembleRings()
         return FALSE;
 
 /* -------------------------------------------------------------------- */
-/*      Allocate ring arrays.                                           */
-/* -------------------------------------------------------------------- */
-    panRingStart = reinterpret_cast<int *>( CPLMalloc( sizeof(int) * nEdges ) );
-
-    nVertices = 0;
-    for( int iEdge = 0; iEdge < nEdges; iEdge++ )
-    {
-        nVertices += papoEdges[iEdge]->nVertices;
-    }
-
-    padfX = reinterpret_cast<double *>( CPLMalloc( sizeof(double) * nVertices ) );
-    padfY = reinterpret_cast<double *>( CPLMalloc( sizeof(double) * nVertices ) );
-    padfZ = reinterpret_cast<double *>( CPLMalloc( sizeof(double) * nVertices ) );
-
-    nVertices = 0;
-
-/* -------------------------------------------------------------------- */
 /*      Setup array of line markers indicating if they have been        */
 /*      added to a ring yet.                                            */
 /* -------------------------------------------------------------------- */
@@ -253,6 +240,31 @@ int SDTSRawPolygon::AssembleRings()
 
     int *panEdgeConsumed = reinterpret_cast<int *>(
         CPLCalloc( sizeof(int), nEdges ) );
+
+/* -------------------------------------------------------------------- */
+/*      Allocate ring arrays.                                           */
+/* -------------------------------------------------------------------- */
+    panRingStart = reinterpret_cast<int *>( CPLMalloc( sizeof(int) * nEdges ) );
+
+    nVertices = 0;
+    for( int iEdge = 0; iEdge < nEdges; iEdge++ )
+    {
+        if( papoEdges[iEdge]->nVertices < 2 )
+        {
+            panEdgeConsumed[iEdge] = TRUE;
+            nRemainingEdges--;
+        }
+        else
+        {
+            nVertices += papoEdges[iEdge]->nVertices;
+        }
+    }
+
+    padfX = reinterpret_cast<double *>( CPLMalloc( sizeof(double) * nVertices ) );
+    padfY = reinterpret_cast<double *>( CPLMalloc( sizeof(double) * nVertices ) );
+    padfZ = reinterpret_cast<double *>( CPLMalloc( sizeof(double) * nVertices ) );
+
+    nVertices = 0;
 
 /* ==================================================================== */
 /*      Loop generating rings.                                          */
@@ -451,7 +463,7 @@ int SDTSRawPolygon::AssembleRings()
     CPLFree( panRawRingStart );
 
     CPLFree( papoEdges );
-    papoEdges = NULL;
+    papoEdges = nullptr;
     nEdges = 0;
 
     return TRUE;
@@ -529,13 +541,13 @@ SDTSRawPolygon * SDTSPolygonReader::GetNextPolygon()
 /* -------------------------------------------------------------------- */
 /*      Read a record.                                                  */
 /* -------------------------------------------------------------------- */
-    if( oDDFModule.GetFP() == NULL )
-        return NULL;
+    if( oDDFModule.GetFP() == nullptr )
+        return nullptr;
 
     DDFRecord *poRecord = oDDFModule.ReadRecord();
 
-    if( poRecord == NULL )
-        return NULL;
+    if( poRecord == nullptr )
+        return nullptr;
 
 /* -------------------------------------------------------------------- */
 /*      Transform into a Polygon feature.                                 */
@@ -548,7 +560,7 @@ SDTSRawPolygon * SDTSPolygonReader::GetNextPolygon()
     }
 
     delete poRawPolygon;
-    return NULL;
+    return nullptr;
 }
 
 /************************************************************************/
@@ -603,12 +615,15 @@ void SDTSPolygonReader::AssembleRings( SDTSTransfer * poTransfer,
 
         SDTSLineReader *poLineReader = reinterpret_cast<SDTSLineReader *>(
             poTransfer->GetLayerIndexedReader( iLineLayer ) );
-        if( poLineReader == NULL )
+        if( poLineReader == nullptr )
             continue;
 
         poLineReader->AttachToPolygons( poTransfer, iPolyLayer );
         poLineReader->Rewind();
     }
+
+    if( !IsIndexed() )
+        return;
 
 /* -------------------------------------------------------------------- */
 /*      Scan all polygons indexed on this reader, and assemble their    */
@@ -616,8 +631,8 @@ void SDTSPolygonReader::AssembleRings( SDTSTransfer * poTransfer,
 /* -------------------------------------------------------------------- */
     Rewind();
 
-    SDTSFeature *poFeature = NULL;
-    while( (poFeature = GetNextFeature()) != NULL )
+    SDTSFeature *poFeature = nullptr;
+    while( (poFeature = GetNextFeature()) != nullptr )
     {
         SDTSRawPolygon  *poPoly
             = reinterpret_cast<SDTSRawPolygon *>( poFeature );

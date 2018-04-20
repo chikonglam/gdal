@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_svg.h 36569 2016-11-30 13:04:32Z goatbar $
+ * $Id: ogr_svg.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  SVG Translator
  * Purpose:  Definition of classes for OGR .svg driver.
@@ -49,7 +49,7 @@ typedef enum
 /*                             OGRSVGLayer                              */
 /************************************************************************/
 
-class OGRSVGLayer : public OGRLayer
+class OGRSVGLayer final: public OGRLayer
 {
     OGRFeatureDefn*    poFeatureDefn;
     OGRSpatialReference *poSRS;
@@ -133,7 +133,7 @@ typedef enum
     SVG_VALIDITY_VALID
 } OGRSVGValidity;
 
-class OGRSVGDataSource : public OGRDataSource
+class OGRSVGDataSource final: public OGRDataSource
 {
     char*               pszName;
 

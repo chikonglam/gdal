@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_idb.h"
 
-CPL_CVSID("$Id: ogridbtablelayer.cpp 37371 2017-02-13 11:41:59Z rouault $");
+CPL_CVSID("$Id: ogridbtablelayer.cpp 6574497e5ddfd7c08c094a76756a0ef477cef6a1 2018-04-04 22:15:20 +0200 Even Rouault $")
 /************************************************************************/
 /*                          OGRIDBTableLayer()                         */
 /************************************************************************/
@@ -278,11 +278,32 @@ OGRErr OGRIDBTableLayer::ResetQuery()
         else
             sql += " AND";
 
-        sql.Printf( "%s XMAX > %.8f AND XMIN < %.8f"
+        CPLString sqlTmp;
+        sqlTmp.Printf( "%s XMAX > %.8f AND XMIN < %.8f"
                     " AND YMAX > %.8f AND YMIN < %.8f",
                     sql.c_str(),
                     m_sFilterEnvelope.MinX, m_sFilterEnvelope.MaxX,
                     m_sFilterEnvelope.MinY, m_sFilterEnvelope.MaxY );
+        sql = sqlTmp;
+    }
+    /* If we have a spatial filter and GeomColumn, query using st_intersects function */
+    else if( m_poFilterGeom != NULL && pszGeomColumn )
+    {
+        if( pszQuery == NULL )
+            sql += " WHERE";
+        else
+            sql += " AND";
+
+        CPLString sqlTmp;
+        sqlTmp.Printf(
+                "%s st_intersects(st_geomfromtext('POLYGON((%.8f %.8f, %.8f %.8f, %.8f %.8f, %.8f %.8f, %.8f %.8f))',0),%s)",
+                sql.c_str(),
+                m_sFilterEnvelope.MinX, m_sFilterEnvelope.MinY,
+                m_sFilterEnvelope.MaxX, m_sFilterEnvelope.MinY,
+                m_sFilterEnvelope.MaxX, m_sFilterEnvelope.MaxY,
+                m_sFilterEnvelope.MinX, m_sFilterEnvelope.MaxY,
+                m_sFilterEnvelope.MinX, m_sFilterEnvelope.MinY, pszGeomColumn );
+        sql = sqlTmp;
     }
 
     CPLDebug( "OGR_IDB", "Exec(%s)", sql.c_str() );
@@ -466,7 +487,7 @@ OGRSpatialReference *OGRIDBTableLayer::GetSpatialRef()
                     delete poSRS;
                 }
                 poSRS = new OGRSpatialReference();
-                if ( poSRS->importFromWkt( (char **)&wkt ) != OGRERR_NONE )
+                if ( poSRS->importFromWkt( wkt ) != OGRERR_NONE )
                 {
                     CPLError( CE_Warning, CPLE_AppDefined,
                               "Error parse srs wkt: %s", wkt );

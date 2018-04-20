@@ -40,14 +40,14 @@
 
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: cpl_base64.cpp 36993 2016-12-22 00:21:24Z goatbar $");
+CPL_CVSID("$Id: cpl_base64.cpp 0846c4df38348216396587449b9cef818856b36c 2018-01-10 16:19:40Z Kurt Schwehr $")
 
 // Derived from MapServer's mappostgis.c.
 
 /*
 ** Decode a base64 character.
 */
-static const unsigned char CPLBase64DecodeChar[256] = {
+constexpr unsigned char CPLBase64DecodeChar[256] = {
     // Not Base64 characters.
     64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,
     64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,
@@ -198,7 +198,7 @@ int CPLBase64DecodeInPlace( GByte* pszBase64 )
 
 char *CPLBase64Encode(int nDataLen, const GByte *pabyBytesToEncode)
 {
-    static const char base64Chars[] =
+    constexpr char base64Chars[] =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     const int kCharArray3Size = 3;

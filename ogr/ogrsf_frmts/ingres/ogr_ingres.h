@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_ingres.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_ingres.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Declarations for Ingres OGR Driver Classes.

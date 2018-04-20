@@ -1,4 +1,4 @@
-.TH "gdalwarp" 1 "Mon Mar 19 2018" "GDAL" \" -*- nroff -*-
+.TH "gdalwarp" 1 "Fri Apr 20 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -10,7 +10,7 @@ image reprojection and warping utility
 .PP
 .nf
 gdalwarp [--help-general] [--formats]
-    [-s_srs srs_def] [-t_srs srs_def] [-to "NAME=VALUE"] [-novshiftgrid]
+    [-s_srs srs_def] [-t_srs srs_def] [-to "NAME=VALUE"]* [-novshiftgrid]
     [-order n | -tps | -rpc | -geoloc] [-et err_threshold]
     [-refine_gcps tolerance [minimum_gcps]]
     [-te xmin ymin xmax ymax] [-te_srs srs_def]
@@ -109,7 +109,7 @@ Create an output alpha band to identify nodata (unset/transparent) pixels\&.
 .IP "\fB\fB-wm\fP \fImemory_in_mb\fP:\fP" 1c
 Set the amount of memory (in megabytes) that the warp API is allowed to use for caching\&. 
 .IP "\fB\fB-multi\fP:\fP" 1c
-Use multithreaded warping implementation\&. Multiple threads will be used to process chunks of image and perform input/output operation simultaneously\&. 
+Use multithreaded warping implementation\&. Two threads will be used to process chunks of image and perform input/output operation simultaneously\&. Note that computation is not multithreaded itself\&. To do that, you can use the -wo NUM_THREADS=val/ALL_CPUS option, which can be combined with -multi 
 .IP "\fB\fB-q\fP:\fP" 1c
 Be quiet\&. 
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
@@ -200,7 +200,7 @@ id,WKT
 .PP
 .PP
 .nf
-gdalwarp -override in_dem.tif out_dem.tif -s_srs EPSG:4326+5773 -t_srs EPSG:4979
+gdalwarp -overwrite in_dem.tif out_dem.tif -s_srs EPSG:4326+5773 -t_srs EPSG:4979
 .fi
 .PP
 .SH "SEE ALSO"

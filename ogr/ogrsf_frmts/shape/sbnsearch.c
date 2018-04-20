@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sbnsearch.c 36763 2016-12-09 22:10:55Z rouault $
+ * $Id: sbnsearch.c efe1da8db8c54a94ea949cdef949889d77fafea6 2017-06-18 16:19:36Z Even Rouault $
  *
  * Project:  Shapelib
  * Purpose:  Implementation of search in ESRI SBN spatial index.
@@ -40,7 +40,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-SHP_CVSID("$Id: sbnsearch.c 36763 2016-12-09 22:10:55Z rouault $")
+SHP_CVSID("$Id: sbnsearch.c efe1da8db8c54a94ea949cdef949889d77fafea6 2017-06-18 16:19:36Z Even Rouault $")
 
 #ifndef TRUE
 #  define TRUE 1
@@ -60,7 +60,7 @@ SHP_CVSID("$Id: sbnsearch.c 36763 2016-12-09 22:10:55Z rouault $")
 #endif
 
 #define READ_MSB_INT(ptr) \
-        (((ptr)[0] << 24) | ((ptr)[1] << 16) | ((ptr)[2] << 8) | (ptr)[3])
+        (int)(((unsigned)(ptr)[0] << 24) | ((ptr)[1] << 16) | ((ptr)[2] << 8) | (ptr)[3])
 
 #define CACHED_DEPTH_LIMIT      8
 

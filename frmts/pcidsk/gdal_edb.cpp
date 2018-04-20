@@ -31,7 +31,7 @@
 #include "gdal_priv.h"
 #include "pcidsk.h"
 
-CPL_CVSID("$Id: gdal_edb.cpp 36501 2016-11-25 14:09:24Z rouault $");
+CPL_CVSID("$Id: gdal_edb.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 using PCIDSK::EDBFile;
 using PCIDSK::eChanType;
@@ -81,14 +81,14 @@ public:
 EDBFile *GDAL_EDBOpen( const std::string& osFilename, const std::string& osAccess )
 
 {
-    GDALDataset *poDS = NULL;
+    GDALDataset *poDS = nullptr;
 
     if( osAccess == "r" )
         poDS = reinterpret_cast<GDALDataset *>( GDALOpen( osFilename.c_str(), GA_ReadOnly )) ;
     else
         poDS = reinterpret_cast<GDALDataset *>( GDALOpen( osFilename.c_str(), GA_Update ) );
 
-    if( poDS == NULL )
+    if( poDS == nullptr )
         ThrowPCIDSKException( "%s", CPLGetLastErrorMsg() );
 
     return new GDAL_EDBFile( poDS );
@@ -101,10 +101,10 @@ EDBFile *GDAL_EDBOpen( const std::string& osFilename, const std::string& osAcces
 int GDAL_EDBFile::Close() const
 
 {
-    if( poDS != NULL )
+    if( poDS != nullptr )
     {
         delete poDS;
-        const_cast<GDAL_EDBFile*>( this )->poDS = NULL;
+        const_cast<GDAL_EDBFile*>( this )->poDS = nullptr;
     }
 
     return 1;
@@ -241,7 +241,7 @@ int GDAL_EDBFile::ReadBlock( int channel,
                                     win_xsize, win_ysize,
                                     buffer, win_xsize, win_ysize,
                                     poBand->GetRasterDataType(),
-                                    nPixelOffset, nLineOffset, NULL );
+                                    nPixelOffset, nLineOffset, nullptr );
 
     if( eErr != CE_None )
     {
@@ -295,7 +295,7 @@ int GDAL_EDBFile::WriteBlock( int channel, int block_index, void *buffer)
                                     nBlockY * nBlockYSize,
                                     nWinXSize, nWinYSize,
                                     buffer, nWinXSize, nWinYSize,
-                                    poBand->GetRasterDataType(), 0, 0, NULL );
+                                    poBand->GetRasterDataType(), 0, 0, nullptr );
 
     if( eErr != CE_None )
     {

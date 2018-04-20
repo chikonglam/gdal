@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreader.h 38566 2017-05-21 16:59:47Z rouault $
+ * $Id: gmlreader.h 1398568b34b36256a98108fcbdc32bae6d73d84f 2018-03-13 10:22:19Z Even Rouault $
  *
  * Project:  GML Reader
  * Purpose:  Public Declarations for OGR free GML Reader code.
@@ -36,6 +36,7 @@
 #include "cpl_minixml.h"
 #include "gmlutils.h"
 
+#include <map>
 #include <vector>
 
 // Special value to map to a NULL field
@@ -84,7 +85,7 @@ class CPL_DLL GMLPropertyDefn
 
 public:
 
-        GMLPropertyDefn( const char *pszName, const char *pszSrcElement=NULL );
+        GMLPropertyDefn( const char *pszName, const char *pszSrcElement=nullptr );
        ~GMLPropertyDefn();
 
     const char *GetName() const { return m_pszName; }
@@ -152,6 +153,7 @@ class CPL_DLL GMLFeatureClass
     int          n_nElementNameLen;
     int         m_nPropertyCount;
     GMLPropertyDefn **m_papoProperty;
+    std::map<CPLString, int> m_oMapPropertyNameToIndex;
 
     int         m_nGeometryPropertyCount;
     GMLGeometryPropertyDefn **m_papoGeometryProperty;
@@ -251,12 +253,13 @@ public:
     void            SetGeometryDirectly( CPLXMLNode* psGeom );
     void            SetGeometryDirectly( int nIdx, CPLXMLNode* psGeom );
     void            AddGeometry( CPLXMLNode* psGeom );
+    int             GetGeometryCount() const { return m_nGeometryCount; }
     const CPLXMLNode* const * GetGeometryList() const { return m_papsGeometry; }
     const CPLXMLNode* GetGeometryRef( int nIdx ) const;
 
     void            SetPropertyDirectly( int i, char *pszValue );
 
-    const GMLProperty*GetProperty( int i ) const { return (i >= 0 && i < m_nPropertyCount) ? &m_pasProperties[i] : NULL; }
+    const GMLProperty*GetProperty( int i ) const { return (i >= 0 && i < m_nPropertyCount) ? &m_pasProperties[i] : nullptr; }
 
     const char      *GetFID() const { return m_pszFID; }
     void             SetFID( const char *pszFID );
@@ -294,12 +297,12 @@ class CPL_DLL IGMLReader
     virtual GMLFeature *NextFeature() = 0;
     virtual void       ResetReading() = 0;
 
-    virtual bool LoadClasses( const char *pszFile = NULL ) = 0;
-    virtual bool SaveClasses( const char *pszFile = NULL ) = 0;
+    virtual bool LoadClasses( const char *pszFile = nullptr ) = 0;
+    virtual bool SaveClasses( const char *pszFile = nullptr ) = 0;
 
     virtual bool ResolveXlinks( const char *pszFile,
                                 bool* pbOutIsTempFile,
-                                char **papszSkip = NULL,
+                                char **papszSkip = nullptr,
                                 const bool bStrict = false ) = 0;
 
     virtual bool HugeFileResolver( const char *pszFile,

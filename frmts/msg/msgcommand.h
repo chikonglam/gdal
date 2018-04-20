@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: msgcommand.h 36427 2016-11-22 12:56:01Z rouault $
+ * $Id: msgcommand.h e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $
  *
  * Purpose:  Interface of MSGCommand class. Parse the src_dataset string
  *           that is meant for the MSG driver.
@@ -42,8 +42,8 @@ public:
   std::string sFileName(int iSatellite, int iSequence, int iStrip);
   std::string sPrologueFileName(int iSatellite, int iSequence);
   std::string sCycle(int iCycle);
-  int iNrChannels();
-  int iChannel(int iNr);
+  int iNrChannels() const;
+  int iChannel(int iNr) const;
 
   static int iNrStrips(int iChannel);
 

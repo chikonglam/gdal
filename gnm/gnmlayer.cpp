@@ -30,7 +30,7 @@
 #include "gnm.h"
 #include "gnm_priv.h"
 
-CPL_CVSID("$Id: gnmlayer.cpp 36366 2016-11-21 01:21:43Z rouault $");
+CPL_CVSID("$Id: gnmlayer.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /**
  * GNMGenericLayer
@@ -214,8 +214,8 @@ void GNMGenericLayer::ResetReading()
 OGRFeature *GNMGenericLayer::GetNextFeature()
 {
     OGRFeature* pFeature = m_poLayer->GetNextFeature();
-    if(NULL == pFeature)
-        return NULL;
+    if(nullptr == pFeature)
+        return nullptr;
     GNMGFID nGFID = pFeature->GetFieldAsGNMGFID(GNM_SYSFIELD_GFID);
     m_mnFIDMap[nGFID] = pFeature->GetFID();
     pFeature->SetFID(nGFID);
@@ -230,7 +230,7 @@ OGRErr GNMGenericLayer::SetNextByIndex(GIntBig nIndex)
 OGRErr GNMGenericLayer::DeleteFeature(GIntBig nFID)
 {
     OGRFeature *poFeature = GetFeature(nFID);
-    if(NULL == poFeature)
+    if(nullptr == poFeature)
         return CE_Failure;
 
     nFID = poFeature->GetFID();

@@ -38,7 +38,7 @@
 
 #include "cpl_config.h"
 
-CPL_CVSID("$Id: cpl_strtod.cpp 40017 2017-09-07 10:31:06Z rouault $");
+CPL_CVSID("$Id: cpl_strtod.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 // XXX: with GCC 2.95 strtof() function is only available when in c99 mode.
 // Fix it here not touching the compiler options.
@@ -72,7 +72,7 @@ extern float strtof(const char *nptr, char **endptr);
  */
 double CPLAtofDelim(const char *nptr, char point)
 {
-    return CPLStrtodDelim(nptr, NULL, point);
+    return CPLStrtodDelim(nptr, nullptr, point);
 }
 
 /************************************************************************/
@@ -116,7 +116,7 @@ double CPLAtofDelim(const char *nptr, char point)
  */
 double CPLAtof(const char *nptr)
 {
-    return CPLStrtod(nptr, NULL);
+    return CPLStrtod(nptr, nullptr);
 }
 
 /************************************************************************/
@@ -147,12 +147,12 @@ double CPLAtofM( const char *nptr )
     for( int i = 0; i < nMaxSearch; i++ )
     {
         if( nptr[i] == ',' )
-            return CPLStrtodDelim( nptr, NULL, ',' );
+            return CPLStrtodDelim( nptr, nullptr, ',' );
         if( nptr[i] == '.' || nptr[i] == '\0' )
-            return CPLStrtodDelim( nptr, NULL, '.' );
+            return CPLStrtodDelim( nptr, nullptr, '.' );
     }
 
-    return CPLStrtodDelim( nptr, NULL, '.' );
+    return CPLStrtodDelim( nptr, nullptr, '.' );
 }
 
 /************************************************************************/

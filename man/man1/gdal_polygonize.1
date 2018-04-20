@@ -1,4 +1,4 @@
-.TH "gdal_polygonize" 1 "Mon Mar 19 2018" "GDAL" \" -*- nroff -*-
+.TH "gdal_polygonize" 1 "Fri Apr 20 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -35,7 +35,7 @@ The source raster file from which polygons are derived\&.
 The band on \fIraster_file\fP to build the polygons from\&. Starting with GDAL 2\&.2, the value can also be set to 'mask', to indicate that the mask band of the first band must be used (or 'mask,band_number' for the mask of a specified band) 
 .PP
 .IP "\fB\fB-f\fP \fIogr_format\fP\fP" 1c
-Select the output format of the file to be created\&. Default is GML\&. 
+Select the output format\&. Starting with GDAL 2\&.3, if not specified, the format is guessed from the extension (previously was GML)\&. Use the short format name 
 .PP
 .IP "\fB\fIout_file\fP\fP" 1c
 The destination vector file to which the polygons will be written\&. 

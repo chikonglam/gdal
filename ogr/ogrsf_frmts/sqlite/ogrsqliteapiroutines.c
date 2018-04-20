@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqliteapiroutines.c 37534 2017-03-01 16:50:58Z rouault $
+ * $Id: ogrsqliteapiroutines.c 722bc4c4c4f6ec3494bb2e4ee96b8742d72ac4c5 2018-02-14 22:51:15Z Kurt Schwehr $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Static registration of sqlite3 entry points
@@ -28,6 +28,8 @@
  ****************************************************************************/
 
 #include "cpl_port.h"
+
+#include <stddef.h>
 
 #ifndef WIN32
 

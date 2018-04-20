@@ -33,7 +33,7 @@
 
 #include "ogrdxf_polyline_smooth.h"
 
-CPL_CVSID("$Id: ogrdwg_hatch.cpp 37946 2017-04-10 14:37:01Z rouault $");
+CPL_CVSID("$Id: ogrdwg_hatch.cpp 98dfb4b4012c5ae4621e246e8eb393b3c05a3f48 2018-04-02 22:09:55 +0200 Even Rouault $")
 
 static OGRErr DWGCollectBoundaryLoop( OdDbHatchPtr poHatch, int iLoop,
                                       OGRGeometryCollection *poGC );
@@ -93,7 +93,7 @@ OGRFeature *OGRDWGLayer::TranslateHATCH( OdDbEntityPtr poEntity )
     if( nColor < 1 || nColor > 255 )
     {
         const char *pszValue = poDS->LookupLayerProperty( osLayer, "Color" );
-        if( pszValue != NULL )
+        if( pszValue != nullptr )
             nColor = atoi(pszValue);
     }
 
@@ -149,7 +149,7 @@ static OGRErr DWGCollectBoundaryLoop( OdDbHatchPtr poHatch, int iLoop,
 
         oSmoothPolyline.Close();
 
-        OGRLineString *poLS = (OGRLineString *) oSmoothPolyline.Tesselate();
+        OGRLineString *poLS = oSmoothPolyline.Tesselate()->toLineString();
         poGC->addGeometryDirectly( poLS );
 
         return OGRERR_NONE;
@@ -192,11 +192,11 @@ static OGRErr DWGCollectBoundaryLoop( OdDbHatchPtr poHatch, int iLoop,
                 dfEndAngle += 360.0;
             }
 
-            OGRLineString *poLS = (OGRLineString *)
+            OGRLineString *poLS =
                 OGRGeometryFactory::approximateArcAngles(
                     oCenter.x, oCenter.y, 0.0,
                     poCircArc->radius(), poCircArc->radius(), 0.0,
-                    dfStartAngle, dfEndAngle, 0.0 );
+                    dfStartAngle, dfEndAngle, 0.0 )->toLineString();
 
             poGC->addGeometryDirectly( poLS );
         }
@@ -224,13 +224,13 @@ static OGRErr DWGCollectBoundaryLoop( OdDbHatchPtr poHatch, int iLoop,
                 dfEndAng += 360.0;
             }
 
-            OGRLineString *poLS = (OGRLineString *)
+            OGRLineString *poLS =
                 OGRGeometryFactory::approximateArcAngles(
                     oCenter.x, oCenter.y, 0.0,
                     poArc->majorRadius(), poArc->minorRadius(), dfRotation,
                     OGRDWGLayer::AngleCorrect(dfStartAng,dfRatio),
                     OGRDWGLayer::AngleCorrect(dfEndAng,dfRatio),
-                    0.0 );
+                    0.0 )->toLineString();
             poGC->addGeometryDirectly( poLS );
         }
         else

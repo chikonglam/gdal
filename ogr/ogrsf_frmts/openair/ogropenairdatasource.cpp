@@ -30,15 +30,15 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogropenairdatasource.cpp 35911 2016-10-24 15:03:26Z goatbar $");
+CPL_CVSID("$Id: ogropenairdatasource.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                        OGROpenAirDataSource()                        */
 /************************************************************************/
 
 OGROpenAirDataSource::OGROpenAirDataSource() :
-    pszName(NULL),
-    papoLayers(NULL),
+    pszName(nullptr),
+    papoLayers(nullptr),
     nLayers(0)
 {}
 
@@ -73,7 +73,7 @@ OGRLayer *OGROpenAirDataSource::GetLayer( int iLayer )
 
 {
     if( iLayer < 0 || iLayer >= nLayers )
-        return NULL;
+        return nullptr;
 
     return papoLayers[iLayer];
 }
@@ -88,7 +88,7 @@ int OGROpenAirDataSource::Open( const char * pszFilename )
     pszName = CPLStrdup( pszFilename );
 
     VSILFILE* fp = VSIFOpenL(pszFilename, "rb");
-    if (fp == NULL)
+    if (fp == nullptr)
         return FALSE;
 
     VSILFILE* fp2 = VSIFOpenL(pszFilename, "rb");

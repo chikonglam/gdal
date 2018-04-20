@@ -28,7 +28,7 @@
 
 #include "aoutils.h"
 
-CPL_CVSID("$Id: aoutils.cpp 35933 2016-10-25 16:46:26Z goatbar $");
+CPL_CVSID("$Id: aoutils.cpp 4971449609881d6ffdca70188292293852d12691 2017-12-17 16:48:14Z Even Rouault $")
 
 bool AOErr(HRESULT hr, std::string desc)
 {
@@ -306,7 +306,7 @@ bool AOToOGRSpatialReference(esriGeometry::ISpatialReference* pSR, OGRSpatialRef
 
   ::SysFreeString(buffer);
 
-  if (strlen(strESRIWKT) <= 0)
+  if ( strESRIWKT[0] == '\0' )
   {
     CPLError( CE_Warning, CPLE_AppDefined, "ESRI Spatial Reference is NULL");
     return false;
@@ -338,10 +338,8 @@ bool OGRGeometryToAOGeometry(OGRGeometry* pOGRGeom, esriGeometry::IGeometry** pp
 
   *ppGeometry = NULL;
 
-  GByte* pWKB = NULL;
-
   long wkbSize = pOGRGeom->WkbSize();
-  pWKB = (GByte *) CPLMalloc(wkbSize);
+  GByte* pWKB = (GByte *) CPLMalloc(wkbSize);
 
   if( pOGRGeom->exportToWkb( wkbNDR, pWKB ) != OGRERR_NONE )
   {

@@ -6,7 +6,7 @@ OBJ	=	gdalopeninfo.o gdaldrivermanager.o gdaldriver.o gdaldataset.o \
 		gdalcolortable.o gdalmajorobject.o overview.o \
 		gdaldefaultoverviews.o gdalpamdataset.o gdalpamrasterband.o \
 		gdaljp2metadata.o gdaljp2box.o gdalmultidomainmetadata.o \
-		gdal_rat.o gdalgmlcoverage.o gdalpamproxydb.o \
+		gdal_rat.o gdalpamproxydb.o \
                 gdalallvalidmaskband.o gdalnodatamaskband.o \
 		gdalproxydataset.o gdalproxypool.o gdaldefaultasync.o \
 		gdalnodatavaluesmaskband.o gdaldllmain.o gdalexif.o gdalclientserver.o \
@@ -15,28 +15,29 @@ OBJ	=	gdalopeninfo.o gdaldrivermanager.o gdaldriver.o gdaldataset.o \
 		gdal_mdreader.o gdaljp2metadatagenerator.o gdalabstractbandblockcache.o \
 		gdalarraybandblockcache.o gdalhashsetbandblockcache.o
 
-# Enable the following if you want to use MITAB's code to convert
-# .tab coordinate systems into well known text.  But beware that linking
-# against static libraries becomes more complicated because of the odd
-# call out.
-
-ifeq ($(TIFF_SETTING),internal)
-ifeq ($(RENAME_INTERNAL_LIBTIFF_SYMBOLS),yes)
-XTRA_OPT 	:=	$(XTRA_OPT) -DRENAME_INTERNAL_LIBTIFF_SYMBOLS
-endif
-endif
-
 CPPFLAGS	:=	 -I../frmts/gtiff -I../frmts/mem -I../frmts/vrt -I../ogr -I../ogr/ogrsf_frmts/generic -I../gnm/ -I../gnm/gnm_frmts/ $(JSON_INCLUDE) -I../ogr/ogrsf_frmts/geojson $(CPPFLAGS) $(PAM_SETTING) $(XTRA_OPT)
 
 ifeq ($(HAVE_SQLITE),yes)
-CXXFLAGS :=	$(CXXFLAGS) -DSQLITE_ENABLED
+CPPFLAGS :=	$(CPPFLAGS) -DSQLITE_ENABLED
 endif
 
 ifeq ($(HAVE_LIBXML2),yes)
-CXXFLAGS	:=	$(CXXFLAGS) $(LIBXML2_INC) -DHAVE_LIBXML2
+CPPFLAGS	:=	$(CPPFLAGS) $(LIBXML2_INC) -DHAVE_LIBXML2
 endif
 
+ifeq ($(HAVE_GEOS),yes)
+CPPFLAGS 	:=	$(CPPFLAGS) -DHAVE_GEOS=1 $(GEOS_CFLAGS)
+endif
+
+CXXFLAGS        :=      $(WARN_OLD_STYLE_CAST) $(CXXFLAGS)
+
+GENERATE_GDAL_VERSION_H := $(shell ./generate_gdal_version_h.sh)
+
 default: mdreader-target $(OBJ:.o=.$(OBJ_EXT)) rasterio_ssse3.$(OBJ_EXT)
+
+.PHONY: generate_gdal_version_h
+
+generate_gdal_version_h: ;
 
 rasterio_ssse3.$(OBJ_EXT):   rasterio_ssse3.cpp
 	$(CXX) $(GDAL_INCLUDE) $(CXXFLAGS_NO_LTO_IF_SSSE3_NONDEFAULT) $(SSSE3FLAGS) $(CPPFLAGS) -c -o $@ $<
@@ -45,6 +46,7 @@ $(OBJ):	gdal_priv.h gdal_proxy.h
 
 clean: mdreader-clean
 	$(RM) *.o $(O_OBJ)
+	$(RM) -f gdal_version.h
 
 docs:
 	(cd ..; $(MAKE) docs)
@@ -55,5 +57,18 @@ gdaldrivermanager.$(OBJ_EXT):	gdaldrivermanager.cpp ../GDALmake.opt
 	$(CXX) -c $(GDAL_INCLUDE) $(CPPFLAGS) $(CXXFLAGS) -DINST_DATA=\"$(INST_DATA)\" \
 		$< -o $@
 
+INST_H_FILES = \
+	gdal_frmts.h \
+	gdalgeorefpamdataset.h \
+	gdal.h \
+	gdaljp2abstractdataset.h \
+	gdaljp2metadata.h \
+	gdal_mdreader.h \
+	gdal_pam.h \
+	gdal_priv.h \
+	gdal_proxy.h \
+	gdal_rat.h \
+	gdal_version.h
+
 install:
-	for f in *.h ; do $(INSTALL_DATA) $$f $(DESTDIR)$(INST_INCLUDE) ; done
+	for f in $(INST_H_FILES) ; do $(INSTALL_DATA) $$f $(DESTDIR)$(INST_INCLUDE) ; done

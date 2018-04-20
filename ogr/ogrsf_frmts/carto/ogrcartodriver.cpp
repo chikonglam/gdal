@@ -30,7 +30,7 @@
 
 // g++ -g -Wall -fPIC -shared -o ogr_CARTO.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/carto ogr/ogrsf_frmts/carto/*.c* -L. -lgdal -Iogr/ogrsf_frmts/geojson/libjson
 
-CPL_CVSID("$Id: ogrcartodriver.cpp 34976 2016-08-08 08:33:30Z rouault $");
+CPL_CVSID("$Id: ogrcartodriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 extern "C" void RegisterOGRCarto();
 
@@ -52,7 +52,7 @@ static GDALDataset *OGRCartoDriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
     if( !OGRCartoDriverIdentify(poOpenInfo) )
-        return NULL;
+        return nullptr;
 
     OGRCARTODataSource   *poDS = new OGRCARTODataSource();
 
@@ -60,7 +60,7 @@ static GDALDataset *OGRCartoDriverOpen( GDALOpenInfo* poOpenInfo )
                      poOpenInfo->eAccess == GA_Update ) )
     {
         delete poDS;
-        poDS = NULL;
+        poDS = nullptr;
     }
 
     return poDS;
@@ -80,12 +80,12 @@ static GDALDataset *OGRCartoDriverCreate( const char * pszName,
 {
     OGRCARTODataSource   *poDS = new OGRCARTODataSource();
 
-    if( !poDS->Open( pszName, NULL, TRUE ) )
+    if( !poDS->Open( pszName, nullptr, TRUE ) )
     {
         delete poDS;
         CPLError( CE_Failure, CPLE_AppDefined,
                   "Carto driver doesn't support database creation." );
-        return NULL;
+        return nullptr;
     }
 
     return poDS;
@@ -98,7 +98,7 @@ static GDALDataset *OGRCartoDriverCreate( const char * pszName,
 void RegisterOGRCarto()
 
 {
-    if( GDALGetDriverByName( "Carto" ) != NULL )
+    if( GDALGetDriverByName( "Carto" ) != nullptr )
       return;
 
     GDALDriver* poDriver = new GDALDriver();

@@ -30,13 +30,13 @@
 #include "cpl_conv.h"
 #include "ogrteigha.h"
 
-CPL_CVSID("$Id: ogrdwgdriver.cpp 37968 2017-04-12 07:16:55Z rouault $");
+CPL_CVSID("$Id: ogrdwgdriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                            OGRDWGDriver()                            */
 /************************************************************************/
 
-OGRDWGDriver::OGRDWGDriver() : poServices(NULL)
+OGRDWGDriver::OGRDWGDriver() : poServices(nullptr)
 
 {
 }
@@ -69,17 +69,23 @@ OGRDataSource *OGRDWGDriver::Open( const char * pszFilename, int /*bUpdate*/ )
 
 {
     if( !EQUAL(CPLGetExtension(pszFilename),"dwg") )
-        return NULL;
+        return nullptr;
+
+    // Check that this is a real file since the driver doesn't support
+    // VSI*L API
+    VSIStatBuf sStat;
+    if( VSIStat(pszFilename, &sStat) != 0 )
+        return nullptr;
 
     if( !OGRTEIGHAInitialize() )
-        return NULL;
+        return nullptr;
 
     OGRDWGDataSource   *poDS = new OGRDWGDataSource();
 
     if( !poDS->Open( OGRDWGGetServices(), pszFilename ) )
     {
         delete poDS;
-        poDS = NULL;
+        poDS = nullptr;
     }
 
     return poDS;
@@ -108,5 +114,7 @@ void RegisterOGRDWG()
     poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "dwg" );
     poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC,
                                 "drv_dwg.html" );
+    poDriver->SetMetadataItem( GDAL_DCAP_FEATURE_STYLES, "YES" );
+
     OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( poDriver );
 }

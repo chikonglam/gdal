@@ -1,5 +1,5 @@
 /*
- * $Id: keadataset.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: keadataset.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *  keadataset.h
  *
  *  Created by Pete Bunting on 01/08/2012.
@@ -78,7 +78,7 @@ public:
     CPLErr SetMetadata(char **papszMetadata, const char *pszDomain="") override;
 
     // virtual method for adding new image bands
-    CPLErr AddBand(GDALDataType eType, char **papszOptions = NULL) override;
+    CPLErr AddBand(GDALDataType eType, char **papszOptions = nullptr) override;
 
     // GCPs
     int GetGCPCount() override;

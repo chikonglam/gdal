@@ -34,7 +34,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: vfkpropertydefn.cpp 37796 2017-03-19 19:18:10Z martinl $");
+CPL_CVSID("$Id: vfkpropertydefn.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /*!
   \brief VFKPropertyDefn constructor
@@ -47,7 +47,7 @@ VFKPropertyDefn::VFKPropertyDefn( const char *pszName, const char *pszType,
                                   bool bLatin2 ) :
     m_pszName(CPLStrdup(pszName)),
     m_pszType(CPLStrdup(pszType)),
-    m_pszEncoding(NULL),
+    m_pszEncoding(nullptr),
     m_nWidth(0),
     m_nPrecision(0)
 {

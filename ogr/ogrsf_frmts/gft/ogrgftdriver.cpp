@@ -32,7 +32,7 @@
 
 /* http://code.google.com/intl/fr/apis/fusiontables/docs/developers_reference.html */
 
-CPL_CVSID("$Id: ogrgftdriver.cpp 35910 2016-10-24 14:08:24Z goatbar $");
+CPL_CVSID("$Id: ogrgftdriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 extern "C" void RegisterOGRGFT();
 
@@ -63,14 +63,14 @@ OGRDataSource *OGRGFTDriver::Open( const char * pszFilename, int bUpdate )
 
 {
     if (!STARTS_WITH_CI(pszFilename, "GFT:"))
-        return NULL;
+        return nullptr;
 
     OGRGFTDataSource   *poDS = new OGRGFTDataSource();
 
     if( !poDS->Open( pszFilename, bUpdate ) )
     {
         delete poDS;
-        poDS = NULL;
+        poDS = nullptr;
     }
 
     return poDS;
@@ -88,7 +88,7 @@ OGRDataSource *OGRGFTDriver::CreateDataSource( const char * pszName,
     if( !poDS->Open( pszName, TRUE ) )
     {
         delete poDS;
-        poDS = NULL;
+        poDS = nullptr;
     }
 
     return poDS;
@@ -117,5 +117,8 @@ void RegisterOGRGFT()
     OGRSFDriver* poDriver = new OGRGFTDriver;
     poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, "Google Fusion Tables" );
     poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_gft.html" );
+
+    poDriver->SetMetadataItem( GDAL_DMD_CONNECTION_PREFIX, "GFT:");
+
     OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver(poDriver);
 }

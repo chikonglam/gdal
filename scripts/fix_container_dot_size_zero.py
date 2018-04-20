@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: fix_container_dot_size_zero.py 36913 2016-12-16 20:59:09Z rouault $
+# $Id: fix_container_dot_size_zero.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
 #
 #  Project:  GDAL samples
 #  Purpose:  Replace container.size() by !container.empty(), and reverse
@@ -31,11 +31,12 @@
 
 import sys
 
+
 def find_start_identifier_pos(content, pos_start_identifier):
     level_parenthesis = 0
     level_bracket = 0
     while True:
-        c  = content[pos_start_identifier]
+        c = content[pos_start_identifier]
         if level_parenthesis > 0 and c != '(' and c != ')':
             pos_start_identifier -= 1
         elif c == ')':
@@ -58,12 +59,13 @@ def find_start_identifier_pos(content, pos_start_identifier):
             pos_start_identifier -= 1
         elif c.isalnum() or c == '_' or c == '.':
             pos_start_identifier -= 1
-        elif c == '>' and content[pos_start_identifier-1] == '-':
+        elif c == '>' and content[pos_start_identifier - 1] == '-':
             pos_start_identifier -= 2
         else:
             break
     pos_start_identifier += 1
     return pos_start_identifier
+
 
 content = open(sys.argv[1], 'rb').read()
 pos = 0
@@ -74,7 +76,7 @@ while True:
     if pos1 < 0 and pos2 < 0:
         break
     separator = ''
-    if pos1 >= 0 and (pos1 < pos2 or pos2 < 0): 
+    if pos1 >= 0 and (pos1 < pos2 or pos2 < 0):
         pos = pos1
         pos_after = pos + len('.size()')
         separator = '.'
@@ -108,36 +110,34 @@ while True:
         non_empty = True
         pos_after += len('>0')
 
-    if not empty and not non_empty and ( \
-            content[pos_after:].startswith(' )') or \
-            content[pos_after:].startswith(')') or \
-            content[pos_after:].startswith(' &&') or \
-            content[pos_after:].startswith(' ||') or \
-            content[pos_after:].startswith('&&') or \
-            content[pos_after:].startswith('||') or \
-            content[pos_after:].startswith(' ?') or \
-            content[pos_after:].startswith('?') ):
+    if not empty and not non_empty and (
+            content[pos_after:].startswith(' )') or
+            content[pos_after:].startswith(')') or
+            content[pos_after:].startswith(' &&') or
+            content[pos_after:].startswith(' ||') or
+            content[pos_after:].startswith('&&') or
+            content[pos_after:].startswith('||') or
+            content[pos_after:].startswith(' ?') or
+            content[pos_after:].startswith('?')):
         if content[pos_after] != ' ':
             extra_space = ' '
         pos_cur = find_start_identifier_pos(content, pos - 1)
         pos_cur -= 1
-        while content[pos_cur] == ' ' or content[pos_cur] == '\n' or \
-              content[pos_cur] == '\t':
+        while content[pos_cur] in [' ', '\n', '\t']:
             pos_cur -= 1
         pos_cur += 1
-        if (content[pos_after:].startswith(' ?') or \
+        if (content[pos_after:].startswith(' ?') or
             content[pos_after:].startswith('?')) and \
-           (content[pos_cur-1] == '(' or content[pos_cur-1] == ',') :
+           (content[pos_cur - 1] == '(' or content[pos_cur - 1] == ','):
             non_empty = True
-        elif content[pos_cur-3:pos_cur] == 'if(':
+        elif content[pos_cur - 3:pos_cur] == 'if(':
             non_empty = True
-        elif content[pos_cur-4:pos_cur] == 'if (':
+        elif content[pos_cur - 4:pos_cur] == 'if (':
             non_empty = True
-        elif content[pos_cur-2:pos_cur] == '&&':
+        elif content[pos_cur - 2:pos_cur] == '&&':
             non_empty = True
-        elif content[pos_cur-2:pos_cur] == '||':
+        elif content[pos_cur - 2:pos_cur] == '||':
             non_empty = True
-
 
     if empty:
         modified = True
@@ -146,12 +146,12 @@ while True:
         modified = True
         pos_start_identifier = find_start_identifier_pos(content, pos - 1)
         content = content[0:pos_start_identifier] + '!' + \
-                  content[pos_start_identifier:pos] + separator + 'empty()' + \
-                  extra_space + content[pos_after:]
+            content[pos_start_identifier:pos] + separator + 'empty()' + \
+            extra_space + content[pos_after:]
 
     pos += 1
 
 if modified:
     open(sys.argv[1], 'wb').write(content)
 
-#sys.stdout.write(content)
+# sys.stdout.write(content)

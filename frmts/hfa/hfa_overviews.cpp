@@ -40,7 +40,7 @@
 #include "gdal_pam.h"
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: hfa_overviews.cpp 37899 2017-04-05 15:40:03Z goatbar $");
+CPL_CVSID("$Id: hfa_overviews.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 CPLErr HFAAuxBuildOverviews( const char *pszOvrFilename,
                              GDALDataset *poParentDS,
@@ -53,7 +53,7 @@ CPLErr HFAAuxBuildOverviews( const char *pszOvrFilename,
 
 {
     // If the .aux file doesn't exist yet then create it now.
-    if( *ppoODS == NULL )
+    if( *ppoODS == nullptr )
     {
         GDALDataType eDT = GDT_Unknown;
         // Determine the band datatype, and verify that all bands are the same.
@@ -83,7 +83,7 @@ CPLErr HFAAuxBuildOverviews( const char *pszOvrFilename,
         // base band.
         GDALDriver *poHFADriver =
             static_cast<GDALDriver *>(GDALGetDriverByName("HFA"));
-        if( poHFADriver == NULL )
+        if( poHFADriver == nullptr )
         {
             CPLError(CE_Failure, CPLE_AppDefined, "HFA driver is unavailable.");
             return CE_Failure;
@@ -93,7 +93,7 @@ CPLErr HFAAuxBuildOverviews( const char *pszOvrFilename,
         osDepFileOpt += CPLGetFilename(poParentDS->GetDescription());
 
         const char *apszOptions[4] =
-            { "COMPRESSED=YES", "AUX=YES", osDepFileOpt.c_str(), NULL };
+            { "COMPRESSED=YES", "AUX=YES", osDepFileOpt.c_str(), nullptr };
 
         *ppoODS =
             poHFADriver->Create(pszOvrFilename,
@@ -102,7 +102,7 @@ CPLErr HFAAuxBuildOverviews( const char *pszOvrFilename,
                                 poParentDS->GetRasterCount(),
                                 eDT, const_cast<char **>(apszOptions));
 
-        if( *ppoODS == NULL )
+        if( *ppoODS == nullptr )
             return CE_Failure;
     }
 

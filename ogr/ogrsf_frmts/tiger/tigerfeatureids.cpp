@@ -29,7 +29,7 @@
 #include "ogr_tiger.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: tigerfeatureids.cpp 35629 2016-10-06 23:39:06Z goatbar $");
+CPL_CVSID("$Id: tigerfeatureids.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 static const char FILE_CODE[] = "5";
 
@@ -76,7 +76,7 @@ static const TigerRecordInfo rt5_info =
 
 TigerFeatureIds::TigerFeatureIds( OGRTigerDataSource * poDSIn,
                                   CPL_UNUSED const char * pszPrototypeModule ) :
-    TigerFileBase(NULL, FILE_CODE)
+    TigerFileBase(nullptr, FILE_CODE)
 {
   poDS = poDSIn;
   poFeatureDefn = new OGRFeatureDefn( "FeatureIds" );

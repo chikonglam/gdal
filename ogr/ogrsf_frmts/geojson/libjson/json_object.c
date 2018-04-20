@@ -517,6 +517,10 @@ int32_t json_object_get_int(struct json_object *jso)
 	else
 		return (int32_t)cint64;
   case json_type_double:
+    if (jso->o.c_double <= INT32_MIN)
+      return INT32_MIN;
+    if (jso->o.c_double >= INT32_MAX)
+      return INT32_MAX;
     return (int32_t)jso->o.c_double;
   case json_type_boolean:
     return jso->o.c_boolean;
@@ -543,11 +547,16 @@ int64_t json_object_get_int64(struct json_object *jso)
   case json_type_int:
     return jso->o.c_int64;
   case json_type_double:
+    if (jso->o.c_double >= INT64_MAX)
+       return INT64_MAX;
+    if (jso->o.c_double <= INT64_MIN)
+       return INT64_MIN;
     return (int64_t)jso->o.c_double;
   case json_type_boolean:
     return jso->o.c_boolean;
   case json_type_string:
-	if (json_parse_int64(jso->o.c_string.str, &cint) == 0) return cint;
+    if (json_parse_int64(jso->o.c_string.str, &cint) == 0) return cint;
+    /* FALLTHRU */
   default:
     return 0;
   }

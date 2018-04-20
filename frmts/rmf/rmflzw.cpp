@@ -49,14 +49,14 @@
 
 #include "rmfdataset.h"
 
-CPL_CVSID("$Id: rmflzw.cpp 36404 2016-11-21 17:08:18Z rouault $");
+CPL_CVSID("$Id: rmflzw.cpp 01037e400d90e8bc4a74f8d886ea5a27ecce02c5 2018-01-12 23:49:31Z Kurt Schwehr $")
 
 // Code marks that there is no predecessor in the string
-static const GUInt32 NO_PRED = 0xFFFF;
+constexpr GUInt32 NO_PRED = 0xFFFF;
 
 // We are using 12-bit codes in this particular implementation
-static const GUInt32 TABSIZE = 4096U;
-static const GUInt32 STACKSIZE = TABSIZE;
+constexpr GUInt32 TABSIZE = 4096U;
+constexpr GUInt32 STACKSIZE = TABSIZE;
 
 /************************************************************************/
 /*                           LZWStringTab                               */
@@ -119,8 +119,8 @@ static void LZWUpdateTab(LZWStringTab *poCodeTab, GUInt32 iPred, char bFoll)
 int RMFDataset::LZWDecompress( const GByte* pabyIn, GUInt32 nSizeIn,
                                GByte* pabyOut, GUInt32 nSizeOut )
 {
-    if( pabyIn == NULL ||
-        pabyOut == NULL ||
+    if( pabyIn == nullptr ||
+        pabyOut == nullptr ||
         nSizeOut < nSizeIn ||
         nSizeIn < 2 )
         return 0;

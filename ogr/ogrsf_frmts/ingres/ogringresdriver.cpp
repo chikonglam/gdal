@@ -29,7 +29,7 @@
 #include "ogr_ingres.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogringresdriver.cpp 35911 2016-10-24 15:03:26Z goatbar $");
+CPL_CVSID("$Id: ogringresdriver.cpp ff8146d84de7cba8e09d212d5481ea7d2ede3e98 2017-06-27 20:47:31Z Even Rouault $")
 
 /************************************************************************/
 /*                          ~OGRIngresDriver()                           */

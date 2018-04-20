@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonutils.h 36477 2016-11-24 01:41:10Z rouault $
+ * $Id: ogrgeojsonutils.h 55901e50fd8583acecc3d37c9cc2870043fc8bdb 2018-01-11 09:11:21Z Dmitry Baryshnikov $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private utilities within OGR OGRGeoJSON Driver.
@@ -31,8 +31,7 @@
 
 #include <ogr_core.h>
 
-#include "ogr_json_header.h"
-
+#include "cpl_json_header.h"
 #include "cpl_vsi.h"
 #include "gdal_priv.h"
 
@@ -51,26 +50,16 @@ enum GeoJSONSourceType
 };
 
 GeoJSONSourceType GeoJSONGetSourceType( GDALOpenInfo* poOpenInfo );
-
-/************************************************************************/
-/*                           GeoJSONProtocolType                        */
-/************************************************************************/
-
-enum GeoJSONProtocolType
-{
-    eGeoJSONProtocolUnknown = 0,
-    eGeoJSONProtocolHTTP,
-    eGeoJSONProtocolHTTPS,
-    eGeoJSONProtocolFTP,
-};
-
-GeoJSONProtocolType GeoJSONGetProtocolType( const char* pszSource );
+GeoJSONSourceType ESRIJSONDriverGetSourceType( GDALOpenInfo* poOpenInfo );
+GeoJSONSourceType TopoJSONDriverGetSourceType( GDALOpenInfo* poOpenInfo );
 
 /************************************************************************/
 /*                           GeoJSONIsObject                            */
 /************************************************************************/
 
 bool GeoJSONIsObject( const char* pszText );
+bool ESRIJSONIsObject(const char *pszText);
+bool TopoJSONIsObject(const char *pszText);
 
 /************************************************************************/
 /*                           GeoJSONPropertyToFieldType                 */

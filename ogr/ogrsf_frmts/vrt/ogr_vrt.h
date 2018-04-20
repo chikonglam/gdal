@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_vrt.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_vrt.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/VRT driver.
@@ -91,7 +91,7 @@ class OGRVRTGeomFieldProps
 
 class OGRVRTDataSource;
 
-class OGRVRTLayer : public OGRLayer
+class OGRVRTLayer final: public OGRLayer
 {
   protected:
     OGRVRTDataSource*   poDS;
@@ -213,7 +213,7 @@ typedef enum
     OGR_VRT_OTHER_LAYER,
 } OGRLayerType;
 
-class OGRVRTDataSource : public OGRDataSource
+class OGRVRTDataSource final: public OGRDataSource
 {
     OGRLayer          **papoLayers;
     OGRLayerType       *paeLayerType;

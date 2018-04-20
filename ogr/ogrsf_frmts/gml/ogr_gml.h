@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gml.h 37265 2017-02-01 06:20:23Z goatbar $
+ * $Id: ogr_gml.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  GML Reader
  * Purpose:  Declarations for OGR wrapper classes for GML, and GML<->OGR
@@ -176,9 +176,9 @@ class OGRGMLDataSource : public OGRDataSource
     OGRLayer            *GetLayer( int ) override;
 
     virtual OGRLayer    *ICreateLayer( const char *,
-                                      OGRSpatialReference * = NULL,
+                                      OGRSpatialReference * = nullptr,
                                       OGRwkbGeometryType = wkbUnknown,
-                                      char ** = NULL ) override;
+                                      char ** = nullptr ) override;
 
     int                 TestCapability( const char * ) override;
 
@@ -210,10 +210,11 @@ class OGRGMLDataSource : public OGRDataSource
     OGRGMLLayer*        GetLastReadLayer() const { return poLastReadLayer; }
     void                SetLastReadLayer(OGRGMLLayer* poLayer) { poLastReadLayer = poLayer; }
 
-    const char         *GetAppPrefix();
-    bool                RemoveAppPrefix();
-    bool                WriteFeatureBoundedBy();
-    const char         *GetSRSDimensionLoc();
+    const char         *GetAppPrefix() const;
+    bool                RemoveAppPrefix() const;
+    bool                WriteFeatureBoundedBy() const;
+    const char         *GetSRSDimensionLoc() const;
+    bool                GMLFeatureCollection() const;
 
     virtual OGRLayer *          ExecuteSQL( const char *pszSQLCommand,
                                             OGRGeometry *poSpatialFilter,

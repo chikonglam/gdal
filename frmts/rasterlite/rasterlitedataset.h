@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterlitedataset.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: rasterlitedataset.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -51,7 +51,7 @@ class RasterliteBand;
 /* ==================================================================== */
 /************************************************************************/
 
-class RasterliteDataset : public GDALPamDataset
+class RasterliteDataset final: public GDALPamDataset
 {
     friend class RasterliteBand;
 
@@ -130,7 +130,7 @@ class RasterliteDataset : public GDALPamDataset
 /* ==================================================================== */
 /************************************************************************/
 
-class RasterliteBand: public GDALPamRasterBand
+class RasterliteBand final: public GDALPamRasterBand
 {
     friend class RasterliteDataset;
 

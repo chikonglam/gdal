@@ -38,7 +38,7 @@
 
 //! @cond Doxygen_Suppress
 
-CPL_CVSID("$Id: gdalabstractbandblockcache.cpp 36776 2016-12-10 11:17:47Z rouault $");
+CPL_CVSID("$Id: gdalabstractbandblockcache.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 #ifdef DEBUG_VERBOSE_ABBC
 static int nAllBandsKeptAlivedBlocks = 0;
@@ -51,7 +51,7 @@ static int nAllBandsKeptAlivedBlocks = 0;
 GDALAbstractBandBlockCache::GDALAbstractBandBlockCache(
     GDALRasterBand* poBandIn ) :
     hSpinLock(CPLCreateLock(LOCK_SPIN)),
-    psListBlocksToFree(NULL),
+    psListBlocksToFree(nullptr),
     hCond(CPLCreateCond()),
     hCondMutex(CPLCreateMutex()),
     nKeepAliveCounter(0)
@@ -103,8 +103,8 @@ void GDALAbstractBandBlockCache::UnreferenceBlockBase()
 
 void GDALAbstractBandBlockCache::AddBlockToFreeList( GDALRasterBlock *poBlock )
 {
-    CPLAssert(poBlock->poPrevious == NULL);
-    CPLAssert(poBlock->poNext == NULL);
+    CPLAssert(poBlock->poPrevious == nullptr);
+    CPLAssert(poBlock->poNext == nullptr);
     {
 #ifdef DEBUG_VERBOSE_ABBC
         CPLAtomicInc(&nAllBandsKeptAlivedBlocks);
@@ -154,7 +154,7 @@ void GDALAbstractBandBlockCache::FreeDanglingBlocks()
     {
         CPLLockHolderOptionalLockD(hSpinLock);
         poList = psListBlocksToFree;
-        psListBlocksToFree = NULL;
+        psListBlocksToFree = nullptr;
     }
     while( poList )
     {
@@ -163,7 +163,7 @@ void GDALAbstractBandBlockCache::FreeDanglingBlocks()
         fprintf(stderr, "FreeDanglingBlocks(): nAllBandsKeptAlivedBlocks=%d\n", nAllBandsKeptAlivedBlocks);/*ok*/
 #endif
         GDALRasterBlock* poNext = poList->poNext;
-        poList->poNext = NULL;
+        poList->poNext = nullptr;
         delete poList;
         poList = poNext;
     }

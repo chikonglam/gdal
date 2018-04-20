@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shptree.c 36727 2016-12-06 20:04:22Z rouault $
+ * $Id: shptree.c 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $
  *
  * Project:  Shapelib
  * Purpose:  Implementation of quadtree building and searching functions.
@@ -46,7 +46,7 @@
 #include "cpl_error.h"
 #endif
 
-SHP_CVSID("$Id: shptree.c 36727 2016-12-06 20:04:22Z rouault $")
+SHP_CVSID("$Id: shptree.c 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
 
 #ifndef TRUE
 #  define TRUE 1
@@ -203,7 +203,7 @@ SHPTree SHPAPI_CALL1(*)
     }
 
 /* -------------------------------------------------------------------- */
-/*      If we have a file, insert all it's shapes into the tree.        */
+/*      If we have a file, insert all its shapes into the tree.        */
 /* -------------------------------------------------------------------- */
     if( hSHP != NULL )
     {
@@ -1006,7 +1006,7 @@ int* SHPSearchDiskTreeEx( SHPTreeDiskHandle hDiskTree,
         bNeedSwap = TRUE;
 
 /* -------------------------------------------------------------------- */
-/*      Search through root node and it's descendants.                  */
+/*      Search through root node and its descendants.                   */
 /* -------------------------------------------------------------------- */
     if( !SHPSearchDiskTreeNode( hDiskTree, padfBoundsMin, padfBoundsMax,
                                 &panResultBuffer, &nBufferMax,

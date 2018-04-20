@@ -32,7 +32,7 @@
 #include "ogr_ili2.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrili2driver.cpp 35911 2016-10-24 15:03:26Z goatbar $");
+CPL_CVSID("$Id: ogrili2driver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                                Open()                                */
@@ -42,19 +42,19 @@ static GDALDataset *OGRILI2DriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
     if( poOpenInfo->eAccess == GA_Update ||
-        (!poOpenInfo->bStatOK && strchr(poOpenInfo->pszFilename, ',') == NULL) )
-        return NULL;
+        (!poOpenInfo->bStatOK && strchr(poOpenInfo->pszFilename, ',') == nullptr) )
+        return nullptr;
 
-    if( poOpenInfo->fpL != NULL )
+    if( poOpenInfo->fpL != nullptr )
     {
         if( poOpenInfo->pabyHeader[0] != '<'
-            || strstr((const char*)poOpenInfo->pabyHeader,"interlis.ch/INTERLIS2") == NULL )
+            || strstr((const char*)poOpenInfo->pabyHeader,"interlis.ch/INTERLIS2") == nullptr )
         {
-            return NULL;
+            return nullptr;
         }
     }
     else if( poOpenInfo->bIsDirectory )
-        return NULL;
+        return nullptr;
 
     OGRILI2DataSource *poDS = new OGRILI2DataSource();
 
@@ -63,7 +63,7 @@ static GDALDataset *OGRILI2DriverOpen( GDALOpenInfo* poOpenInfo )
         || poDS->GetLayerCount() == 0 )
     {
         delete poDS;
-        return NULL;
+        return nullptr;
     }
 
     return poDS;
@@ -85,7 +85,7 @@ static GDALDataset *OGRILI2DriverCreate( const char * pszName,
     if( !poDS->Create( pszName, papszOptions ) )
     {
         delete poDS;
-        return NULL;
+        return nullptr;
     }
 
     return poDS;
@@ -96,7 +96,7 @@ static GDALDataset *OGRILI2DriverCreate( const char * pszName,
 /************************************************************************/
 
 void RegisterOGRILI2() {
-    if( GDALGetDriverByName( "Interlis 2" ) != NULL )
+    if( GDALGetDriverByName( "Interlis 2" ) != nullptr )
         return;
 
     GDALDriver *poDriver = new GDALDriver();
@@ -110,6 +110,7 @@ void RegisterOGRILI2() {
 "<OpenOptionList>"
 "  <Option name='MODEL' type='string' description='Filename of the model in IlisMeta format (.imd)'/>"
 "</OpenOptionList>" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
     poDriver->pfnOpen = OGRILI2DriverOpen;
     poDriver->pfnCreate = OGRILI2DriverCreate;

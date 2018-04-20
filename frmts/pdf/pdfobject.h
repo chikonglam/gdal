@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdfobject.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: pdfobject.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
@@ -246,7 +246,7 @@ class GDALPDFObjectPoppler : public GDALPDFObject
     public:
         GDALPDFObjectPoppler(Object* po, int bDestroy) :
                 m_po(po), m_bDestroy(bDestroy),
-                m_poDict(NULL), m_poArray(NULL), m_poStream(NULL),
+                m_poDict(nullptr), m_poArray(nullptr), m_poStream(nullptr),
                 m_nRefNum(0), m_nRefGen(0) {}
 
         void SetRefNumAndGen(int nNum, int nGen);

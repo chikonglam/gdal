@@ -29,7 +29,7 @@
 #include "ogr_elastic.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrelasticdriver.cpp 37072 2017-01-09 12:54:57Z rouault $");
+CPL_CVSID("$Id: ogrelasticdriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                   OGRElasticSearchDriverIdentify()                   */
@@ -49,12 +49,12 @@ static GDALDataset* OGRElasticSearchDriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
     if( !OGRElasticSearchDriverIdentify(poOpenInfo) )
-        return NULL;
+        return nullptr;
 
     OGRElasticDataSource *poDS = new OGRElasticDataSource();
     if (!poDS->Open(poOpenInfo)) {
         delete poDS;
-        poDS = NULL;
+        poDS = nullptr;
     }
 
     return poDS;
@@ -74,7 +74,7 @@ static GDALDataset* OGRElasticSearchDriverCreate( const char * pszName,
 
     if (!poDS->Create(pszName, papszOptions)) {
         delete poDS;
-        poDS = NULL;
+        poDS = nullptr;
     }
 
     return poDS;
@@ -88,7 +88,7 @@ void RegisterOGRElastic() {
     if (!GDAL_CHECK_VERSION("OGR/Elastic Search driver"))
         return;
 
-    if( GDALGetDriverByName( "ElasticSearch" ) != NULL )
+    if( GDALGetDriverByName( "ElasticSearch" ) != nullptr )
       return;
 
     GDALDriver  *poDriver = new GDALDriver();

@@ -29,14 +29,14 @@
 
 #include "keamaskband.h"
 
-CPL_CVSID("$Id: keamaskband.cpp 34811 2016-07-28 15:15:05Z goatbar $");
+CPL_CVSID("$Id: keamaskband.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 // constructor
 KEAMaskBand::KEAMaskBand(GDALRasterBand *pParent,
                 kealib::KEAImageIO *pImageIO, int *pRefCount)
 {
     m_nSrcBand = pParent->GetBand();
-    poDS = NULL;
+    poDS = nullptr;
     nBand = 0;
 
     nRasterXSize = pParent->GetXSize();

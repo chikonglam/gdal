@@ -39,15 +39,15 @@
 #include "cpl_error.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gmlreadstate.cpp 37182 2017-01-19 07:34:23Z goatbar $");
+CPL_CVSID("$Id: gmlreadstate.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                            GMLReadState()                            */
 /************************************************************************/
 
 GMLReadState::GMLReadState() :
-    m_poFeature(NULL),
-    m_poParentState(NULL),
+    m_poFeature(nullptr),
+    m_poParentState(nullptr),
     m_nPathLength(0)
 {}
 
@@ -63,8 +63,8 @@ GMLReadState::~GMLReadState() {}
 
 void GMLReadState::Reset()
 {
-    m_poFeature = NULL;
-    m_poParentState = NULL;
+    m_poFeature = nullptr;
+    m_poParentState = nullptr;
 
     osPath.resize(0);
     m_nPathLength = 0;

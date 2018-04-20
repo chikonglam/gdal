@@ -37,7 +37,7 @@
 #include "cpl_string.h"
 
 
-CPL_CVSID("$Id: cpl_getexecpath.cpp 36862 2016-12-14 22:16:39Z goatbar $");
+CPL_CVSID("$Id: cpl_getexecpath.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 #if defined(WIN32)
 
@@ -56,7 +56,7 @@ int CPLGetExecPath( char *pszPathBuf, int nMaxLength )
         wchar_t *pwszPathBuf = static_cast<wchar_t *>(
             CPLCalloc(nMaxLength + 1, sizeof(wchar_t)));
 
-        if( GetModuleFileNameW( NULL, pwszPathBuf, nMaxLength ) == 0 )
+        if( GetModuleFileNameW( nullptr, pwszPathBuf, nMaxLength ) == 0 )
         {
             CPLFree( pwszPathBuf );
             return FALSE;
@@ -74,7 +74,7 @@ int CPLGetExecPath( char *pszPathBuf, int nMaxLength )
     }
     else
     {
-        if( GetModuleFileName( NULL, pszPathBuf, nMaxLength ) == 0 )
+        if( GetModuleFileNameA( nullptr, pszPathBuf, nMaxLength ) == 0 )
             return FALSE;
         else
             return TRUE;
