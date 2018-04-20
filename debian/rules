@@ -103,6 +103,7 @@ override_dh_auto_configure:
 			--with-threads \
 			--with-armadillo=yes \
 			--with-cfitsio=no \
+			--with-charls \
 			--with-curl \
 			--with-ecw=no \
 			--with-epsilon=/usr \
