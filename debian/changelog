@@ -15,6 +15,7 @@ gdal (2.3.0~beta1+dfsg-1) UNRELEASED; urgency=medium
     - Drop license & copyright for autotools files
     - Add license & copyright for ESRI WKT files
     - Add license & copyright for cpl_mem_cache.h
+  * Enable zstd support.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 20 Apr 2018 14:43:16 +0200
 

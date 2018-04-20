@@ -129,6 +129,7 @@ override_dh_auto_configure:
 			--with-sqlite3 \
 			--with-webp \
 			--with-xerces \
+			--with-zstd \
 			--with-dods-root=/usr \
 			--with-static-proj4=yes \
 			--with-java=/usr/lib/jvm/default-java \
