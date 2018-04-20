@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili1readerp.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ili1readerp.h d88329fa88553cce9e72b3ac894e49e4daf026a3 2017-05-21 12:13:23Z Even Rouault $
  *
  * Project:  Interlis 1 Reader
  * Purpose:  Private Declarations for Reader code.
@@ -43,7 +43,7 @@ class OGRILI1Layer;
 class ILI1Reader : public IILI1Reader
 {
 private:
-    FILE         *fpItf;
+    VSILFILE    *fpItf;
     int          nLayers;
     OGRILI1Layer **papoLayers;
     OGRILI1Layer *curLayer;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_wfs.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_wfs.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  WFS Translator
  * Purpose:  Definition of classes for OGR WFS driver.
@@ -59,6 +59,7 @@ const char* FindSubStringInsensitive(const char* pszStr,
 CPLString WFS_EscapeURL(const char* pszURL);
 CPLString WFS_DecodeURL(const CPLString &osSrc);
 
+// cppcheck-suppress copyCtorAndEqOperator
 class OGRWFSSortDesc
 {
     public:
@@ -79,7 +80,7 @@ class OGRWFSSortDesc
 
 class OGRWFSDataSource;
 
-class OGRWFSLayer : public OGRLayer
+class OGRWFSLayer final: public OGRLayer
 {
     OGRWFSDataSource*   poDS;
 
@@ -195,10 +196,10 @@ class OGRWFSLayer : public OGRLayer
 
     virtual OGRErr      SetIgnoredFields( const char **papszFields ) override;
 
-    int                 HasLayerDefn() { return poFeatureDefn != NULL; }
+    int                 HasLayerDefn() { return poFeatureDefn != nullptr; }
 
     OGRFeatureDefn*     ParseSchema(CPLXMLNode* psSchema);
-    OGRFeatureDefn*     BuildLayerDefn(OGRFeatureDefn* poSrcFDefn = NULL);
+    OGRFeatureDefn*     BuildLayerDefn(OGRFeatureDefn* poSrcFDefn = nullptr);
 
     OGRErr              DeleteFromFilter( CPLString osOGCFilter );
 
@@ -208,7 +209,7 @@ class OGRWFSLayer : public OGRLayer
 
     void                SetRequiredOutputFormat(const char* pszRequiredOutputFormatIn);
 
-    const char         *GetRequiredOutputFormat() { return pszRequiredOutputFormat; };
+    const char         *GetRequiredOutputFormat() { return pszRequiredOutputFormat; }
 
     void                SetOrderBy(const std::vector<OGRWFSSortDesc>& aoSortColumnsIn);
     bool                HasGotApproximateLayerDefn() { GetLayerDefn(); return bGotApproximateLayerDefn; }
@@ -221,7 +222,7 @@ class OGRWFSLayer : public OGRLayer
 /*                          OGRWFSJoinLayer                             */
 /************************************************************************/
 
-class OGRWFSJoinLayer : public OGRLayer
+class OGRWFSJoinLayer final: public OGRLayer
 {
     OGRWFSDataSource   *poDS;
     OGRFeatureDefn     *poFeatureDefn;
@@ -281,7 +282,7 @@ class OGRWFSJoinLayer : public OGRLayer
 /*                           OGRWFSDataSource                           */
 /************************************************************************/
 
-class OGRWFSDataSource : public OGRDataSource
+class OGRWFSDataSource final: public OGRDataSource
 {
     char*               pszName;
     bool                bRewriteFile;

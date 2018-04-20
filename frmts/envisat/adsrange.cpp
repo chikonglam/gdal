@@ -38,7 +38,7 @@ CPL_C_END
 
 #include <cmath>
 
-CPL_CVSID("$Id: adsrange.cpp 35751 2016-10-16 08:52:06Z rouault $");
+CPL_CVSID("$Id: adsrange.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /* -------------------------------------------------------------------- */
 /*
@@ -56,8 +56,8 @@ class DataSet
     DataSet( EnvisatFile & envfileIn , int indexIn ) :
         envfile(envfileIn), index(indexIn), nrec(0)
     {
-        EnvisatFile_GetDatasetInfo( &envfileIn, indexIn, NULL, NULL, NULL,
-                NULL , NULL, &nrec, NULL ) ;
+        EnvisatFile_GetDatasetInfo( &envfileIn, indexIn, nullptr, nullptr, nullptr,
+                nullptr , nullptr, &nrec, nullptr ) ;
     }
 
     TimeDelta getMJD( int ridx )

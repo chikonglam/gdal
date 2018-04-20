@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5dataset.h 37931 2017-04-09 06:26:02Z goatbar $
+ * $Id: hdf5dataset.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Header file for HDF5 datasets reader.
@@ -101,7 +101,7 @@ protected:
    * @return CPLErr CE_None in case of success, CE_Failure in case of failure
    */
     CPLErr HDF5ReadDoubleAttr(const char *pszAttrName, double **pdfValues,
-                              int *nLen = NULL);
+                              int *nLen = nullptr);
 
   public:
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_java.i 35649 2016-10-08 10:16:30Z rouault $
+ * $Id: gdal_java.i 19f708c8a21ace821b243cbb6833e12dffcb82b3 2018-01-08 19:18:49Z Even Rouault $
  *
  * Name:     gdal_java.i
  * Project:  GDAL SWIG Interface
@@ -15,7 +15,7 @@
 
   static {
     try {
-      System.loadLibrary("gdaljni");
+      System.loadLibrary("gdalalljni");
       available = true;
 
       if (gdal.HasThreadSupport() == 0)

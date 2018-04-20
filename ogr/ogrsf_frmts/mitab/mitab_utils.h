@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: mitab_utils.h 37335 2017-02-09 14:29:57Z goatbar $
+ * $Id: mitab_utils.h 6508d9ac778fff47e6ef4eef3a3e6b70556f3814 2018-03-27 14:28:44 +0200 Even Rouault $
  *
  * Name:     mitab_utils.h
  * Project:  MapInfo TAB Read/Write library
@@ -61,5 +61,6 @@ const char *TABUnitIdToString(int nId);
 int   TABUnitIdFromString(const char *pszName);
 
 void TABSaturatedAdd(GInt32& nVal, GInt32 nAdd);
+GInt16 TABInt16Diff(int a, int b);
 
 #endif /* MITAB_UTILS_H_INCLUDED_ */

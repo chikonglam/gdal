@@ -29,7 +29,7 @@
 #include "ogr_tiger.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: tigeraltname.cpp 38802 2017-06-02 09:04:34Z rouault $");
+CPL_CVSID("$Id: tigeraltname.cpp cf79f01d31f2de889a3045a3d09f944cb04d7071 2018-03-03 22:40:32Z Even Rouault $")
 
 static const char FILE_CODE[] = "4";
 
@@ -87,21 +87,21 @@ OGRFeature *TigerAltName::GetFeature( int nRecordId )
         CPLError( CE_Failure, CPLE_FileIO,
                   "Request for out-of-range feature %d of %s4",
                   nRecordId, pszModule );
-        return NULL;
+        return nullptr;
     }
 
 /* -------------------------------------------------------------------- */
 /*      Read the raw record data from the file.                         */
 /* -------------------------------------------------------------------- */
-    if( fpPrimary == NULL )
-        return NULL;
+    if( fpPrimary == nullptr )
+        return nullptr;
 
     if( VSIFSeekL( fpPrimary, nRecordId * nRecordLength, SEEK_SET ) != 0 )
     {
         CPLError( CE_Failure, CPLE_FileIO,
                   "Failed to seek to %d of %s4",
                   nRecordId * nRecordLength, pszModule );
-        return NULL;
+        return nullptr;
     }
 
     // Overflow cannot happen since psRTInfo->nRecordLength is unsigned
@@ -111,7 +111,7 @@ OGRFeature *TigerAltName::GetFeature( int nRecordId )
         CPLError( CE_Failure, CPLE_FileIO,
                   "Failed to read record %d of %s4",
                   nRecordId, pszModule );
-        return NULL;
+        return nullptr;
     }
 
     /* -------------------------------------------------------------------- */
@@ -162,7 +162,7 @@ OGRErr TigerAltName::CreateFeature( OGRFeature *poFeature )
         char szWork[9] = {};
 
         snprintf( szWork, sizeof(szWork), "%8d", panValue[i] );
-        strncpy( szRecord + 18 + 8 * i, szWork, 8 );
+        memcpy( szRecord + 18 + 8 * i, szWork, 8 );
     }
 
     WriteRecord( szRecord, psRTInfo->nRecordLength, FILE_CODE );

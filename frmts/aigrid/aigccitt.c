@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigccitt.c 36763 2016-12-09 22:10:55Z rouault $
+ * $Id: aigccitt.c a33916fe4a206e06e9f043a19e604a515ee2322c 2017-06-04 18:13:57Z Even Rouault $
  *
  * Project:  Arc/Info Binary Grid Translator
  * Purpose:  Code for decoding CCITT RLE (G1) compressed data.
@@ -1898,12 +1898,7 @@ CPLErr DecompressCCITTRLETile( unsigned char *pabySrcData, int nSrcBytes,
     /*
      * Calculate the scanline/tile widths.
      */
-    rowbytes = nBlockXSize / 8;
-	if( rowbytes == 0 )
-	{
-        CPLError(CE_Failure, CPLE_AppDefined, "rowbytes == 0");
-        return CE_Failure;
-	}
+    rowbytes = (nBlockXSize + 7) / 8;
     rowpixels = nBlockXSize;
 
     sp->rowbytes = (GUInt32) rowbytes;

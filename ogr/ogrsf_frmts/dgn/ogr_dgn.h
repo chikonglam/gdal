@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_dgn.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_dgn.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGR Driver for DGN Reader.
@@ -48,7 +48,7 @@ class OGRDGNLayer : public OGRLayer
 
     char               *pszLinkFormat;
 
-    OGRFeature         *ElementToFeature( DGNElemCore * );
+    OGRFeature         *ElementToFeature( DGNElemCore *, int nRecLevel );
 
     void                ConsiderBrush( DGNElemCore *, const char *pszPen,
                                        OGRFeature *poFeature );
@@ -109,9 +109,9 @@ class OGRDGNDataSource : public OGRDataSource
     bool                PreCreate( const char *, char ** );
 
     OGRLayer           *ICreateLayer( const char *,
-                                     OGRSpatialReference * = NULL,
+                                     OGRSpatialReference * = nullptr,
                                      OGRwkbGeometryType = wkbUnknown,
-                                     char ** = NULL ) override;
+                                     char ** = nullptr ) override;
 
     const char          *GetName() override { return pszName; }
     int                 GetLayerCount() override { return nLayers; }

@@ -1,4 +1,4 @@
-/******************************************************************************
+    /******************************************************************************
  *
  * Project:  FMEObjects Translator
  * Purpose:  Implementation of the OGRFMELayerCached class.  This is the
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrfmelayercached.cpp 34819 2016-07-28 22:32:18Z goatbar $");
+CPL_CVSID("$Id: ogrfmelayercached.cpp 6574497e5ddfd7c08c094a76756a0ef477cef6a1 2018-04-04 22:15:20 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                         OGRFMELayerCached()                          */
@@ -421,10 +421,10 @@ int OGRFMELayerCached::InitializeFromXML( CPLXMLNode *psLayer )
 /* -------------------------------------------------------------------- */
     if( CPLGetXMLNode( psLayer, "SRS" ) != NULL )
     {
-        char *pszSRS = (char *) CPLGetXMLValue( psLayer, "SRS", "" );
+        const char *pszSRS = CPLGetXMLValue( psLayer, "SRS", "" );
         OGRSpatialReference oSRS;
 
-        if( oSRS.importFromWkt( &pszSRS ) == OGRERR_NONE )
+        if( oSRS.importFromWkt( pszSRS ) == OGRERR_NONE )
         {
             if( poSpatialRef != NULL )
                 delete poSpatialRef;

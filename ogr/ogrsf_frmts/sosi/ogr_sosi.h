@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_sosi.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_sosi.h c6d0d2bf754b99e206b37d544c2e3fb09046c1af 2017-06-27 19:59:42Z Even Rouault $
  *
  * Project:  SOSI Translator
  * Purpose:  Implements OGRSOSIDriver.
@@ -153,10 +153,10 @@ public:
     void setType (const char *pszName, OGRFieldType nType);
     const char          *GetName() {
         return pszName;
-    };
+    }
     OGRFieldType        GetType() {
         return nType;
-    };
+    }
 };
 
 class OGRSOSIDataType {
@@ -164,6 +164,8 @@ class OGRSOSIDataType {
     // cppcheck-suppress unsafeClassCanLeak
     OGRSOSISimpleDataType* poElements;
     int                    nElementCount;
+
+    OGRSOSIDataType& operator= (const OGRSOSIDataType& );
 
 public:
     explicit OGRSOSIDataType (int nSize);
@@ -178,10 +180,10 @@ public:
     void setElement(int nIndex, const char *name, OGRFieldType type);
     OGRSOSISimpleDataType* getElements() {
         return poElements;
-    };
+    }
     int getElementCount() {
         return nElementCount;
-    };
+    }
 };
 
 typedef std::map<CPLString, OGRSOSIDataType> C2F;

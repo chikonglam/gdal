@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_overview.h 37184 2017-01-19 12:26:29Z rouault $
+ * $Id: gt_overview.h 80cb27b48aba7d7c474b15495f1f9aee510f5471 2017-01-19 12:26:29Z Even Rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Code to build overviews of external databases as a TIFF file.

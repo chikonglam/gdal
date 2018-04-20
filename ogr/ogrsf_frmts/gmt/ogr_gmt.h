@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gmt.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_gmt.h b73bd61268d34090f6dbccd2e4297c23ec84a7f2 2018-03-31 13:55:05 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions within the OGR GMT driver.
@@ -114,27 +114,9 @@ class OGRGmtDataSource : public OGRDataSource
     OGRLayer            *GetLayer( int ) override;
 
     virtual OGRLayer    *ICreateLayer( const char *,
-                                      OGRSpatialReference * = NULL,
+                                      OGRSpatialReference * = nullptr,
                                       OGRwkbGeometryType = wkbUnknown,
-                                      char ** = NULL ) override;
-    int                 TestCapability( const char * ) override;
-};
-
-/************************************************************************/
-/*                             OGRGmtDriver                             */
-/************************************************************************/
-
-class OGRGmtDriver : public OGRSFDriver
-{
-  public:
-                virtual ~OGRGmtDriver();
-
-    const char *GetName() override;
-    OGRDataSource *Open( const char *, int ) override;
-
-    virtual OGRDataSource *CreateDataSource( const char *pszName,
-                                             char ** = NULL ) override;
-
+                                      char ** = nullptr ) override;
     int                 TestCapability( const char * ) override;
 };
 

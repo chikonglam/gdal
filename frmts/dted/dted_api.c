@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dted_api.c 36422 2016-11-22 00:10:35Z rouault $
+ * $Id: dted_api.c 3b0bbf7a8a012d69a783ee1f9cfeb5c52b370021 2017-06-27 20:57:02Z Even Rouault $
  *
  * Project:  DTED Translator
  * Purpose:  Implementation of DTED/CDED access functions.
@@ -31,7 +31,7 @@
 #include "dted_api.h"
 
 #ifndef AVOID_CPL
-CPL_CVSID("$Id: dted_api.c 36422 2016-11-22 00:10:35Z rouault $");
+CPL_CVSID("$Id: dted_api.c 3b0bbf7a8a012d69a783ee1f9cfeb5c52b370021 2017-06-27 20:57:02Z Even Rouault $")
 #endif
 
 static int bWarnedTwoComplement = FALSE;
@@ -40,6 +40,8 @@ static void DTEDDetectVariantWithMissingColumns(DTEDInfo* psDInfo);
 
 CPL_INLINE static void CPL_IGNORE_RET_VAL_INT(CPL_UNUSED int unused) {}
 CPL_INLINE static void CPL_IGNORE_RET_VAL_SIZET(CPL_UNUSED size_t unused) {}
+
+#define DIGIT_ZERO '0'
 
 /************************************************************************/
 /*                            DTEDGetField()                            */
@@ -74,7 +76,7 @@ static const char* stripLeadingZeros(const char* buf)
 
     /* Go until we run out of characters  or hit something non-zero */
 
-    while( *ptr == '0' && *(ptr+1) != '\0' )
+    while( *ptr == DIGIT_ZERO && *(ptr+1) != '\0' )
     {
         ptr++;
     }

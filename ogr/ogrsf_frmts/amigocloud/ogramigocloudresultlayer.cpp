@@ -28,7 +28,7 @@
 
 #include "ogr_amigocloud.h"
 
-CPL_CVSID("$Id: ogramigocloudresultlayer.cpp 40508 2017-10-20 12:55:15Z rouault $")
+CPL_CVSID("$Id: ogramigocloudresultlayer.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                          OGRAmigoCloudResultLayer()                     */
@@ -41,7 +41,7 @@ OGRAmigoCloudResultLayer::OGRAmigoCloudResultLayer(
 {
     osBaseSQL = pszRawQueryIn;
     SetDescription( "result" );
-    poFirstFeature = NULL;
+    poFirstFeature = nullptr;
 }
 
 /************************************************************************/
@@ -60,7 +60,7 @@ OGRAmigoCloudResultLayer::~OGRAmigoCloudResultLayer()
 
 OGRFeatureDefn * OGRAmigoCloudResultLayer::GetLayerDefnInternal(json_object* poObjIn)
 {
-    if( poFeatureDefn != NULL )
+    if( poFeatureDefn != nullptr )
         return poFeatureDefn;
 
     EstablishLayerDefn("result", poObjIn);
@@ -77,7 +77,7 @@ OGRFeature  *OGRAmigoCloudResultLayer::GetNextRawFeature()
     if( poFirstFeature )
     {
         OGRFeature* poRet = poFirstFeature;
-        poFirstFeature = NULL;
+        poFirstFeature = nullptr;
         return poRet;
     }
     else

@@ -29,17 +29,17 @@
 #include "ogr_xplane.h"
 #include "ogr_xplane_reader.h"
 
-CPL_CVSID("$Id: ogrxplanedatasource.cpp 35599 2016-10-02 15:49:33Z goatbar $");
+CPL_CVSID("$Id: ogrxplanedatasource.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                          OGRXPlaneDataSource()                          */
 /************************************************************************/
 
 OGRXPlaneDataSource::OGRXPlaneDataSource() :
-    pszName(NULL),
-    papoLayers(NULL),
+    pszName(nullptr),
+    papoLayers(nullptr),
     nLayers(0),
-    poReader(NULL),
+    poReader(nullptr),
     bReadWholeFile(true),
     bWholeFiledReadingDone(false)
 {}
@@ -60,19 +60,19 @@ OGRXPlaneDataSource::~OGRXPlaneDataSource()
 
 void OGRXPlaneDataSource::Reset()
 {
-    if ( poReader != NULL)
+    if ( poReader != nullptr)
     {
         delete poReader;
-        poReader = NULL;
+        poReader = nullptr;
     }
 
     CPLFree( pszName );
-    pszName = NULL;
+    pszName = nullptr;
 
     for( int i = 0; i < nLayers; i++ )
         delete papoLayers[i];
     CPLFree( papoLayers );
-    papoLayers = NULL;
+    papoLayers = nullptr;
     nLayers = 0;
 }
 
@@ -84,7 +84,7 @@ OGRLayer *OGRXPlaneDataSource::GetLayer( int iLayer )
 
 {
     if( iLayer < 0 || iLayer >= nLayers )
-        return NULL;
+        return nullptr;
     else
         return papoLayers[iLayer];
 }
@@ -137,7 +137,7 @@ int OGRXPlaneDataSource::Open( const char * pszFilename, int bReadWholeFileIn )
     if( poReader && !poReader->StartParsing(pszFilename) )
     {
         delete poReader;
-        poReader = NULL;
+        poReader = nullptr;
     }
     if( poReader )
     {

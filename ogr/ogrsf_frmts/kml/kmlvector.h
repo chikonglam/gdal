@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlvector.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: kmlvector.h f2eb8781ae5db589bee4dcdb93a5be1e36e986a1 2018-02-19 13:28:36Z Even Rouault $
  *
  * Project:  KML Driver
  * Purpose:  Specialization of the kml class, only for vectors in kml files.
@@ -29,6 +29,8 @@
 #ifndef OGR_KMLVECTOR_H_INCLUDED
 #define OGR_KMLVECTOR_H_INCLUDED
 
+#ifdef HAVE_EXPAT
+
 #include "kml.h"
 #include "kmlnode.h"
 // std
@@ -47,6 +49,8 @@ public:
     bool isRest(std::string const& sIn) const override;
     void findLayers(KMLNode* poNode, int bKeepEmptyContainers) override;
 };
+
+#endif // HAVE_EXPAT
 
 #endif /* OGR_KMLVECTOR_H_INCLUDED */
 

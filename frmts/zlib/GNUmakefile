@@ -1,4 +1,4 @@
-# $Id: GNUmakefile 32078 2015-12-08 09:09:45Z rouault $
+# $Id$
 #
 # Makefile to build zlib using GNU Make and GCC.
 #

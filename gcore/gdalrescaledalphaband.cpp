@@ -36,7 +36,7 @@
 #include "cpl_vsi.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: gdalrescaledalphaband.cpp 36526 2016-11-27 15:46:54Z goatbar $");
+CPL_CVSID("$Id: gdalrescaledalphaband.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 //! @cond Doxygen_Suppress
 /************************************************************************/
@@ -45,12 +45,12 @@ CPL_CVSID("$Id: gdalrescaledalphaband.cpp 36526 2016-11-27 15:46:54Z goatbar $")
 
 GDALRescaledAlphaBand::GDALRescaledAlphaBand( GDALRasterBand *poParentIn ) :
     poParent(poParentIn),
-    pTemp(NULL)
+    pTemp(nullptr)
 {
     CPLAssert(poParent->GetRasterDataType() == GDT_UInt16);
 
     // Defined in GDALRasterBand.
-    poDS = NULL;
+    poDS = nullptr;
     nBand = 0;
 
     nRasterXSize = poParent->GetXSize();
@@ -110,10 +110,10 @@ CPLErr GDALRescaledAlphaBand::IRasterIO(
         nXSize == nBufXSize && nYSize == nBufYSize &&
         nPixelSpace == 1 )
     {
-        if( pTemp == NULL )
+        if( pTemp == nullptr )
         {
             pTemp = VSI_MALLOC2_VERBOSE( sizeof(GUInt16), nRasterXSize );
-            if( pTemp == NULL )
+            if( pTemp == nullptr )
             {
                 return CE_Failure;
             }
@@ -124,7 +124,7 @@ CPLErr GDALRescaledAlphaBand::IRasterIO(
                 poParent->RasterIO( GF_Read, nXOff, nYOff + j, nXSize, 1,
                                     pTemp, nBufXSize, 1,
                                     GDT_UInt16,
-                                    0, 0, NULL );
+                                    0, 0, nullptr );
             if( eErr != CE_None )
                 return eErr;
 

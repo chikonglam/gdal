@@ -2,7 +2,7 @@
 #define SHAPEFILE_H_INCLUDED
 
 /******************************************************************************
- * $Id: shapefil.h 37997 2017-04-14 10:20:57Z rouault $
+ * $Id: shapefil.h aa2a1c234c3bff9eb6f4330b88ea093b9e67b25a 2018-02-24 21:40:16Z Even Rouault $
  *
  * Project:  Shapelib
  * Purpose:  Primary include file for Shapelib.
@@ -46,12 +46,6 @@
 
 #ifdef USE_CPL
 #include "cpl_conv.h"
-
-/* Hide shapelib symbols in GDAL builds --with-hide-internal-symbols */
-#if !defined(SHPAPI_CALL) && defined(USE_GCC_VISIBILITY_FLAG)
-#define SHPAPI_CALL
-#endif
-
 #endif
 
 #ifdef __cplusplus
@@ -507,6 +501,7 @@ typedef enum {
   FTInteger,
   FTDouble,
   FTLogical,
+  FTDate,
   FTInvalid
 } DBFFieldType;
 

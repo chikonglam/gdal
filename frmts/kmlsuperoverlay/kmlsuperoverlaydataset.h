@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlsuperoverlaydataset.h 37396 2017-02-17 09:49:36Z rouault $
+ * $Id: kmlsuperoverlaydataset.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  KmlSuperOverlay
  * Purpose:  Implements write support for KML superoverlay - KMZ.
@@ -53,7 +53,7 @@ class LinkedDataset
         CPLString      osSubFilename;
 };
 
-class KmlSuperOverlayReadDataset : public GDALDataset
+class KmlSuperOverlayReadDataset final: public GDALDataset
 {
     friend class        KmlSuperOverlayRasterBand;
 
@@ -82,7 +82,7 @@ class KmlSuperOverlayReadDataset : public GDALDataset
     virtual      ~KmlSuperOverlayReadDataset();
 
     static int          Identify(GDALOpenInfo *);
-    static GDALDataset *Open(const char* pszFilename, KmlSuperOverlayReadDataset* poParent = NULL, int nRec = 0);
+    static GDALDataset *Open(const char* pszFilename, KmlSuperOverlayReadDataset* poParent = nullptr, int nRec = 0);
     static GDALDataset *Open(GDALOpenInfo *);
  
     static const int KMLSO_ContainsOpaquePixels = 0x1;
@@ -108,7 +108,7 @@ class KmlSuperOverlayReadDataset : public GDALDataset
 /*                     KmlSuperOverlayRasterBand                        */
 /************************************************************************/
 
-class KmlSuperOverlayRasterBand: public GDALRasterBand
+class KmlSuperOverlayRasterBand final: public GDALRasterBand
 {
     public:
                     KmlSuperOverlayRasterBand( KmlSuperOverlayReadDataset* poDS,

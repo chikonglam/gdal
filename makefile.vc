@@ -62,7 +62,7 @@ default:	$(TARGET_LIB) $(PLUGIN_TARGET) apps_dir
 
 staticlib:      $(LIB_DEPENDS)
 	if exist gdal.lib del gdal.lib
-	lib /nologo /out:gdal.lib $(LIBOBJ)
+	lib /nologo /out:gdal.lib $(LIBOBJ) $(EXTERNAL_LIBS)
 
 appslib-target:
 	cd apps
@@ -101,6 +101,12 @@ clean:
 	-del *.ilk
 	-del *.pdb
 
+
+generate_gdal_version_h:
+	cd gcore
+	$(MAKE) /f makefile.vc gdal_version.h
+	cd ..
+
 port_dir:
 	cd port
 	$(MAKE) /f makefile.vc
@@ -111,14 +117,14 @@ ogr_min:
 	$(MAKE) /f makefile.vc ogr.lib
 	cd ..
 
-core_dir: port_dir
+core_dir: port_dir generate_gdal_version_h
 	cd gcore
 	$(MAKE) /f makefile.vc
 	cd ..\alg
 	$(MAKE) /f makefile.vc
 	cd ..
 
-frmts_dir:
+frmts_dir: generate_gdal_version_h
 	cd frmts
 	$(MAKE) /f makefile.vc
 	cd ..
@@ -138,7 +144,7 @@ apps_dir:   $(TARGET_LIB)
 	$(MAKE) /f makefile.vc
 	cd ..
 
-ogr_dir:      port_dir
+ogr_dir:      port_dir generate_gdal_version_h
 	cd frmts/iso8211
 	$(MAKE) /f makefile.vc
 	cd ..\sdts
@@ -166,6 +172,25 @@ $(GDAL_DLL): $(LIB_DEPENDS)
 
 dll:	$(GDAL_DLL)
 
+bindings:
+	-for %d in ( $(BINDINGS) ) do \
+		cd swig \
+		&& $(MAKE) /f makefile.vc %d  \
+		&& cd .. \
+		|| exit 1
+
+bindings_install:
+	-for %d in ( $(BINDINGS) ) do    \
+		cd swig  \
+		&& $(MAKE) /f  makefile.vc %d_install \
+		&& cd ..   \
+		|| exit 1
+
+bindings_clean:
+	cd swig  \
+		&& $(MAKE) /f  makefile.vc  clean \
+		&& cd ..   \
+		|| exit 1
 install: default
 	-mkdir $(BINDIR)
 	-mkdir $(DATADIR)

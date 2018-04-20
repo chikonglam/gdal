@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#******************************************************************************
-#  $Id: attachpct.py 33791 2016-03-26 12:51:23Z goatbar $
+# ******************************************************************************
+#  $Id: attachpct.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
 #
 #  Project:  GDAL
 #  Purpose:  Simple command line program for copying the color table of a
 #            raster into another raster.
 #  Author:   Frank Warmerdam, warmerda@home.com
 #
-#******************************************************************************
+# ******************************************************************************
 #  Copyright (c) 2000, Frank Warmerdam
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a
@@ -28,7 +28,7 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
-#******************************************************************************
+# ******************************************************************************
 
 import sys
 
@@ -41,7 +41,7 @@ if len(sys.argv) < 3:
 # =============================================================================
 # Get the PCT.
 # =============================================================================
-ds = gdal.Open( sys.argv[1] )
+ds = gdal.Open(sys.argv[1])
 ct = ds.GetRasterBand(1).GetRasterColorTable()
 
 if ct is None:
@@ -56,32 +56,25 @@ ds = None
 # Create a MEM clone of the source file.
 # =============================================================================
 
-src_ds = gdal.Open( sys.argv[2] )
+src_ds = gdal.Open(sys.argv[2])
 
-mem_ds = gdal.GetDriverByName( 'MEM' ).CreateCopy( 'mem', src_ds )
+mem_ds = gdal.GetDriverByName('MEM').CreateCopy('mem', src_ds)
 
 # =============================================================================
 # Assign the color table in memory.
 # =============================================================================
 
-mem_ds.GetRasterBand(1).SetRasterColorTable( ct )
-mem_ds.GetRasterBand(1).SetRasterColorInterpretation( gdal.GCI_PaletteIndex )
+mem_ds.GetRasterBand(1).SetRasterColorTable(ct)
+mem_ds.GetRasterBand(1).SetRasterColorInterpretation(gdal.GCI_PaletteIndex)
 
 # =============================================================================
 # Write the dataset to the output file.
 # =============================================================================
 
-drv = gdal.GetDriverByName( 'GTiff' )
+drv = gdal.GetDriverByName('GTiff')
 
-out_ds = drv.CreateCopy( sys.argv[3], mem_ds )
+out_ds = drv.CreateCopy(sys.argv[3], mem_ds)
 
 out_ds = None
 mem_ds = None
 src_ds = None
-
-
-
-
-
-
-

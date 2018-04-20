@@ -31,7 +31,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: 8211view.cpp 36352 2016-11-20 22:31:49Z rouault $");
+CPL_CVSID("$Id: 8211view.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 static void ViewRecordField( DDFField * poField );
 static int ViewSubfield( DDFSubfieldDefn *poSFDefn,
@@ -46,7 +46,7 @@ int main( int nArgc, char ** papszArgv )
 
 {
     DDFModule   oModule;
-    const char  *pszFilename = NULL;
+    const char  *pszFilename = nullptr;
     int         bFSPTHack = FALSE;
 
     for( int iArg = 1; iArg < nArgc; iArg++ )
@@ -57,7 +57,7 @@ int main( int nArgc, char ** papszArgv )
             pszFilename = papszArgv[iArg];
     }
 
-    if( pszFilename == NULL )
+    if( pszFilename == nullptr )
     {
         printf( "Usage: 8211view filename\n" );
         exit( 1 );
@@ -76,7 +76,7 @@ int main( int nArgc, char ** papszArgv )
     {
         DDFFieldDefn *poFSPT = oModule.FindFieldDefn( "FSPT" );
 
-        if( poFSPT == NULL )
+        if( poFSPT == nullptr )
             fprintf( stderr,
                      "unable to find FSPT field to set repeating flag.\n" );
         else
@@ -86,10 +86,10 @@ int main( int nArgc, char ** papszArgv )
 /* -------------------------------------------------------------------- */
 /*      Loop reading records till there are none left.                  */
 /* -------------------------------------------------------------------- */
-    DDFRecord *poRecord = NULL;
+    DDFRecord *poRecord = nullptr;
     int iRecord = 0;
 
-    while( (poRecord = oModule.ReadRecord()) != NULL )
+    while( (poRecord = oModule.ReadRecord()) != nullptr )
     {
         printf( "Record %d (%d bytes)\n",
                 ++iRecord, poRecord->GetDataSize() );

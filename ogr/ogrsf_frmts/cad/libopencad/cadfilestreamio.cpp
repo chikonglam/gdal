@@ -36,6 +36,8 @@ CADFileStreamIO::CADFileStreamIO( const char * pszFilePath ) : CADFileIO( pszFil
 
 CADFileStreamIO::~CADFileStreamIO()
 {
+    if( CADFileStreamIO::IsOpened() )
+        CADFileStreamIO::Close();
 }
 
 const char * CADFileStreamIO::ReadLine()
@@ -95,7 +97,8 @@ int CADFileStreamIO::Seek( long offset, CADFileIO::SeekOrigin origin )
 
 long int CADFileStreamIO::Tell()
 {
-    return m_oFileStream.tellg();
+    // FIXME? cast may cause potential issue on 32bit / Windows for large files
+    return static_cast<long>(m_oFileStream.tellg());
 }
 
 size_t CADFileStreamIO::Read( void * ptr, size_t size )

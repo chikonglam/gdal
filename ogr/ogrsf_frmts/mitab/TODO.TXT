@@ -35,5 +35,5 @@ MITAB Library - ToDo, Open Questions:
 
 
 ------------
-$Id: TODO.TXT 35222 2016-08-28 06:06:11Z goatbar $
+$Id$
 ------------

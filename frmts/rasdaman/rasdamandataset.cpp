@@ -40,8 +40,9 @@
 
 void CPL_DLL CPL_STDCALL GDALRegister_RASDAMAN();
 
-CPL_CVSID("$Id: rasdamandataset.cpp 36501 2016-11-25 14:09:24Z rouault $");
+CPL_CVSID("$Id: rasdamandataset.cpp 3b0bbf7a8a012d69a783ee1f9cfeb5c52b370021 2017-06-27 20:57:02Z Even Rouault $")
 
+// cppcheck-suppress copyCtorAndEqOperator
 class Subset
 {
 public:

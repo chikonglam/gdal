@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: acinclude.m4 38883 2017-06-05 08:08:26Z rouault $
+dnl $Id: acinclude.m4 a2bd4ff8ddd0fbd1bbfc3e2ff36dcbb9565eac09 2017-06-05 08:08:18Z Even Rouault $
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Configure extra local definitions.

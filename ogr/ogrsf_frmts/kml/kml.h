@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kml.h 35911 2016-10-24 15:03:26Z goatbar $
+ * $Id: kml.h f2eb8781ae5db589bee4dcdb93a5be1e36e986a1 2018-02-19 13:28:36Z Even Rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for reading, parsing and handling a kmlfile.
@@ -30,6 +30,8 @@
 #ifndef OGR_KML_KML_H_INCLUDED
 #define OGR_KML_KML_H_INCLUDED
 
+#ifdef HAVE_EXPAT
+
 #include "ogr_expat.h"
 #include "cpl_vsi.h"
 
@@ -37,14 +39,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
-/* Workaround VC6 bug */
-#if defined(_MSC_VER) && (_MSC_VER <= 1200)
-namespace std
-{
-  typedef ::size_t size_t;
-}
-#endif
 
 #include "cpl_port.h"
 #include "kmlutility.h"
@@ -75,7 +69,7 @@ public:
 
     bool hasOnlyEmpty() const;
 
-    void parse();
+    bool parse();
     void print(unsigned short what = 3);
     std::string getError() const;
     int classifyNodes();
@@ -123,5 +117,7 @@ private:
     int nDataHandlerCounter;
     int nWithoutEventCounter;
 };
+
+#endif // HAVE_EXPAT
 
 #endif /* OGR_KML_KML_H_INCLUDED */

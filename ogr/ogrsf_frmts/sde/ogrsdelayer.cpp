@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrsdelayer.cpp 37371 2017-02-13 11:41:59Z rouault $");
+CPL_CVSID("$Id: ogrsdelayer.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            OGRSDELayer()                             */
@@ -819,7 +819,7 @@ OGRErr OGRSDELayer::TranslateOGRRecord( OGRFeature *poFeature,
         // Skip FID and Geometry columns
         if( EQUAL(poFieldDefn->GetNameRef(), osFIDColumnName.c_str()) )
         {
-            // Skip the column if it's managed by SDE
+            // Skip the column if it is managed by SDE
             if( nFIDColumnType == SE_REGISTRATION_ROW_ID_COLUMN_TYPE_SDE )
                 continue;
         }

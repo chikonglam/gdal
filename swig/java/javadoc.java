@@ -1,5 +1,5 @@
 /* ***************************************************************************
-* $Id: javadoc.java 38099 2017-04-22 16:40:28Z rouault $
+* $Id: javadoc.java c26cbb129be24457c2416cb9cc7a49356120881d 2017-05-31 19:22:06Z Kurt Schwehr $
 *
 * Project:  GDAL/OGR Java bindings
 * Purpose:  Documentation for the Java bindings
@@ -10064,7 +10064,7 @@ public class ogr:public static DataSource OpenShared(String filename, int update
  * <li>UK .NTF</li>
  * <li>U.S. Census TIGER/Line</li>
  * <li>VRT - Virtual Datasource</li>
- * <li>X-Plane/Flighgear aeronautical data</li>
+ * <li>X-Plane/Flightgear aeronautical data</li>
  * </ul>
  * <p>
  * This function should generally be called once at the beginning of the application.

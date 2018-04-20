@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: update_copyright.py 32002 2015-12-05 06:03:16Z goatbar $
+# $Id: update_copyright.py d7e898f6034a9c6c0f83cfbff921434dfc2082be 2018-04-18 23:07:52 +1000 Ben Elliston $
 #
 # Project:  GDAL/OGR
 # Purpose:  Update copyright info in headers
@@ -67,7 +67,7 @@ for dirname, dirnames, filenames in os.walk('.'):
             continue
         fullfilename = os.path.join(dirname, filename)
 
-        #print(fullfilename)
+        # print(fullfilename)
         minyear = -1
         maxyear = -1
 
@@ -82,11 +82,11 @@ for dirname, dirnames, filenames in os.walk('.'):
             line = lines[i][0:-1]
             if line.find('Author:') == 0 and line.find(git_author) >= 0:
                 i = i + 1
-                #line = lines[i][0:-1]
-                #year = int(line.split(' ')[7])
+                # line = lines[i][0:-1]
+                # year = int(line.split(' ')[7])
                 i = i + 1
                 i = i + 1
-                commit_number = lines[i-4][7:15]
+                commit_number = lines[i - 4][7:15]
                 ignore_commit = False
                 while i < nlines:
                     line = lines[i][0:-1]
@@ -124,9 +124,9 @@ for dirname, dirnames, filenames in os.walk('.'):
                 idx = line.find("(" + git_author)
                 if idx > 0:
                     count_matching_lines = count_matching_lines + 1
-                    line = line[idx+len(git_author)+1:]
+                    line = line[idx + len(git_author) + 1:]
                     idx = line.find(' 20')
-                    year = int(line[idx+1:idx+5])
+                    year = int(line[idx + 1:idx + 5])
                     if minyear < 0 or year < minyear:
                         minyear = year
                     if maxyear < 0 or year > maxyear:
@@ -164,7 +164,7 @@ for dirname, dirnames, filenames in os.walk('.'):
                     line = lines[i]
                     if (line.find('Copyright') < 0 and len(line.strip()) < 10) or line.find('Permission to use') > 0:
                         break
-                if minyear < maxyear :
+                if minyear < maxyear:
                     f2.write('%sCopyright (c) %d-%d, %s\n' % (prefix, minyear, maxyear, full_author))
                 else:
                     f2.write('%sCopyright (c) %d, %s\n' % (prefix, minyear, full_author))

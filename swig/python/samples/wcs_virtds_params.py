@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
 #!/usr/bin/env python
-#******************************************************************************
-#  $Id$
+#
+# -*- coding: utf-8 -*-
+# ******************************************************************************
+#  $Id: wcs_virtds_params.py e61505e755326f028d730384dcbd273681c97942 2018-04-19 08:23:03 +1000 Ben Elliston $
 #
 #  Name:     wcs_virtds_params.py
 #  Project:  GDAL Python Interface
@@ -28,7 +29,7 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
-#******************************************************************************
+# ******************************************************************************
 
 import os
 import sys
@@ -42,8 +43,9 @@ def Usage():
     print('Usage: wcs_virtds_params.py [-lyr_name name] [-tileindex field_name] [-t_srs srsdef] -src_srs_name field_name ogr_ds_tileindex')
     sys.exit(1)
 
+
 argv = sys.argv
-argv = ogr.GeneralCmdLineProcessor( argv )
+argv = ogr.GeneralCmdLineProcessor(argv)
 
 ogr_ds_name = None
 lyr_name = None
@@ -56,19 +58,19 @@ nArgc = len(argv)
 iArg = 1
 while iArg < nArgc:
 
-    if argv[iArg] == "-lyr_name" and iArg < nArgc-1:
+    if argv[iArg] == "-lyr_name" and iArg < nArgc - 1:
         iArg = iArg + 1
         lyr_name = argv[iArg]
 
-    elif argv[iArg] == "-tileindex" and iArg < nArgc-1:
+    elif argv[iArg] == "-tileindex" and iArg < nArgc - 1:
         iArg = iArg + 1
         tileitem = argv[iArg]
 
-    elif argv[iArg] == "-src_srs_name" and iArg < nArgc-1:
+    elif argv[iArg] == "-src_srs_name" and iArg < nArgc - 1:
         iArg = iArg + 1
         tilesrs = argv[iArg]
 
-    elif argv[iArg] == "-t_srs" and iArg < nArgc-1:
+    elif argv[iArg] == "-t_srs" and iArg < nArgc - 1:
         iArg = iArg + 1
         srsname = argv[iArg]
 
@@ -136,7 +138,7 @@ while True:
     feat = lyr.GetNextFeature()
     if feat is None:
         break
-    #feat.DumpReadable()
+    # feat.DumpReadable()
 
     gdal_ds_name = feat.GetField(tileitem)
     if not os.path.isabs(gdal_ds_name):

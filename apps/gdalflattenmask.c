@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalflattenmask.c 36535 2016-11-27 23:49:35Z goatbar $");
+CPL_CVSID("$Id: gdalflattenmask.c ff8146d84de7cba8e09d212d5481ea7d2ede3e98 2017-06-27 20:47:31Z Even Rouault $")
 
 /************************************************************************/
 /*                               Usage()                                */

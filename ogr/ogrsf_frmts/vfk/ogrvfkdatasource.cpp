@@ -32,16 +32,16 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrvfkdatasource.cpp 37757 2017-03-18 14:03:33Z rouault $");
+CPL_CVSID("$Id: ogrvfkdatasource.cpp 971391e2b775c1822243f56d70cf12ae6dd7c39f 2018-04-09 16:18:27 +0200 Martin Landa $")
 
 /*!
   \brief OGRVFKDataSource constructor
 */
 OGRVFKDataSource::OGRVFKDataSource() :
-    papoLayers(NULL),
+    papoLayers(nullptr),
     nLayers(0),
-    pszName(NULL),
-    poReader(NULL)
+    pszName(nullptr),
+    poReader(nullptr)
 {}
 
 /*!
@@ -73,7 +73,7 @@ int OGRVFKDataSource::Open(GDALOpenInfo* poOpenInfo)
 
     /* create VFK reader */
     poReader = CreateVFKReader(poOpenInfo->pszFilename);
-    if (poReader == NULL || !poReader->IsValid()) {
+    if (poReader == nullptr || !poReader->IsValid()) {
         /*
         CPLError(CE_Failure, CPLE_AppDefined,
                  "File %s appears to be VFK but the VFK reader can't"
@@ -83,8 +83,9 @@ int OGRVFKDataSource::Open(GDALOpenInfo* poOpenInfo)
         return FALSE;
     }
 
+    bool bSuppressGeometry = CPLFetchBool(poOpenInfo->papszOpenOptions, "SUPPRESS_GEOMETRY", false);
     /* read data blocks, i.e. &B */
-    poReader->ReadDataBlocks();
+    poReader->ReadDataBlocks(bSuppressGeometry);
 
     /* get list of layers */
     papoLayers = (OGRVFKLayer **) CPLCalloc(sizeof(OGRVFKLayer *), poReader->GetDataBlockCount());
@@ -99,9 +100,11 @@ int OGRVFKDataSource::Open(GDALOpenInfo* poOpenInfo)
         /* read data records if requested */
         poReader->ReadDataRecords();
 
-        for (int iLayer = 0; iLayer < poReader->GetDataBlockCount(); iLayer++) {
-            /* load geometry */
-            poReader->GetDataBlock(iLayer)->LoadGeometry();
+        if ( !bSuppressGeometry ) {
+            for (int iLayer = 0; iLayer < poReader->GetDataBlockCount(); iLayer++) {
+                /* load geometry */
+                poReader->GetDataBlock(iLayer)->LoadGeometry();
+            }
         }
     }
 
@@ -118,7 +121,7 @@ int OGRVFKDataSource::Open(GDALOpenInfo* poOpenInfo)
 OGRLayer *OGRVFKDataSource::GetLayer(int iLayer)
 {
     if( iLayer < 0 || iLayer >= nLayers )
-        return NULL;
+        return nullptr;
 
     return papoLayers[iLayer];
 }
@@ -151,7 +154,7 @@ OGRVFKLayer *OGRVFKDataSource::CreateLayerFromBlock(const IVFKDataBlock *poDataB
 {
     /* create an empty layer */
     OGRVFKLayer *poLayer =
-        new OGRVFKLayer(poDataBlock->GetName(), NULL,
+        new OGRVFKLayer(poDataBlock->GetName(), nullptr,
                         poDataBlock->GetGeometryType(), this);
 
     /* define attributes (properties) */

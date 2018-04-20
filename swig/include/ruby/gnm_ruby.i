@@ -1,5 +1,5 @@
 /*
- * $Id: gnm_ruby.i 34525 2016-07-03 02:53:47Z goatbar $
+ * $Id: gnm_ruby.i e3dcd9dd0abb07d5da0e410272e0b4c5f4530411 2016-06-20 10:44:12Z Dmitry Baryshnikov $
  *
  * ruby specific code for ogr bindings.
  */

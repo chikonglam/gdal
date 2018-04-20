@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gxfopen.h 35335 2016-09-05 20:18:57Z goatbar $
+ * $Id: gxfopen.h 013acb5f84267ffb6e42b03ccdb09045243cdf1a 2017-05-20 16:15:44Z Even Rouault $
  *
  * Project:  GXF Reader
  * Purpose:  GXF-3 access function declarations.
@@ -87,7 +87,7 @@ CPL_C_END
 /*      This is consider to be a private structure.                     */
 /* -------------------------------------------------------------------- */
 typedef struct {
-    FILE        *fp;
+    VSILFILE        *fp;
 
     int         nRawXSize;
     int         nRawYSize;
@@ -118,7 +118,7 @@ typedef struct {
     double      dfZMaximum;
     double      dfZMinimum;
 
-    long        *panRawLineOffset;
+    vsi_l_offset        *panRawLineOffset;
 } GXFInfo_t;
 
 #endif /* ndef GXFOPEN_H_INCLUDED */

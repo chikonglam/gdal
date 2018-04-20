@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: e00read.c 39207 2017-06-20 17:57:08Z rouault $
+ * $Id: e00read.c cce4fc19bb553db2a40e1bad04a903fc2c4566a6 2017-06-20 17:57:04Z Even Rouault $
  *
  * Name:     e00read.c
  * Project:  Compressed E00 Read/Write library
@@ -467,7 +467,6 @@ static const char *_UncompressNextLine(E00ReadPtr psInfo)
             /* Force the program to abort by simulating a EOF
              */
             psInfo->bEOF = 1;
-            bEOL = 1;
             break;
         }
 
@@ -602,7 +601,7 @@ static const char *_UncompressNextLine(E00ReadPtr psInfo)
                         /* Force the program to abort by simulating a EOF
                         */
                         psInfo->bEOF = 1;
-                        bEOL = 1;
+                        /*bEOL = 1;*/
                         break;
                     }
                     iOutBufPtr--;
@@ -611,7 +610,7 @@ static const char *_UncompressNextLine(E00ReadPtr psInfo)
                 /* Insert the exponent string before the 2 last digits
                  * (we assume the exponent string is 2 chars. long)
                  */
-                if (pszExp)
+                if (pszExp && iOutBufPtr >= 2)
                 {
                     for(i=0; i<2;i++)
                     {

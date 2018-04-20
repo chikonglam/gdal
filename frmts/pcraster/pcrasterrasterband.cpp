@@ -32,7 +32,7 @@
 #include "pcrasterrasterband.h"
 #include "pcrasterutil.h"
 
-CPL_CVSID("$Id: pcrasterrasterband.cpp 35929 2016-10-25 16:09:00Z goatbar $");
+CPL_CVSID("$Id: pcrasterrasterband.cpp 3b0bbf7a8a012d69a783ee1f9cfeb5c52b370021 2017-06-27 20:57:02Z Even Rouault $")
 
 /*!
   \file

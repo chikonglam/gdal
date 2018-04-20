@@ -32,7 +32,7 @@
 #include "gdal.h"
 #include "aoutils.h"
 
-CPL_CVSID("$Id: aodatasource.cpp 36682 2016-12-04 20:34:45Z rouault $");
+CPL_CVSID("$Id: aodatasource.cpp ff8146d84de7cba8e09d212d5481ea7d2ede3e98 2017-06-27 20:47:31Z Even Rouault $")
 
 /************************************************************************/
 /*                          AODataSource()                           */

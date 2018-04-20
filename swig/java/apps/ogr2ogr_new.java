@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr_new.java 30884 2015-10-07 14:01:07Z rouault $
+ * $Id: ogr2ogr_new.java a2e5e1004b4fae2de09258846a259b9c674f570b 2015-10-07 14:01:07Z Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.

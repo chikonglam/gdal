@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_s57.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_s57.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  S-57 Translator
  * Purpose:  Declarations for classes binding S57 support onto OGRLayer,
@@ -102,7 +102,7 @@ class OGRS57DataSource : public OGRDataSource
     OGREnvelope         oExtents;
 
   public:
-    explicit            OGRS57DataSource(char** papszOpenOptions = NULL);
+    explicit            OGRS57DataSource(char** papszOpenOptions = nullptr);
                         ~OGRS57DataSource();
 
     void                SetOptionList( char ** );

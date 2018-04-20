@@ -29,7 +29,7 @@
 #include "ogr_db2.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrdb2driver.cpp 35910 2016-10-24 14:08:24Z goatbar $");
+CPL_CVSID("$Id: ogrdb2driver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                       OGRDB2DriverIdentify()                  */
@@ -50,7 +50,7 @@ static int OGRDB2DriverIdentify( GDALOpenInfo* poOpenInfo )
 static GDALDataset *OGRDB2DriverOpen( GDALOpenInfo* poOpenInfo )
 {
     if( !OGRDB2DriverIdentify(poOpenInfo) )
-        return NULL;
+        return nullptr;
 
     CPLDebug( "OGRDB2DriverOpen", "pszFilename: '%s'",
               poOpenInfo->pszFilename);
@@ -61,7 +61,7 @@ static GDALDataset *OGRDB2DriverOpen( GDALOpenInfo* poOpenInfo )
     {
         CPLDebug( "OGRDB2DriverOpen", "open error");
         delete poDS;
-        poDS = NULL;
+        poDS = nullptr;
     }
     CPLDebug( "OGRDB2DriverOpen", "Exit");
     return poDS;
@@ -85,7 +85,7 @@ static GDALDataset* OGRDB2DriverCreate( const char * pszFilename,
                        nBands, eDT, papszOptions ) )
     {
         delete poDS;
-        poDS = NULL;
+        poDS = nullptr;
     }
     return poDS;
 }
@@ -112,7 +112,7 @@ static CPLErr OGRDB2DriverDelete( const char *pszFilename )
 
 void RegisterOGRDB2()
 {
-    if( GDALGetDriverByName("DB2ODBC") != NULL )
+    if( GDALGetDriverByName("DB2ODBC") != nullptr )
         return;
 
     GDALDriver *poDriver = new GDALDriver();

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gensql.h 37576 2017-03-03 14:29:55Z rouault $
+ * $Id: ogr_gensql.h 3e9d922f6235cbf10dcc765d1326add45431fb8a 2018-04-02 16:53:25 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes related to generic implementation of ExecuteSQL().
@@ -54,7 +54,7 @@
 /*                        OGRGenSQLResultsLayer                         */
 /************************************************************************/
 
-class CPL_DLL OGRGenSQLResultsLayer : public OGRLayer
+class OGRGenSQLResultsLayer final: public OGRLayer
 {
   private:
     GDALDataset *poSrcDS;

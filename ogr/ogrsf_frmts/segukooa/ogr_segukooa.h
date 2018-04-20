@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_segukooa.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_segukooa.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  SEG-P1 / UKOOA P1-90 Translator
  * Purpose:  Definition of classes for OGR SEG-P1 / UKOOA P1-90 driver.
@@ -57,7 +57,7 @@ class OGRSEGUKOOABaseLayer : public OGRLayer
 /*                          OGRUKOOAP190Layer                           */
 /************************************************************************/
 
-class OGRUKOOAP190Layer : public OGRSEGUKOOABaseLayer
+class OGRUKOOAP190Layer final: public OGRSEGUKOOABaseLayer
 {
     OGRSpatialReference* poSRS;
 
@@ -82,7 +82,7 @@ class OGRUKOOAP190Layer : public OGRSEGUKOOABaseLayer
 /*                        OGRSEGUKOOALineLayer                          */
 /************************************************************************/
 
-class OGRSEGUKOOALineLayer : public OGRSEGUKOOABaseLayer
+class OGRSEGUKOOALineLayer final: public OGRSEGUKOOABaseLayer
 {
     OGRLayer          *poBaseLayer;
     OGRFeature        *poNextBaseFeature;
@@ -102,7 +102,7 @@ class OGRSEGUKOOALineLayer : public OGRSEGUKOOABaseLayer
 /*                         OGRSEGP1Layer                                */
 /************************************************************************/
 
-class OGRSEGP1Layer: public OGRSEGUKOOABaseLayer
+class OGRSEGP1Layer final: public OGRSEGUKOOABaseLayer
 {
     OGRSpatialReference* poSRS;
 
@@ -131,7 +131,7 @@ public:
 /*                         OGRSEGUKOOADataSource                        */
 /************************************************************************/
 
-class OGRSEGUKOOADataSource : public OGRDataSource
+class OGRSEGUKOOADataSource final: public OGRDataSource
 {
     char*               pszName;
 

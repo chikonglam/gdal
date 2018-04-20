@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: Band.i 35453 2016-09-15 15:35:48Z rouault $
+ * $Id: Band.i 97ddfe1f4daf2fa4fc965117a66e147ab18f1f9b 2017-12-21 13:14:49Z Even Rouault $
  *
  * Name:     Band.i
  * Project:  GDAL Python Interface
@@ -700,6 +700,27 @@ CPLErr SetDefaultHistogram( double min, double max,
     }
     %clear (double *);
 #endif
+
+%apply (int *optional_int) { (GDALDataType *buf_type) };
+CPLErr AdviseRead(  int xoff, int yoff, int xsize, int ysize,
+                    int *buf_xsize = 0, int *buf_ysize = 0,
+                    GDALDataType *buf_type = 0,
+                    char** options = NULL )
+{
+    int nxsize = (buf_xsize==0) ? xsize : *buf_xsize;
+    int nysize = (buf_ysize==0) ? ysize : *buf_ysize;
+    GDALDataType ntype;
+    if ( buf_type != 0 ) {
+      ntype = (GDALDataType) *buf_type;
+    } else {
+      ntype = GDALGetRasterDataType( self );
+    }
+    return GDALRasterAdviseRead(self, xoff, yoff, xsize, ysize,
+                                nxsize, nysize, ntype, options);
+}
+%clear (GDALDataType *buf_type);
+%clear (int band_list, int *pband_list );
+
 
 } /* %extend */
 

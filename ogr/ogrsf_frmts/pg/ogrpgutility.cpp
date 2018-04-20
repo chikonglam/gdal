@@ -29,7 +29,7 @@
 #include "ogr_pg.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrpgutility.cpp 35911 2016-10-24 15:03:26Z goatbar $");
+CPL_CVSID("$Id: ogrpgutility.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                         OGRPG_PQexec()                               */
@@ -40,7 +40,7 @@ PGresult *OGRPG_PQexec(PGconn *conn, const char *query, int bMultipleCommandAllo
 {
     PGresult* hResult = bMultipleCommandAllowed
         ? PQexec(conn, query)
-        : PQexecParams(conn, query, 0, NULL, NULL, NULL, NULL, 0);
+        : PQexecParams(conn, query, 0, nullptr, nullptr, nullptr, nullptr, 0);
 
 #ifdef DEBUG
     const char* pszRetCode = "UNKNOWN";

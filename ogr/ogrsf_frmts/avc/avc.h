@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: avc.h 35933 2016-10-25 16:46:26Z goatbar $
+ * $Id: avc.h 23130e12a6eecc33bb9cf1a0a92a5cffd0488557 2018-03-08 09:31:15Z Even Rouault $
  *
  * Name:     avc.h
  * Project:  Arc/Info Vector coverage (AVC) BIN<->E00 conversion library
@@ -119,6 +119,9 @@
 #include "cpl_string.h"
 
 #ifdef GDAL_COMPILATION
+#ifdef RENAME_INTERNAL_SHAPELIB_SYMBOLS
+#include "gdal_shapelib_symbol_rename.h"
+#endif
 #include "shapefil.h"
 #else
 #include "dbfopen.h"
@@ -394,7 +397,7 @@ typedef struct AVCField_t
 
 typedef struct AVCRawBinFile_t
 {
-    FILE        *fp;
+    VSILFILE    *fp;
     char        *pszFname;
     AVCAccess   eAccess;
     AVCByteOrder eByteOrder;
@@ -603,7 +606,7 @@ typedef struct AVCE00ReadInfoE00_t
 
     /* File handle of the E00 file currently being processed
      */
-    FILE          *hFile;
+    VSILFILE     *hFile;
 
 } *AVCE00ReadE00Ptr;
 
@@ -664,6 +667,7 @@ void        AVCRawBinClose(AVCRawBinFile *psInfo);
 void        AVCRawBinFSeek(AVCRawBinFile *psInfo, int nOffset, int nFrom);
 GBool       AVCRawBinEOF(AVCRawBinFile *psInfo);
 void        AVCRawBinSetFileDataSize(AVCRawBinFile *psInfo, int nDataSize);
+int AVCRawBinIsFileGreaterThan(AVCRawBinFile *psFile, vsi_l_offset nSize);
 
 void        AVCRawBinReadBytes(AVCRawBinFile *psInfo, int nBytesToRead,
                                GByte *pBuf);

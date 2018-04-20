@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_alg.h 39654 2017-07-24 19:24:32Z rouault $
+ * $Id: gdal_alg.h ecc4064ad058e92440d85c2a83501cc45579c06c 2017-07-24 19:24:22Z Even Rouault $
  *
  * Project:  GDAL Image Processing Algorithms
  * Purpose:  Prototypes, and definitions for various GDAL based algorithms.

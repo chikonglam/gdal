@@ -30,15 +30,15 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrrecdatasource.cpp 38951 2017-06-07 21:40:45Z rouault $");
+CPL_CVSID("$Id: ogrrecdatasource.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                          OGRRECDataSource()                          */
 /************************************************************************/
 
 OGRRECDataSource::OGRRECDataSource() :
-    pszName(NULL),
-    poLayer(NULL)
+    pszName(nullptr),
+    poLayer(nullptr)
 {}
 
 /************************************************************************/
@@ -48,7 +48,7 @@ OGRRECDataSource::OGRRECDataSource() :
 OGRRECDataSource::~OGRRECDataSource()
 
 {
-    if( poLayer != NULL )
+    if( poLayer != nullptr )
         delete poLayer;
 
     CPLFree( pszName );
@@ -74,7 +74,7 @@ OGRLayer *OGRRECDataSource::GetLayer( int iLayer )
     if( iLayer == 0 )
         return poLayer;
 
-    return NULL;
+    return nullptr;
 }
 
 /************************************************************************/
@@ -97,7 +97,7 @@ int OGRRECDataSource::Open( const char * pszFilename )
 /*      Open the file.                                                  */
 /* -------------------------------------------------------------------- */
     FILE *fp = VSIFOpen( pszFilename, "rb" );
-    if( fp == NULL )
+    if( fp == nullptr )
         return FALSE;
 
 /* -------------------------------------------------------------------- */
@@ -105,7 +105,7 @@ int OGRRECDataSource::Open( const char * pszFilename )
 /*      field that is a number greater than zero.                       */
 /* -------------------------------------------------------------------- */
     const char * pszLine = CPLReadLine( fp );
-    if( pszLine == NULL )
+    if( pszLine == nullptr )
     {
         VSIFClose( fp );
         return FALSE;

@@ -1603,6 +1603,8 @@ typedef char retStringAndCPLFree;
 #include <iostream>
 using namespace std;
 
+#define CPL_SUPRESS_CPLUSPLUS
+
 #include "cpl_string.h"
 #include "cpl_conv.h"
 
@@ -1619,7 +1621,8 @@ typedef void OSRCoordinateTransformationShadow;
 
 
     void do_confess(const char *error, int push_to_error_stack) {
-        SV *sv = newSVpv(error, 0);
+        SV *sv = newSVpv("", 0);
+        sv_setpvf(sv, "%s\n", error);
         if (push_to_error_stack) {
             AV* error_stack = get_av("Geo::GDAL::error", 0);
             av_push(error_stack, sv);
@@ -2203,6 +2206,9 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetMercator(OSRSpatialReferenceShado
     return OSRSetMercator( self, clat, clong,
                            scale, fe, fn );
   }
+SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetMercator2SP(OSRSpatialReferenceShadow *self,double stdp1,double clat,double clong,double fe,double fn){
+    return OSRSetMercator2SP( self, stdp1, clat, clong, fe, fn );
+  }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetMollweide(OSRSpatialReferenceShadow *self,double cm,double fe,double fn){
     return OSRSetMollweide( self, cm,
                             fe, fn );
@@ -2387,6 +2393,9 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_MorphToESRI(OSRSpatialReferenceShado
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_MorphFromESRI(OSRSpatialReferenceShadow *self){
     return OSRMorphFromESRI(self);
+  }
+SWIGINTERN OSRSpatialReferenceShadow *OSRSpatialReferenceShadow_ConvertToOtherProjection(OSRSpatialReferenceShadow *self,char const *other_projection,char **options=NULL){
+    return OSRConvertToOtherProjection(self, other_projection, options);
   }
 SWIGINTERN OSRCoordinateTransformationShadow *new_OSRCoordinateTransformationShadow(OSRSpatialReferenceShadow *src,OSRSpatialReferenceShadow *dst){
     OSRCoordinateTransformationShadow *obj = (OSRCoordinateTransformationShadow*) OCTNewCoordinateTransformation( src, dst );
@@ -8319,6 +8328,114 @@ XS(_wrap_SpatialReference_SetMercator) {
 }
 
 
+XS(_wrap_SpatialReference_SetMercator2SP) {
+  {
+    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+    double arg2 ;
+    double arg3 ;
+    double arg4 ;
+    double arg5 ;
+    double arg6 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    double val2 ;
+    int ecode2 = 0 ;
+    double val3 ;
+    int ecode3 = 0 ;
+    double val4 ;
+    int ecode4 = 0 ;
+    double val5 ;
+    int ecode5 = 0 ;
+    double val6 ;
+    int ecode6 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    if ((items < 6) || (items > 6)) {
+      SWIG_croak("Usage: SpatialReference_SetMercator2SP(self,stdp1,clat,clong,fe,fn);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_SetMercator2SP" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+    ecode2 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SpatialReference_SetMercator2SP" "', argument " "2"" of type '" "double""'");
+    } 
+    arg2 = static_cast< double >(val2);
+    ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "SpatialReference_SetMercator2SP" "', argument " "3"" of type '" "double""'");
+    } 
+    arg3 = static_cast< double >(val3);
+    ecode4 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "SpatialReference_SetMercator2SP" "', argument " "4"" of type '" "double""'");
+    } 
+    arg4 = static_cast< double >(val4);
+    ecode5 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(4), &val5);
+    if (!SWIG_IsOK(ecode5)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "SpatialReference_SetMercator2SP" "', argument " "5"" of type '" "double""'");
+    } 
+    arg5 = static_cast< double >(val5);
+    ecode6 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(5), &val6);
+    if (!SWIG_IsOK(ecode6)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "SpatialReference_SetMercator2SP" "', argument " "6"" of type '" "double""'");
+    } 
+    arg6 = static_cast< double >(val6);
+    {
+      CPLErrorReset();
+      result = (OGRErr)OSRSpatialReferenceShadow_SetMercator2SP(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
+      }
+    }
+    
+    
+    
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_SpatialReference_SetMollweide) {
   {
     OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
@@ -12994,6 +13111,111 @@ XS(_wrap_SpatialReference_MorphFromESRI) {
 }
 
 
+XS(_wrap_SpatialReference_ConvertToOtherProjection) {
+  {
+    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char **arg3 = (char **) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    OSRSpatialReferenceShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 3)) {
+      SWIG_croak("Usage: SpatialReference_ConvertToOtherProjection(self,other_projection,options);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_ConvertToOtherProjection" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SpatialReference_ConvertToOtherProjection" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    if (items > 2) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(2))) {
+          if (SvROK(ST(2))) {
+            if (SvTYPE(SvRV(ST(2)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(2)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
+                arg3 = CSLAddString(arg3, tmp);
+                if (sf) Safefree(tmp); else free(tmp);
+              }
+            } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(2));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg3 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
+                arg3 = CSLAddNameValue(arg3, key, tmp);
+                if (sf) Safefree(tmp); else free(tmp);
+              }
+            } else
+            do_confess(NEED_REF, 1);
+          } else
+          do_confess(NEED_REF, 1);
+        }
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OSRSpatialReferenceShadow *)OSRSpatialReferenceShadow_ConvertToOtherProjection(arg1,(char const *)arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OSRSpatialReferenceShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_new_CoordinateTransformation) {
   {
     OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
@@ -13731,6 +13953,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OSRc::SpatialReference_SetLCCB", _wrap_SpatialReference_SetLCCB},
 {"Geo::OSRc::SpatialReference_SetMC", _wrap_SpatialReference_SetMC},
 {"Geo::OSRc::SpatialReference_SetMercator", _wrap_SpatialReference_SetMercator},
+{"Geo::OSRc::SpatialReference_SetMercator2SP", _wrap_SpatialReference_SetMercator2SP},
 {"Geo::OSRc::SpatialReference_SetMollweide", _wrap_SpatialReference_SetMollweide},
 {"Geo::OSRc::SpatialReference_SetNZMG", _wrap_SpatialReference_SetNZMG},
 {"Geo::OSRc::SpatialReference_SetOS", _wrap_SpatialReference_SetOS},
@@ -13784,6 +14007,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OSRc::SpatialReference_Fixup", _wrap_SpatialReference_Fixup},
 {"Geo::OSRc::SpatialReference_MorphToESRI", _wrap_SpatialReference_MorphToESRI},
 {"Geo::OSRc::SpatialReference_MorphFromESRI", _wrap_SpatialReference_MorphFromESRI},
+{"Geo::OSRc::SpatialReference_ConvertToOtherProjection", _wrap_SpatialReference_ConvertToOtherProjection},
 {"Geo::OSRc::new_CoordinateTransformation", _wrap_new_CoordinateTransformation},
 {"Geo::OSRc::delete_CoordinateTransformation", _wrap_delete_CoordinateTransformation},
 {"Geo::OSRc::CoordinateTransformation_TransformPoint", _wrap_CoordinateTransformation_TransformPoint},
@@ -14951,6 +15175,10 @@ XS(SWIG_init) {
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(6)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
+  
+  /* %init code */
+  UseExceptions();
+  
   SWIG_TypeClientData(SWIGTYPE_p_OSRSpatialReferenceShadow, (void*) "Geo::OSR::SpatialReference");
   SWIG_TypeClientData(SWIGTYPE_p_OSRCoordinateTransformationShadow, (void*) "Geo::OSR::CoordinateTransformation");
   ST(0) = &PL_sv_yes;

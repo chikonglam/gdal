@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: OGRFeature.java 35219 2016-08-27 22:39:24Z goatbar $
+ * $Id: OGRFeature.java 31f9a4263faa45cdf47f700f7ae9f1b7478ce90c 2016-08-27 22:39:24Z Kurt Schwehr $
  *
  * Name:     OGRFeature.java
  * Project:  OGR Java Interface

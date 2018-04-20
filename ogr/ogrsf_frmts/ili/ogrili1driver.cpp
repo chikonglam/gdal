@@ -30,7 +30,7 @@
 #include "ogr_ili1.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrili1driver.cpp 34819 2016-07-28 22:32:18Z goatbar $");
+CPL_CVSID("$Id: ogrili1driver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                                Open()                                */
@@ -40,18 +40,18 @@ static GDALDataset *OGRILI1DriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
     if( poOpenInfo->eAccess == GA_Update ||
-        (!poOpenInfo->bStatOK && strchr(poOpenInfo->pszFilename, ',') == NULL) )
-        return NULL;
+        (!poOpenInfo->bStatOK && strchr(poOpenInfo->pszFilename, ',') == nullptr) )
+        return nullptr;
 
-    if( poOpenInfo->fpL != NULL )
+    if( poOpenInfo->fpL != nullptr )
     {
-        if( strstr((const char*)poOpenInfo->pabyHeader,"SCNT") == NULL )
+        if( strstr((const char*)poOpenInfo->pabyHeader,"SCNT") == nullptr )
         {
-            return NULL;
+            return nullptr;
         }
     }
     else if( poOpenInfo->bIsDirectory )
-        return NULL;
+        return nullptr;
 
     OGRILI1DataSource *poDS = new OGRILI1DataSource();
 
@@ -60,7 +60,7 @@ static GDALDataset *OGRILI1DriverOpen( GDALOpenInfo* poOpenInfo )
         || poDS->GetLayerCount() == 0 )
     {
         delete poDS;
-        return NULL;
+        return nullptr;
     }
 
     return poDS;
@@ -82,7 +82,7 @@ static GDALDataset *OGRILI1DriverCreate( const char * pszName,
     if( !poDS->Create( pszName, papszOptions ) )
     {
         delete poDS;
-        return NULL;
+        return nullptr;
     }
 
     return poDS;
@@ -93,7 +93,7 @@ static GDALDataset *OGRILI1DriverCreate( const char * pszName,
 /************************************************************************/
 
 void RegisterOGRILI1() {
-    if( GDALGetDriverByName( "Interlis 1" ) != NULL )
+    if( GDALGetDriverByName( "Interlis 1" ) != nullptr )
         return;
 
     GDALDriver *poDriver = new GDALDriver();
@@ -107,6 +107,7 @@ void RegisterOGRILI1() {
 "<OpenOptionList>"
 "  <Option name='MODEL' type='string' description='Filename of the model in IlisMeta format (.imd)'/>"
 "</OpenOptionList>" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
     poDriver->pfnOpen = OGRILI1DriverOpen;
     poDriver->pfnCreate = OGRILI1DriverCreate;

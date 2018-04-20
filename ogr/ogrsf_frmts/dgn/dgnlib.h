@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dgnlib.h 35910 2016-10-24 14:08:24Z goatbar $
+ * $Id: dgnlib.h 59ac0f6876270b8fc7508be94297ab7d94aac470 2017-05-22 15:27:41Z Even Rouault $
  *
  * Project:  Microstation DGN Access Library
  * Purpose:  Definitions of public structures and API of DGN Library.
@@ -70,7 +70,7 @@ typedef struct {
     unsigned char       type;    /*!< Element type (DGNT_*) */
     unsigned char       stype;   /*!< Structure type (DGNST_*) */
     unsigned char       flags;   /*!< Other flags */
-    long                offset;  /*!< Offset within file (private) */
+    vsi_l_offset        offset;  /*!< Offset within file (private) */
 } DGNElementInfo;
 
 /**
@@ -121,7 +121,10 @@ typedef struct {
   DGNElemCore   core;
 
   int           num_vertices;  /*!< Number of vertices in "vertices" */
-  DGNPoint      vertices[2];   /*!< Array of two or more vertices */
+  DGNPoint      vertices[1];   /*!< Array of two or more vertices */
+                               // Note: We set [1] to please clang UBSAN
+                               // regarding structures that are extended at
+                               // malloc time
 
 } DGNElemMultiPoint;
 

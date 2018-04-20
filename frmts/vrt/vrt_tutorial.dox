@@ -1,5 +1,5 @@
 #ifndef DOXYGEN_SKIP
-/* $Id: vrt_tutorial.dox 36334 2016-11-20 15:42:08Z rouault $ */
+/* $Id: vrt_tutorial.dox 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $ */
 #endif /* DOXYGEN_SKIP */
 
 /*!
@@ -159,7 +159,7 @@ have a dataType attribute with the type of the pixel data associated with
 this band (use names Byte, UInt16, Int16, UInt32, Int32, Float32, Float64,
 CInt16, CInt32, CFloat32 or CFloat64) and the band this element represents
 (1 based).  This element may have Metadata, ColorInterp, NoDataValue, HideNoDataValue,
-ColorTable, Description and MaskBand subelements as well as the various kinds of
+ColorTable, GDALRasterAttributeTable, Description and MaskBand subelements as well as the various kinds of
 source elements such as SimpleSource, ComplexSource, etc.  A raster band may have many "sources"
 indicating where the actual raster data should be fetched from, and how it
 should be mapped into the raster bands pixel space.<p>
@@ -213,8 +213,50 @@ to start from color table entry 0.
 \endcode
 </li>
 
+<li> <b>GDALRasterAttributeTable</b>: (GDAL &gt;=2.3) This element is parent
+to a set of FieldDefn elements defining the columns of a raster attribute table,
+followed by a set of Row element defining the values of the columns of each
+row.
+\code
+    <GDALRasterAttributeTable>
+      <FieldDefn index="0">
+        <Name>Value</Name>
+        <Type>0</Type>
+        <Usage>0</Usage>
+      </FieldDefn>
+      <FieldDefn index="1">
+        <Name>Red</Name>
+        <Type>0</Type>
+        <Usage>6</Usage>
+      </FieldDefn>
+      <FieldDefn index="2">
+        <Name>Green</Name>
+        <Type>0</Type>
+        <Usage>7</Usage>
+      </FieldDefn>
+      <FieldDefn index="3">
+        <Name>Blue</Name>
+        <Type>0</Type>
+        <Usage>8</Usage>
+      </FieldDefn>
+      <Row index="0">
+        <F>-500</F>
+        <F>127</F>
+        <F>40</F>
+        <F>65</F>
+      </Row>
+      <Row index="1">
+        <F>-400</F>
+        <F>154</F>
+        <F>168</F>
+        <F>118</F>
+      </Row>
+    </GDALRasterAttributeTable>
+\endcode
+</li>
+
 <li> <b>Description</b>: This element contains the optional description
-of a raster band as it's text value.
+of a raster band as its text value.
 
 \code
   <Description>Crop Classification Layer</Description>
@@ -434,7 +476,8 @@ DestRect elements, but it also passes the data through a simple filtering
 kernel specified with the Kernel element.  The Kernel element should have
 two child elements, Size and Coefs and optionally the boolean attribute
 normalized (defaults to false=0).  The size must always be an odd number,
-and the Coefs must have Size * Size entries separated by spaces.
+and the Coefs must have Size * Size entries separated by spaces.  For now
+kernel is not applied to sub-sampled or over-sampled data.
 
 \code
     <KernelFilteredSource>
@@ -443,6 +486,23 @@ and the Coefs must have Size * Size entries separated by spaces.
       <Kernel normalized="1">
         <Size>3</Size>
         <Coefs>0.11111111 0.11111111 0.11111111 0.11111111 0.11111111 0.11111111 0.11111111 0.11111111 0.11111111</Coefs>
+      </Kernel>
+    </KernelFilteredSource>
+\endcode
+
+Starting with GDAL 2.3, a separable kernel may also be used.  In this case the
+number of Coefs entries should correspond to the Size.  The Coefs specify a
+one-dimensional kernel which is applied along each axis in succession, resulting
+in far quicker execution. Many common image-processing filters are separable.
+For example, a Gaussian blur:
+
+\code
+    <KernelFilteredSource>
+      <SourceFilename>/debian/home/warmerda/openev/utm.tif</SourceFilename>
+      <SourceBand>1</SourceBand>
+      <Kernel normalized="1">
+        <Size>13</Size>
+        <Coefs>0.01111 0.04394 0.13534 0.32465 0.60653 0.8825 1.0 0.8825 0.60653 0.32465 0.13534 0.04394 0.01111</Coefs>
       </Kernel>
     </KernelFilteredSource>
 \endcode
@@ -1509,6 +1569,12 @@ pseudo panchromatic intensity, but not bound to an output band.
 \endcode
 
 \section gdal_vrttut_mt Multi-threading issues
+
+The below section applies to GDAL &lt;= 2.2. Starting with GDAL 2.3, the use
+of VRT datasets is subject to the standard GDAL dataset multi-threaded rules
+(that is a VRT dataset handle may only be used by a same thread at a time,
+but you may open several dataset handles on the same VRT file and use them
+in different threads)
 
 When using VRT datasets in a multi-threading environment, you should be
 careful to open the VRT dataset by the thread that will use it afterwards. The

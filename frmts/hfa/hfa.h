@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfa.h 36236 2016-11-14 20:02:32Z rouault $
+ * $Id: hfa.h f9a7f39dfcdd2cbbfec35ecbe69515fc411731e7 2017-05-15 12:57:00Z Kurt Schwehr $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Public (C callable) interface for the Erdas Imagine reading
@@ -32,9 +32,8 @@
 #ifndef HFAOPEN_H_INCLUDED
 #define HFAOPEN_H_INCLUDED
 
-/* -------------------------------------------------------------------- */
-/*      Include standard portability stuff.                             */
-/* -------------------------------------------------------------------- */
+#include <cstdio>
+
 #include "cpl_conv.h"
 #include "cpl_string.h"
 

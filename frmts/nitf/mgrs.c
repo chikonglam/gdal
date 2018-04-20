@@ -1,5 +1,5 @@
 /***************************************************************************
- * $Id: mgrs.c 36456 2016-11-22 23:34:00Z rouault $
+ * $Id: mgrs.c eaeeb697c56eb6457db51d373feac4d99e9db45d 2017-11-27 17:16:35Z Even Rouault $
  *
  * Project:  MGRS Converter
  * Purpose:  Geotrans code for MGRS translation (slightly adapted)
@@ -404,7 +404,7 @@ static long Make_MGRS_String (char* MGRS,
   if (Zone)
     i = sprintf (MGRS+i,"%2.2ld",Zone);
   else
-    strncpy(MGRS, "  ", 2);  // 2 spaces
+    memcpy(MGRS, "  ", 2);  // 2 spaces
 
   for (j=0;j<3;j++)
     MGRS[i++] = alphabet[Letters[j]];

@@ -34,7 +34,7 @@
 #include "cpl_string.h"
 #include <time.h>
 
-CPL_CVSID("$Id: ogrfmecacheindex.cpp 36332 2016-11-20 15:19:39Z rouault $");
+CPL_CVSID("$Id: ogrfmecacheindex.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                          OGRFMECacheIndex()                          */
@@ -356,7 +356,7 @@ void OGRFMECacheIndex::Add( CPLXMLNode *psDSNode )
 /*      different timeouts apply.  One is for layers with a RefCount    */
 /*      of 0 and the other (longer time) is for those with a            */
 /*      non-zero refcount.  Even if the RefCount is non-zero we         */
-/*      assume this may because a program crashed during it's run.      */
+/*      assume this may because a program crashed during its run.       */
 /************************************************************************/
 
 int OGRFMECacheIndex::ExpireOldCaches( IFMESession *poSession )

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_carto.h 41751 2018-03-12 15:25:43Z rouault $
+ * $Id: ogr_carto.h 3819b33106e6af8f5fa94df7cac27b2676f2ff1c 2018-03-12 15:25:34Z Even Rouault $
  *
  * Project:  CARTO Translator
  * Purpose:  Definition of classes for OGR Carto driver.
@@ -31,11 +31,11 @@
 #define OGR_CARTO_H_INCLUDED
 
 #include "ogrsf_frmts.h"
+
 #include "cpl_http.h"
+#include "cpl_json_header.h"
 
 #include <vector>
-
-#include "ogr_json_header.h"
 
 
 json_object* OGRCARTOGetSingleRow(json_object* poObj);
@@ -252,9 +252,9 @@ class OGRCARTODataSource : public OGRDataSource
     virtual int         TestCapability( const char * ) override;
 
     virtual OGRLayer   *ICreateLayer( const char *pszName,
-                                     OGRSpatialReference *poSpatialRef = NULL,
+                                     OGRSpatialReference *poSpatialRef = nullptr,
                                      OGRwkbGeometryType eGType = wkbUnknown,
-                                     char ** papszOptions = NULL ) override;
+                                     char ** papszOptions = nullptr ) override;
     virtual OGRErr      DeleteLayer(int) override;
 
     virtual OGRLayer *  ExecuteSQL( const char *pszSQLCommand,
@@ -276,8 +276,8 @@ class OGRCARTODataSource : public OGRDataSource
 
     OGRLayer *                  ExecuteSQLInternal(
         const char *pszSQLCommand,
-        OGRGeometry *poSpatialFilter = NULL,
-        const char *pszDialect = NULL,
+        OGRGeometry *poSpatialFilter = nullptr,
+        const char *pszDialect = nullptr,
         bool bRunDeferredActions = false );
 
     int                         GetPostGISMajor() const { return nPostGISMajor; }

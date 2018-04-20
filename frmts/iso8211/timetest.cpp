@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include "iso8211.h"
 
-CPL_CVSID("$Id: timetest.cpp 34950 2016-08-07 17:17:12Z goatbar $");
+CPL_CVSID("$Id: timetest.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 static void ViewRecordField( DDFField * poField );
 static int ViewSubfield( DDFSubfieldDefn *poSFDefn,
@@ -66,11 +66,11 @@ int main( int nArgc, char ** papszArgv )
 /* -------------------------------------------------------------------- */
 /*      Loop reading records till there are none left.                  */
 /* -------------------------------------------------------------------- */
-        DDFRecord *poRecord = NULL;
+        DDFRecord *poRecord = nullptr;
         int nRecordCount = 0;
         int nFieldCount = 0;
 
-        while( (poRecord = oModule.ReadRecord()) != NULL )
+        while( (poRecord = oModule.ReadRecord()) != nullptr )
         {
             /* ------------------------------------------------------------ */
             /*      Loop over each field in this particular record.         */

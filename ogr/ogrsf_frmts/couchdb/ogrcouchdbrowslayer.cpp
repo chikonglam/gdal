@@ -28,7 +28,7 @@
 
 #include "ogr_couchdb.h"
 
-CPL_CVSID("$Id: ogrcouchdbrowslayer.cpp 35298 2016-09-02 23:00:49Z goatbar $");
+CPL_CVSID("$Id: ogrcouchdbrowslayer.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                         OGRCouchDBRowsLayer()                        */
@@ -68,7 +68,7 @@ void OGRCouchDBRowsLayer::ResetReading()
     if( !bAllInOne )
     {
         json_object_put(poFeatures);
-        poFeatures = NULL;
+        poFeatures = nullptr;
         aoFeatures.resize(0);
     }
 }
@@ -83,14 +83,14 @@ bool OGRCouchDBRowsLayer::FetchNextRows()
         return false;
 
     json_object_put(poFeatures);
-    poFeatures = NULL;
+    poFeatures = nullptr;
     aoFeatures.resize(0);
 
-    bool bHasEsperluet = strstr(poDS->GetURL(), "?") != NULL;
+    bool bHasEsperluet = strstr(poDS->GetURL(), "?") != nullptr;
 
     CPLString osURI;
-    if (strstr(poDS->GetURL(), "limit=") == NULL &&
-        strstr(poDS->GetURL(), "skip=") == NULL)
+    if (strstr(poDS->GetURL(), "limit=") == nullptr &&
+        strstr(poDS->GetURL(), "skip=") == nullptr)
     {
         if (!bHasEsperluet)
         {
@@ -101,7 +101,7 @@ bool OGRCouchDBRowsLayer::FetchNextRows()
         osURI += CPLSPrintf("&limit=%d&skip=%d",
                             GetFeaturesToFetch(), nOffset);
     }
-    if (strstr(poDS->GetURL(), "reduce=") == NULL)
+    if (strstr(poDS->GetURL(), "reduce=") == nullptr)
     {
         if( !bHasEsperluet )
         {

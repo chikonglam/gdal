@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: val_repl.py 31957 2015-12-02 12:44:54Z goatbar $
+# $Id: val_repl.py ae0c5f6565d8cd48793488881bb7c34f93cf023f 2018-04-16 19:10:58 +1000 Ben Elliston $
 #
 # Project:  GDAL Python samples
 # Purpose:  Script to replace specified values from the input raster file
@@ -45,15 +45,19 @@ except ImportError:
 import sys
 
 # =============================================================================
+
+
 def Usage():
     print('Usage: val_repl.py -innd in_nodata_value -outnd out_nodata_value')
     print('                   [-of out_format] [-ot out_type] infile outfile')
     print('')
-    sys.exit( 1 )
+    sys.exit(1)
 
 # =============================================================================
 
 # =============================================================================
+
+
 def ParseType(type):
     gdal_dt = gdal.GetDataTypeByName(type)
     if gdal_dt is gdal.GDT_Unknown:
@@ -61,6 +65,7 @@ def ParseType(type):
     return gdal_dt
 
 # =============================================================================
+
 
 inNoData = None
 outNoData = None
@@ -103,14 +108,14 @@ while i < len(sys.argv):
 
 if infile is None:
     Usage()
-if  outfile is None:
+if outfile is None:
     Usage()
 if inNoData is None:
     Usage()
 if outNoData is None:
     Usage()
 
-indataset = gdal.Open( infile, gdal.GA_ReadOnly )
+indataset = gdal.Open(infile, gdal.GA_ReadOnly)
 
 out_driver = gdal.GetDriverByName(format)
 outdataset = out_driver.Create(outfile, indataset.RasterXSize, indataset.RasterYSize, indataset.RasterCount, type)
@@ -129,7 +134,6 @@ for iBand in range(1, indataset.RasterCount + 1):
 
     for i in range(inband.YSize - 1, -1, -1):
         scanline = inband.ReadAsArray(0, i, inband.XSize, 1, inband.XSize, 1)
-        scanline = numpy.choose( numpy.equal( scanline, inNoData),
-                                       (scanline, outNoData) )
+        scanline = numpy.choose(numpy.equal(scanline, inNoData),
+                                (scanline, outNoData))
         outband.WriteArray(scanline, 0, i)
-

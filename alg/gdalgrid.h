@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalgrid.h 34931 2016-08-05 17:13:05Z rouault $
+ * $Id: gdalgrid.h fcf615cbf6b2e03db17171af0ebba6da4b4a562d 2016-08-05 17:13:05Z Even Rouault $
  *
  * Project:  GDAL Gridding API.
  * Purpose:  Prototypes, and definitions for of GDAL scattered data gridder.

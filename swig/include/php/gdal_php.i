@@ -1,5 +1,5 @@
 /*
- * $Id: gdal_php.i 34525 2016-07-03 02:53:47Z goatbar $
+ * $Id: gdal_php.i c1ea2d15bafba12271a0865d5348c1c19134ce3c 2014-11-30 18:24:59Z Even Rouault $
  *
  * php specific code for gdal bindings.
  */

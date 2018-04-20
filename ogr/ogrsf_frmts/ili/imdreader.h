@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: imdreader.h 36411 2016-11-21 22:03:48Z rouault $
+ * $Id: imdreader.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  Interlis 1/2 Translator
  * Purpose:  IlisMeta model reader.
@@ -42,7 +42,7 @@ class GeomFieldInfo
 public:
     CPLString       iliGeomType;
 
-    GeomFieldInfo() : geomTable(NULL) {};
+    GeomFieldInfo() : geomTable(nullptr) {}
     ~GeomFieldInfo() {
        if( geomTable )
            geomTable->Release();
@@ -72,7 +72,7 @@ public:
     OGRFeatureDefn* GetGeomTableDefnRef() const { return geomTable; }
     void            SetGeomTableDefn(OGRFeatureDefn* geomTableIn)
     {
-        CPLAssert(geomTable == NULL);
+        CPLAssert(geomTable == nullptr);
         geomTable = geomTableIn;
         if( geomTable )
             geomTable->Reference();
@@ -89,7 +89,7 @@ public:
     GeomFieldInfos  poGeomFieldInfos;
     StructFieldInfos poStructFieldInfos;
 
-    FeatureDefnInfo() : poTableDefn(NULL) {};
+    FeatureDefnInfo() : poTableDefn(nullptr) {}
     ~FeatureDefnInfo() {
        if( poTableDefn )
            poTableDefn->Release();
@@ -121,7 +121,7 @@ public:
     OGRFeatureDefn* GetTableDefnRef() const { return poTableDefn; }
     void            SetTableDefn(OGRFeatureDefn* poTableDefnIn)
     {
-        CPLAssert(poTableDefn == NULL);
+        CPLAssert(poTableDefn == nullptr);
         poTableDefn= poTableDefnIn;
         if( poTableDefn )
             poTableDefn->Reference();

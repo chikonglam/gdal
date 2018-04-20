@@ -1554,7 +1554,8 @@ SWIGEXPORT void SWIG_init (CV *cv, CPerlObj *);
 
 
     void do_confess(const char *error, int push_to_error_stack) {
-        SV *sv = newSVpv(error, 0);
+        SV *sv = newSVpv("", 0);
+        sv_setpvf(sv, "%s\n", error);
         if (push_to_error_stack) {
             AV* error_stack = get_av("Geo::GDAL::error", 0);
             av_push(error_stack, sv);
@@ -1591,9 +1592,10 @@ SWIGEXPORT void SWIG_init (CV *cv, CPerlObj *);
 #include <iostream>
 using namespace std;
 
+#define CPL_SUPRESS_CPLUSPLUS
+
 #include "gdal.h"
 #include "ogr_api.h"
-#include "ogr_p.h"
 #include "ogr_core.h"
 #include "cpl_port.h"
 #include "cpl_string.h"
@@ -1654,12 +1656,12 @@ SWIG_From_int  SWIG_PERL_DECL_ARGS_1(int value)
 
 
   GNMNetworkShadow* CastToNetwork(GDALMajorObjectShadow* base) {
-      return (GNMNetworkShadow*)dynamic_cast<GNMNetwork*>((GDALMajorObject*)base);
+      return (GNMNetworkShadow*)GNMCastToNetwork((GDALMajorObjectH)base);
   }
 
 
   GNMGenericNetworkShadow* CastToGenericNetwork(GDALMajorObjectShadow* base) {
-      return (GNMGenericNetworkShadow*)dynamic_cast<GNMGenericNetwork*>((GDALMajorObject*)base);
+      return (GNMGenericNetworkShadow*)GNMCastToGenericNetwork((GDALMajorObjectH)base);
   }
 
 SWIGINTERN void delete_GNMNetworkShadow(GNMNetworkShadow *self){

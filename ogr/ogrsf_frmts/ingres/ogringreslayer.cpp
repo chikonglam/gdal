@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogringreslayer.cpp 36682 2016-12-04 20:34:45Z rouault $");
+CPL_CVSID("$Id: ogringreslayer.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           OGRIngresLayer()                            */
@@ -66,7 +66,7 @@ OGRIngresLayer::~OGRIngresLayer()
                   poFeatureDefn->GetName() );
     }
 
-    ResetReading();
+    OGRIngresLayer::ResetReading();
 
     if( poSRS != NULL )
         poSRS->Release();

@@ -1,4 +1,4 @@
-# $Id: makefile.vc 36434 2016-11-22 18:16:07Z rouault $
+# $Id$
 #
 # Makefile to build libpng using NMAKE and Visual C++ compiler.
 #

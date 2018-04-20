@@ -27,7 +27,7 @@
 
 #include "gdal_simplesurf.h"
 
-CPL_CVSID("$Id: gdal_octave.cpp 36960 2016-12-19 14:13:21Z rouault $");
+CPL_CVSID("$Id: gdal_octave.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -37,7 +37,7 @@ CPL_CVSID("$Id: gdal_octave.cpp 36960 2016-12-19 14:13:21Z rouault $");
 
 GDALIntegralImage::GDALIntegralImage()
 {
-    pMatrix = NULL;
+    pMatrix = nullptr;
     nHeight = 0;
     nWidth = 0;
 }
@@ -169,8 +169,8 @@ GDALOctaveLayer::GDALOctaveLayer( int nOctave, int nInterval ) :
     scale(static_cast<int>(pow(2.0, nOctave))),
     width(0),
     height(0),
-    detHessians(NULL),
-    signs(NULL)
+    detHessians(nullptr),
+    signs(nullptr)
 {}
 
 void GDALOctaveLayer::ComputeLayer( GDALIntegralImage *poImg )

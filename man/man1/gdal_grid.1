@@ -1,4 +1,4 @@
-.TH "gdal_grid" 1 "Mon Mar 19 2018" "GDAL" \" -*- nroff -*-
+.TH "gdal_grid" 1 "Fri Apr 20 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -31,7 +31,7 @@ Starting with GDAL 1\&.10, it is possible to set the \fBGDAL_NUM_THREADS\fP conf
 For the output bands to be of the indicated data type\&.
 .PP
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
-Select the output format\&. The default is GeoTIFF (GTiff)\&. Use the short format name\&.
+Select the output format\&. Starting with GDAL 2\&.3, if not specified, the format is guessed from the extension (previously was GTiff)\&. Use the short format name\&.
 .PP
 .IP "\fB\fB-txe\fP \fIxmin xmax\fP:\fP" 1c
 Set georeferenced X extents of output file to be created\&.
@@ -43,7 +43,7 @@ Set georeferenced Y extents of output file to be created\&.
 Set the size of the output file in pixels and lines\&.
 .PP
 .IP "\fB\fB-a_srs\fP \fIsrs_def\fP:\fP" 1c
-Override the projection for the output file\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&. 
+Override the projection for the output file\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&. No reprojection is done\&. 
 .PP
 .IP "\fB\fB-zfield\fP \fIfield_name\fP:\fP" 1c
 Identifies an attribute field on the features to be used to get a Z value from\&. This value overrides Z value read from feature geometry record (naturally, if you have a Z value in geometry, otherwise you have no choice and should specify a field name containing Z value)\&.

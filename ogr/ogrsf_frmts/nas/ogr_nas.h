@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_nas.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_nas.h 1b4e15dad36adf19db7a18b05f14f71d37a4a329 2017-08-17 15:42:36Z Jürgen Fischer $
  *
  * Project:  NAS Reader
  * Purpose:  Declarations for OGR wrapper classes for NAS, and NAS<->OGR
@@ -44,8 +44,7 @@ class OGRNASDataSource;
 
 class OGRNASLayer : public OGRLayer
 {
-    OGRSpatialReference *poSRS;
-    OGRFeatureDefn     *poFeatureDefn;
+    OGRFeatureDefn      *poFeatureDefn;
 
     int                 iNextNASId;
 
@@ -55,8 +54,6 @@ class OGRNASLayer : public OGRLayer
 
   public:
                         OGRNASLayer( const char * pszName,
-                                     OGRSpatialReference *poSRS,
-                                     OGRwkbGeometryType eType,
                                      OGRNASDataSource *poDS );
 
                         virtual ~OGRNASLayer();

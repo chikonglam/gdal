@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_xplane_reader.h 35911 2016-10-24 15:03:26Z goatbar $
+ * $Id: ogr_xplane_reader.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  X-Plane aeronautical data reader
  * Purpose:  Definition of classes for OGR X-Plane aeronautical data reader.
@@ -38,7 +38,7 @@
 
 #define RET_IF_FAIL(x)      if (!(x)) return;
 
-#define SET_IF_INTEREST_LAYER(x)        poReader->x = ((OGRXPlaneLayer*)x == poLayer) ? x : NULL
+#define SET_IF_INTEREST_LAYER(x)        poReader->x = ((OGRXPlaneLayer*)x == poLayer) ? x : nullptr
 
 class OGRXPlaneLayer;
 class OGRXPlaneDataSource;

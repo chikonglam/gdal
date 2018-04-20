@@ -43,7 +43,7 @@ CPL_C_START
 CPL_C_END
 #include "tifvsi.h"
 
-CPL_CVSID("$Id: nitfbilevel.cpp 37346 2017-02-11 23:03:44Z goatbar $");
+CPL_CVSID("$Id: nitfbilevel.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                       NITFUncompressBILEVEL()                        */
@@ -64,10 +64,10 @@ int NITFUncompressBILEVEL( NITFImage *psImage,
     osFilename.Printf( "/vsimem/nitf-wrk-%ld.tif", (long) CPLGetPID() );
 
     VSILFILE* fpL = VSIFOpenL(osFilename, "w+");
-    if( fpL == NULL )
+    if( fpL == nullptr )
         return FALSE;
     TIFF *hTIFF = VSI_TIFFOpen( osFilename, "w+", fpL );
-    if (hTIFF == NULL)
+    if (hTIFF == nullptr)
     {
         CPL_IGNORE_RET_VAL(VSIFCloseL(fpL));
         return FALSE;
@@ -99,7 +99,7 @@ int NITFUncompressBILEVEL( NITFImage *psImage,
     bool bResult = true;
 
     hTIFF = VSI_TIFFOpen( osFilename, "r", fpL );
-    if (hTIFF == NULL)
+    if (hTIFF == nullptr)
     {
         CPL_IGNORE_RET_VAL(VSIFCloseL(fpL));
         return FALSE;

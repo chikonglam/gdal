@@ -29,7 +29,7 @@
 
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrregisterall.cpp 37968 2017-04-12 07:16:55Z rouault $");
+CPL_CVSID("$Id: ogrregisterall.cpp 6e4db6d2ec34bb829b4bec8ca6bf26daf0de1aef 2018-03-06 19:43:29Z Even Rouault $")
 
 /************************************************************************/
 /*                           OGRRegisterAll()                           */
@@ -95,6 +95,8 @@ void OGRRegisterAllInternal()
 #endif
 #ifdef GEOJSON_ENABLED
     RegisterOGRGeoJSON();
+    RegisterOGRESRIJSON();
+    RegisterOGRTopoJSON();
 #endif
 #ifdef ILI_ENABLED
     RegisterOGRILI1();
@@ -211,6 +213,7 @@ void OGRRegisterAllInternal()
 #endif
 #ifdef WFS_ENABLED
     RegisterOGRWFS();
+    RegisterOGRWFS3();
 #endif
 #ifdef SOSI_ENABLED
     RegisterOGRSOSI();
@@ -295,6 +298,9 @@ void OGRRegisterAllInternal()
 #endif
 #ifdef GMLAS_ENABLED
     RegisterOGRGMLAS();
+#endif
+#ifdef MVT_ENABLED
+    RegisterOGRMVT();
 #endif
 
 /* Put TIGER and AVCBIN at end since they need poOpenInfo->GetSiblingFiles() */

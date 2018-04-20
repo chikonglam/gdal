@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_couchdb.h 37371 2017-02-13 11:41:59Z rouault $
+ * $Id: ogr_couchdb.h 55901e50fd8583acecc3d37c9cc2870043fc8bdb 2018-01-11 09:11:21Z Dmitry Baryshnikov $
  *
  * Project:  CouchDB Translator
  * Purpose:  Definition of classes for OGR CouchDB / GeoCouch driver.
@@ -31,9 +31,9 @@
 #define OGR_COUCHDB_H_INCLUDED
 
 #include "ogrsf_frmts.h"
-#include "cpl_http.h"
 
-#include "ogr_json_header.h"
+#include "cpl_json_header.h"
+#include "cpl_http.h"
 
 #include <vector>
 #include <map>
@@ -201,7 +201,7 @@ class OGRCouchDBTableLayer : public OGRCouchDBLayer
                                                       int nUpdateSeqIn,
                                                       bool bGeoJSONDocumentIn );
 
-    void                        SetUpdateSeq(int nUpdateSeqIn) { nUpdateSeq = nUpdateSeqIn; };
+    void                        SetUpdateSeq(int nUpdateSeqIn) { nUpdateSeq = nUpdateSeqIn; }
 
     int                       HasFilterOnFieldOrCreateIfNecessary(const char* pszFieldName);
 
@@ -257,7 +257,7 @@ class OGRCouchDBDataSource : public OGRDataSource
                                 const char* pszURI,
                                 const char* pszData);
 
-    OGRLayer*           OpenDatabase(const char* pszLayerName = NULL);
+    OGRLayer*           OpenDatabase(const char* pszLayerName = nullptr);
     OGRLayer*           OpenView();
     void                DeleteLayer( const char *pszLayerName );
 
@@ -279,9 +279,9 @@ class OGRCouchDBDataSource : public OGRDataSource
     virtual int         TestCapability( const char * ) override;
 
     virtual OGRLayer   *ICreateLayer( const char *pszName,
-                                     OGRSpatialReference *poSpatialRef = NULL,
+                                     OGRSpatialReference *poSpatialRef = nullptr,
                                      OGRwkbGeometryType eGType = wkbUnknown,
-                                     char ** papszOptions = NULL ) override;
+                                     char ** papszOptions = nullptr ) override;
     virtual OGRErr      DeleteLayer(int) override;
 
     virtual OGRLayer*  ExecuteSQL( const char *pszSQLCommand,

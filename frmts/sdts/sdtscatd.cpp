@@ -29,7 +29,7 @@
 
 #include "sdts_al.h"
 
-CPL_CVSID("$Id: sdtscatd.cpp 35897 2016-10-24 11:54:24Z goatbar $");
+CPL_CVSID("$Id: sdtscatd.cpp e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -64,9 +64,9 @@ class SDTS_CATDEntry
 /************************************************************************/
 
 SDTS_CATD::SDTS_CATD() :
-    pszPrefixPath(NULL),
+    pszPrefixPath(nullptr),
     nEntries(0),
-    papoEntries(NULL)
+    papoEntries(nullptr)
 {}
 
 /************************************************************************/
@@ -112,7 +112,7 @@ int SDTS_CATD::Read( const char * pszFilename )
 /*      record and we won't even try reading the first record for       */
 /*      fear it will we a huge honking ADRG data record or something.   */
 /* -------------------------------------------------------------------- */
-    if( oCATDFile.FindFieldDefn( "CATD" ) == NULL )
+    if( oCATDFile.FindFieldDefn( "CATD" ) == nullptr )
         return FALSE;
 
 /* -------------------------------------------------------------------- */
@@ -138,13 +138,16 @@ int SDTS_CATD::Read( const char * pszFilename )
 /*      Loop reading CATD records, and adding to our list of entries    */
 /*      for each.                                                       */
 /* ==================================================================== */
-    DDFRecord *poRecord = NULL;
-    while( (poRecord = oCATDFile.ReadRecord()) != NULL )
+    DDFRecord *poRecord = nullptr;
+    int nIters = 0;
+    while( (poRecord = oCATDFile.ReadRecord()) != nullptr && nIters < 1000 )
     {
+        nIters ++;
+
 /* -------------------------------------------------------------------- */
 /*      Verify that we have a proper CATD record.                       */
 /* -------------------------------------------------------------------- */
-        if( poRecord->GetStringSubfield( "CATD", 0, "MODN", 0 ) == NULL )
+        if( poRecord->GetStringSubfield( "CATD", 0, "MODN", 0 ) == nullptr )
             continue;
 
 /* -------------------------------------------------------------------- */
@@ -161,12 +164,25 @@ int SDTS_CATD::Read( const char * pszFilename )
         poEntry->pszType =
             CPLStrdup(poRecord->GetStringSubfield( "CATD", 0, "TYPE", 0 ));
 
+        if( poEntry->pszModule[0] == '\0' ||
+            poEntry->pszFile[0] == '\0' ||
+            // Exclude following one for performance reasons in oss-fuzz
+            (poEntry->pszFile[0] == '/' && poEntry->pszFile[1] == '\0') )
+        {
+            CPLFree(poEntry->pszModule);
+            CPLFree(poEntry->pszFile);
+            CPLFree(poEntry->pszExternalFlag);
+            CPLFree(poEntry->pszType);
+            delete poEntry;
+            continue;
+        }
+
 /* -------------------------------------------------------------------- */
 /*      Create a full path to the file.                                 */
 /* -------------------------------------------------------------------- */
         poEntry->pszFullPath =
             CPLStrdup(CPLFormCIFilename( pszPrefixPath, poEntry->pszFile,
-                                         NULL ));
+                                         nullptr ));
 
 /* -------------------------------------------------------------------- */
 /*      Add the entry to the list.                                      */
@@ -183,7 +199,7 @@ int SDTS_CATD::Read( const char * pszFilename )
 /*                         GetModuleFilePath()                          */
 /************************************************************************/
 
-const char * SDTS_CATD::GetModuleFilePath( const char * pszModule )
+const char * SDTS_CATD::GetModuleFilePath( const char * pszModule ) const
 
 {
     for( int i = 0; i < nEntries; i++ )
@@ -192,18 +208,18 @@ const char * SDTS_CATD::GetModuleFilePath( const char * pszModule )
             return papoEntries[i]->pszFullPath;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 /************************************************************************/
 /*                           GetEntryModule()                           */
 /************************************************************************/
 
-const char * SDTS_CATD::GetEntryModule( int iEntry )
+const char * SDTS_CATD::GetEntryModule( int iEntry ) const
 
 {
     if( iEntry < 0 || iEntry >= nEntries )
-        return NULL;
+        return nullptr;
 
     return papoEntries[iEntry]->pszModule;
 }
@@ -223,11 +239,11 @@ const char * SDTS_CATD::GetEntryModule( int iEntry )
  * and will be something like "Attribute Primary        ".
  */
 
-const char * SDTS_CATD::GetEntryTypeDesc( int iEntry )
+const char * SDTS_CATD::GetEntryTypeDesc( int iEntry ) const
 
 {
     if( iEntry < 0 || iEntry >= nEntries )
-        return NULL;
+        return nullptr;
 
     return papoEntries[iEntry]->pszType;
 }
@@ -257,7 +273,7 @@ const char * SDTS_CATD::GetEntryTypeDesc( int iEntry )
  * </ul>
  */
 
-SDTSLayerType SDTS_CATD::GetEntryType( int iEntry )
+SDTSLayerType SDTS_CATD::GetEntryType( int iEntry ) const
 
 {
     if( iEntry < 0 || iEntry >= nEntries )
@@ -300,11 +316,11 @@ SDTSLayerType SDTS_CATD::GetEntryType( int iEntry )
  * string should not be altered, or freed by the application.
  */
 
-const char * SDTS_CATD::GetEntryFilePath( int iEntry )
+const char * SDTS_CATD::GetEntryFilePath( int iEntry ) const
 
 {
     if( iEntry < 0 || iEntry >= nEntries )
-        return NULL;
+        return nullptr;
 
     return papoEntries[iEntry]->pszFullPath;
 }

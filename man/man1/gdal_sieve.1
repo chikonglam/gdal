@@ -1,4 +1,4 @@
-.TH "gdal_sieve" 1 "Mon Mar 19 2018" "GDAL" \" -*- nroff -*-
+.TH "gdal_sieve" 1 "Fri Apr 20 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -47,7 +47,7 @@ Use the first band of the specified file as a validity mask (zero is invalid, no
 The new file to create with the filtered result\&. If not provided, the source band is updated in place\&.
 .PP
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
-Select the output format\&. The default is GeoTIFF (GTiff)\&. Use the short format name\&. 
+Select the output format\&. Starting with GDAL 2\&.3, if not specified, the format is guessed from the extension (previously was GTiff)\&. Use the short format name\&. 
 .PP
 .PP
 .SH "AUTHORS"

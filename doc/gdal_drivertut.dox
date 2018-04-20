@@ -1,5 +1,5 @@
 #ifndef DOXYGEN_SKIP
-/* $Id: gdal_drivertut.dox 37555 2017-03-02 13:02:20Z goatbar $ */
+/* $Id: gdal_drivertut.dox 8f1e8a485501eb2f9f3a35805f12ff8e221c1333 2017-03-02 13:02:20Z Kurt Schwehr $ */
 #endif /* DOXYGEN_SKIP */
 
 /*!
@@ -1070,7 +1070,7 @@ implement this.
 
 \htmlonly
 <p>
-$Id: gdal_drivertut.dox 37555 2017-03-02 13:02:20Z goatbar $
+$Id: gdal_drivertut.dox 8f1e8a485501eb2f9f3a35805f12ff8e221c1333 2017-03-02 13:02:20Z Kurt Schwehr $
 </p>
 \endhtmlonly
 

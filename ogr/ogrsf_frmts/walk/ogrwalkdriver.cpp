@@ -29,7 +29,7 @@
 
 #include "ogrwalk.h"
 
-CPL_CVSID("$Id: ogrwalkdriver.cpp 34819 2016-07-28 22:32:18Z goatbar $");
+CPL_CVSID("$Id: ogrwalkdriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                          ~OGRWalkDriver()                            */
@@ -58,14 +58,14 @@ OGRDataSource *OGRWalkDriver::Open( const char * pszFilename, int bUpdate )
 {
 
     if( STARTS_WITH_CI(pszFilename, "PGEO:") )
-        return NULL;
+        return nullptr;
 
     if( STARTS_WITH_CI(pszFilename, "GEOMEDIA:") )
-        return NULL;
+        return nullptr;
 
     if( !STARTS_WITH_CI(pszFilename, "WALK:")
         && !EQUAL(CPLGetExtension(pszFilename), "MDB") )
-        return NULL;
+        return nullptr;
 
 #ifndef WIN32
     // Try to register MDB Tools driver
@@ -95,7 +95,7 @@ OGRDataSource *OGRWalkDriver::Open( const char * pszFilename, int bUpdate )
     if( !poDS->Open( pszFilename, bUpdate ) )
     {
         delete poDS;
-        return NULL;
+        return nullptr;
     }
     else
         return poDS;
@@ -119,7 +119,7 @@ OGRDataSource *OGRWalkDriver::CreateDataSource( const char * pszName,
         CPLError( CE_Failure, CPLE_AppDefined,
          "Walk driver doesn't currently support database creation.\n"
                   "Please create database with the `createdb' command." );
-        return NULL;
+        return nullptr;
     }
     else
         return poDS;

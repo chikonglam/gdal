@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gtm.h 35933 2016-10-25 16:46:26Z goatbar $
+ * $Id: gtm.h 3c7e475e5bd7bd39058020357f7010d1886ee51e 2016-10-25 16:46:26Z Kurt Schwehr $
  *
  * Project:  GTM Driver
  * Purpose:  Class for reading, parsing and handling a gtm file.

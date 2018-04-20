@@ -1,4 +1,4 @@
-.TH "gdal_rasterize" 1 "Mon Mar 19 2018" "GDAL" \" -*- nroff -*-
+.TH "gdal_rasterize" 1 "Fri Apr 20 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -10,7 +10,7 @@ gdal_rasterize \- Burns vector geometries into a raster\&.
 Usage: gdal_rasterize [-b band]* [-i] [-at]
        {[-burn value]* | [-a attribute_name] | [-3d]} [-add]
        [-l layername]* [-where expression] [-sql select_statement]
-       [-dialect dialect] [-of format] [-a_srs srs_def]
+       [-dialect dialect] [-of format] [-a_srs srs_def] [-to NAME=VALUE]*
        [-co "NAME=VALUE"]* [-a_nodata value] [-init value]*
        [-te xmin ymin xmax ymax] [-tr xres yres] [-tap] [-ts width height]
        [-ot {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/
@@ -24,10 +24,10 @@ This program burns vector geometries (points, lines, and polygons) into the rast
 .PP
 Note that on the fly reprojection of vector data to the coordinate system of the raster data is only supported since GDAL 2\&.1\&.0\&.
 .PP
-Since GDAL 1\&.8\&.0, the target GDAL file can be created by gdal_rasterize\&. Either the -tr or -ts option must be used in that case\&.
+Prior to GDAL 1\&.8\&.0, gdal_rasterize could only modify existing raster images\&. Since 1\&.8\&.0, it will create a new target raster image when any of the -of, -a_nodata, -init, -a_srs, -co, -te, -tr, -tap, -ts, or -ot options are used\&. The resolution or size must be specified using the -tr or -ts option for all new rasters\&. The target raster will be overwritten if it already exists and any of these creation-related options are used\&.
 .PP
 .IP "\fB\fB-b\fP \fIband\fP: \fP" 1c
-The band(s) to burn values into\&. Multiple -b arguments may be used to burn into a list of bands\&. The default is to burn into band 1\&.
+The band(s) to burn values into\&. Multiple -b arguments may be used to burn into a list of bands\&. The default is to burn into band 1\&. Not used when creating a new raster\&.
 .PP
 .IP "\fB\fB-i\fP: \fP" 1c
 Invert rasterization\&. Burn the fixed burn value, or the burn value associated with the first feature into all parts of the image \fInot\fP inside the provided polygon\&.
@@ -60,7 +60,7 @@ An SQL statement to be evaluated against the datasource to produce a virtual lay
 (GDAL >= 2\&.1\&.0) SQL dialect\&. In some cases can be used to use (unoptimized) OGR SQL instead of the native SQL of an RDBMS by passing OGRSQL\&. Starting with GDAL 1\&.10, the 'SQLITE' dialect can also be used with any datasource\&.
 .PP
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
-(GDAL >= 1\&.8\&.0) Select the output format\&. The default is GeoTIFF (GTiff)\&. Use the short format name\&.
+(GDAL >= 1\&.8\&.0) Select the output format\&. Starting with GDAL 2\&.3, if not specified, the format is guessed from the extension (previously was GTiff)\&. Use the short format name\&.
 .PP
 .IP "\fB\fB-a_nodata\fP \fIvalue\fP:\fP" 1c
 (GDAL >= 1\&.8\&.0) Assign a specified nodata value to output bands\&.
@@ -69,7 +69,10 @@ An SQL statement to be evaluated against the datasource to produce a virtual lay
 (GDAL >= 1\&.8\&.0) Pre-initialize the output image bands with these values\&. However, it is not marked as the nodata value in the output file\&. If only one value is given, the same value is used in all the bands\&.
 .PP
 .IP "\fB\fB-a_srs\fP \fIsrs_def\fP:\fP" 1c
-(GDAL >= 1\&.8\&.0) Override the projection for the output file\&. If not specified, the projection of the input vector file will be used if available\&. If incompatible projections between input and output files, no attempt will be made to reproject features\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&. 
+(GDAL >= 1\&.8\&.0) Override the projection for the output file\&. If not specified, the projection of the input vector file will be used if available\&. When using this option, no reprojection of features from the SRS of the input vector to the specified SRS of the output raster, so use only this option to correct an invalid source SRS\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&. 
+.PP
+.IP "\fB\fB-to\fP \fINAME=VALUE\fP:\fP" 1c
+(GDAL >= 2\&.3\&.0) set a transformer option suitable to pass to GDALCreateGenImgProjTransformer2()\&. This is used when converting geometries coordinates to target raster pixel space\&. For example this can be used to specify RPC related transformer options\&.
 .PP
 .IP "\fB\fB-co\fP \fI'NAME=VALUE'\fP:\fP" 1c
 (GDAL >= 1\&.8\&.0) Passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See \fCformat specific documentation for legal creation options for each format\fP\&.
@@ -96,7 +99,7 @@ An SQL statement to be evaluated against the datasource to produce a virtual lay
 Any OGR supported readable datasource\&.
 .PP
 .IP "\fB\fIdst_filename\fP: \fP" 1c
-The GDAL supported output file\&. Must support update mode access\&. Before GDAL 1\&.8\&.0, gdal_rasterize could not create new output files\&.
+The GDAL supported output file\&. Must support update mode access\&. As of GDAL 1\&.8\&.0, this file will be created (or overwritten if it already exists) if the -of, -a_nodata, -init, -a_srs, -co, -te, -tr, -tap, -ts, or -ot options are used\&.
 .PP
 .PP
 .SH "C API"
@@ -117,6 +120,14 @@ The following would burn all 'class A' buildings into the output elevation file,
 .PP
 .nf
 gdal_rasterize -a ROOF_H -where 'class="A"' -l footprints footprints.shp city_dem.tif
+.fi
+.PP
+.PP
+The following would burn all polygons from footprint\&.shp into a new 1000x1000 rgb TIFF as the color red\&. Note that -b is not used; the order of the -burn options determines the bands of the output raster\&.
+.PP
+.PP
+.nf
+gdal_rasterize -burn 255 -burn 0 -burn 0 -ot Byte -ts 1000 1000 -l footprints footprints.shp mask.tif
 .fi
 .PP
 .SH "AUTHORS"

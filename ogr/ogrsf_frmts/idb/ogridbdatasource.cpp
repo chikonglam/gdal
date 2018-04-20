@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogridbdatasource.cpp 36347 2016-11-20 20:43:39Z rouault $");
+CPL_CVSID("$Id: ogridbdatasource.cpp 4971449609881d6ffdca70188292293852d12691 2017-12-17 16:48:14Z Even Rouault $")
 /************************************************************************/
 /*                         OGRIDBDataSource()                          */
 /************************************************************************/
@@ -61,6 +61,13 @@ OGRIDBDataSource::~OGRIDBDataSource()
         delete papoLayers[i];
 
     CPLFree( papoLayers );
+
+    if (poConn != NULL && poConn->IsOpen() ) 
+    {
+           poConn->Close();
+           CPLDebug( "OGR_IDB",
+              "Closing connection" );
+    }
 
     delete poConn;
 }
@@ -313,9 +320,7 @@ OGRLayer * OGRIDBDataSource::ExecuteSQL( const char *pszSQLCommand,
 /*      Create a results layer.  It will take ownership of the          */
 /*      statement.                                                      */
 /* -------------------------------------------------------------------- */
-    OGRIDBSelectLayer *poLayer = NULL;
-
-    poLayer = new OGRIDBSelectLayer( this, poCurr );
+    OGRIDBSelectLayer* poLayer = new OGRIDBSelectLayer( this, poCurr );
 
     if( poSpatialFilter != NULL )
         poLayer->SetSpatialFilter( poSpatialFilter );

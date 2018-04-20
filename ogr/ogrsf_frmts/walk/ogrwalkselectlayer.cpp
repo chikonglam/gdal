@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogrwalk.h"
 
-CPL_CVSID("$Id: ogrwalkselectlayer.cpp 35203 2016-08-25 17:56:54Z goatbar $");
+CPL_CVSID("$Id: ogrwalkselectlayer.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                          OGRWalkSelectLayer()                        */
@@ -43,7 +43,7 @@ OGRWalkSelectLayer::OGRWalkSelectLayer( OGRWalkDataSource *poDSIn,
     poDS = poDSIn;
 
     iNextShapeId = 0;
-    poFeatureDefn = NULL;
+    poFeatureDefn = nullptr;
 
     poStmt = poStmtIn;
     BuildFeatureDefn( "SELECT", poStmt );
@@ -66,10 +66,10 @@ OGRWalkSelectLayer::~OGRWalkSelectLayer()
 void OGRWalkSelectLayer::ClearStatement()
 
 {
-    if( poStmt != NULL )
+    if( poStmt != nullptr )
     {
         delete poStmt;
-        poStmt = NULL;
+        poStmt = nullptr;
     }
 }
 
@@ -80,7 +80,7 @@ void OGRWalkSelectLayer::ClearStatement()
 CPLODBCStatement *OGRWalkSelectLayer::GetStatement()
 
 {
-    if( poStmt == NULL )
+    if( poStmt == nullptr )
         ResetStatement();
 
     return poStmt;
@@ -106,7 +106,7 @@ OGRErr OGRWalkSelectLayer::ResetStatement()
     else
     {
         delete poStmt;
-        poStmt = NULL;
+        poStmt = nullptr;
         return OGRERR_FAILURE;
     }
 }

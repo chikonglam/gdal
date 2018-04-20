@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_idrisi.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_idrisi.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  Idrisi Translator
  * Purpose:  Definition of classes for OGR Idrisi driver.
@@ -36,7 +36,7 @@
 /*                         OGRIdrisiLayer                               */
 /************************************************************************/
 
-class OGRIdrisiLayer : public OGRLayer
+class OGRIdrisiLayer final: public OGRLayer
 {
 protected:
     OGRFeatureDefn*    poFeatureDefn;
@@ -87,7 +87,7 @@ protected:
 /*                        OGRIdrisiDataSource                           */
 /************************************************************************/
 
-class OGRIdrisiDataSource : public OGRDataSource
+class OGRIdrisiDataSource final: public OGRDataSource
 {
     char*               pszName;
 
@@ -112,7 +112,7 @@ class OGRIdrisiDataSource : public OGRDataSource
 /*                         OGRIdrisiDriver                              */
 /************************************************************************/
 
-class OGRIdrisiDriver : public OGRSFDriver
+class OGRIdrisiDriver final: public OGRSFDriver
 {
   public:
     virtual ~OGRIdrisiDriver();

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#******************************************************************************
-#  $Id: make_fuzzer_friendly_archive.py 32639 2016-01-01 16:41:52Z rouault $
+# ******************************************************************************
+#  $Id: make_fuzzer_friendly_archive.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
 #
 #  Project:  GDAL
 #  Purpose:  Make fuzzer friendly archive (only works in DEBUG mode)
 #  Author:   Even Rouault, <even dot rouault at spatialys dot com>
 #
-#******************************************************************************
+# ******************************************************************************
 #  Copyright (c) 2016 Even Rouault, <even dot rouault at spatialys dot com>
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a
@@ -27,7 +27,7 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
-#******************************************************************************
+# ******************************************************************************
 
 import os
 import sys

@@ -28,7 +28,7 @@
 
 #include "ogr_carto.h"
 
-CPL_CVSID("$Id: ogrcartoresultlayer.cpp 35298 2016-09-02 23:00:49Z goatbar $");
+CPL_CVSID("$Id: ogrcartoresultlayer.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                          OGRCARTOResultLayer()                     */
@@ -37,7 +37,7 @@ CPL_CVSID("$Id: ogrcartoresultlayer.cpp 35298 2016-09-02 23:00:49Z goatbar $");
 OGRCARTOResultLayer::OGRCARTOResultLayer( OGRCARTODataSource* poDSIn,
                                               const char * pszRawQueryIn ) :
     OGRCARTOLayer(poDSIn),
-    poFirstFeature(NULL)
+    poFirstFeature(nullptr)
 {
     osBaseSQL = pszRawQueryIn;
     SetDescription( "result" );
@@ -59,7 +59,7 @@ OGRCARTOResultLayer::~OGRCARTOResultLayer()
 
 OGRFeatureDefn * OGRCARTOResultLayer::GetLayerDefnInternal(json_object* poObjIn)
 {
-    if( poFeatureDefn != NULL )
+    if( poFeatureDefn != nullptr )
         return poFeatureDefn;
 
     EstablishLayerDefn("result", poObjIn);
@@ -76,7 +76,7 @@ OGRFeature  *OGRCARTOResultLayer::GetNextRawFeature()
     if( poFirstFeature )
     {
         OGRFeature* poRet = poFirstFeature;
-        poFirstFeature = NULL;
+        poFirstFeature = nullptr;
         return poRet;
     }
     else

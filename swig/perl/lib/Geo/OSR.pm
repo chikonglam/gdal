@@ -186,6 +186,7 @@ sub DESTROY {
 *SetLCCB = *Geo::OSRc::SpatialReference_SetLCCB;
 *SetMC = *Geo::OSRc::SpatialReference_SetMC;
 *SetMercator = *Geo::OSRc::SpatialReference_SetMercator;
+*SetMercator2SP = *Geo::OSRc::SpatialReference_SetMercator2SP;
 *SetMollweide = *Geo::OSRc::SpatialReference_SetMollweide;
 *SetNZMG = *Geo::OSRc::SpatialReference_SetNZMG;
 *SetOS = *Geo::OSRc::SpatialReference_SetOS;
@@ -239,6 +240,7 @@ sub DESTROY {
 *Fixup = *Geo::OSRc::SpatialReference_Fixup;
 *MorphToESRI = *Geo::OSRc::SpatialReference_MorphToESRI;
 *MorphFromESRI = *Geo::OSRc::SpatialReference_MorphFromESRI;
+*ConvertToOtherProjection = *Geo::OSRc::SpatialReference_ConvertToOtherProjection;
 sub DISOWN {
     my $self = shift;
     my $ptr = tied(%$self);

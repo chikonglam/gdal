@@ -31,7 +31,7 @@
 #include "ogrmutexeddatasource.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: ogrmutexeddatasource.cpp 35172 2016-08-21 20:33:08Z goatbar $");
+CPL_CVSID("$Id: ogrmutexeddatasource.cpp e5a287aeb4a9c8665a45b9877e555e16ed93843d 2018-04-18 19:06:22 +0200 Even Rouault $")
 
 OGRMutexedDataSource::OGRMutexedDataSource( OGRDataSource* poBaseDataSource,
                                             int bTakeOwnership,
@@ -99,7 +99,7 @@ OGRLayer    *OGRMutexedDataSource::GetLayerByName(const char *pszName)
 OGRErr      OGRMutexedDataSource::DeleteLayer(int iIndex)
 {
     CPLMutexHolderOptionalLockD(m_hGlobalMutex);
-    OGRLayer* poLayer = m_bWrapLayersInMutexedLayer ? GetLayer(iIndex) : NULL;
+    OGRLayer* poLayer = m_bWrapLayersInMutexedLayer ? GetLayer(iIndex) : nullptr;
     OGRErr eErr = m_poBaseDataSource->DeleteLayer(iIndex);
     if( eErr == OGRERR_NONE && poLayer)
     {
@@ -169,7 +169,8 @@ void        OGRMutexedDataSource::ReleaseResultSet( OGRLayer * poResultsSet )
     CPLMutexHolderOptionalLockD(m_hGlobalMutex);
     if( poResultsSet && m_bWrapLayersInMutexedLayer )
     {
-        std::map<OGRMutexedLayer*, OGRLayer*>::iterator oIter = m_oReverseMapLayers.find((OGRMutexedLayer*)poResultsSet);
+        std::map<OGRMutexedLayer*, OGRLayer*>::iterator oIter =
+            m_oReverseMapLayers.find(cpl::down_cast<OGRMutexedLayer*>(poResultsSet));
         CPLAssert(oIter != m_oReverseMapLayers.end());
         delete poResultsSet;
         poResultsSet = oIter->second;

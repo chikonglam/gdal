@@ -34,12 +34,12 @@
 
 #include "wmsdriver.h"
 
-CPL_CVSID("$Id: minidriver.cpp 36611 2016-12-01 23:13:38Z lplesea $");
+CPL_CVSID("$Id: minidriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 class WMSMiniDriverManager {
 public:
-    WMSMiniDriverManager() {};
-    ~WMSMiniDriverManager() { erase(); };
+    WMSMiniDriverManager() {}
+    ~WMSMiniDriverManager() { erase(); }
 
 public:
     void Register(WMSMiniDriverFactory *mdf);
@@ -62,7 +62,7 @@ WMSMiniDriverFactory *WMSMiniDriverManager::Find(const CPLString &name) {
     for (size_t i = 0; i < m_mdfs.size(); i++)
         if (EQUAL(name.c_str(), m_mdfs[i]->m_name))
             return m_mdfs[i];
-    return NULL;
+    return nullptr;
 }
 
 void WMSMiniDriverManager::Register(WMSMiniDriverFactory *mdf) {
@@ -79,7 +79,7 @@ static WMSMiniDriverManager g_mini_driver_manager;
 // If a matching factory is found in the global minidriver manager, it returns a new minidriver object
 WMSMiniDriver *NewWMSMiniDriver(const CPLString &name) {
     const WMSMiniDriverFactory *factory = g_mini_driver_manager.Find(name);
-    if (factory == NULL) return NULL;
+    if (factory == nullptr) return nullptr;
     return factory->New();
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gnmdb.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: gnmdb.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  GDAL/OGR Geography Network support (Geographic Network Model)
  * Purpose:  GNM db based generic driver.
@@ -41,9 +41,9 @@ public:
     virtual CPLErr Create( const char* pszFilename, char** papszOptions ) override;
 protected:
     virtual OGRLayer   *ICreateLayer( const char *pszName,
-                                   OGRSpatialReference *poSpatialRef = NULL,
+                                   OGRSpatialReference *poSpatialRef = nullptr,
                                    OGRwkbGeometryType eGType = wkbUnknown,
-                                   char ** papszOptions = NULL ) override;
+                                   char ** papszOptions = nullptr ) override;
     virtual int CheckNetworkExist( const char* pszFilename, char** papszOptions ) override;
 protected:
     virtual CPLErr DeleteMetadataLayer() override;

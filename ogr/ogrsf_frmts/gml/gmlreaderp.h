@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreaderp.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: gmlreaderp.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  GML Reader
  * Purpose:  Private Declarations for OGR free GML Reader code.
@@ -211,41 +211,6 @@ public:
 #if defined(HAVE_XERCES)
 
 /************************************************************************/
-/*                        GMLBinInputStream                             */
-/************************************************************************/
-class GMLBinInputStream : public BinInputStream
-{
-    VSILFILE* fp;
-    XMLCh emptyString;
-
-public :
-
-    explicit GMLBinInputStream(VSILFILE* fp);
-    virtual ~GMLBinInputStream();
-
-    virtual XMLFilePos curPos() const override;
-    virtual XMLSize_t readBytes(XMLByte* const toFill, const XMLSize_t maxToRead) override;
-    virtual const XMLCh* getContentType() const override ;
-};
-
-/************************************************************************/
-/*                           GMLInputSource                             */
-/************************************************************************/
-
-class GMLInputSource : public InputSource
-{
-    // TODO(schwehr): Rename to pBinInputStream to not look like a bool.
-    GMLBinInputStream* binInputStream;
-
-public:
-             GMLInputSource(VSILFILE* fp,
-                            MemoryManager* const manager = XMLPlatformUtils::fgMemoryManager);
-    virtual ~GMLInputSource();
-
-    virtual BinInputStream* makeStream() const override;
-};
-
-/************************************************************************/
 /*                         GMLXercesHandler                             */
 /************************************************************************/
 class GMLXercesHandler : public DefaultHandler, public GMLHandler
@@ -375,7 +340,7 @@ class GMLReader : public IGMLReader
     SAX2XMLReader *m_poSAXReader;
     XMLPScanToken m_oToFill;
     GMLFeature   *m_poCompleteFeature;
-    GMLInputSource *m_GMLInputSource;
+    InputSource  *m_GMLInputSource;
     bool          m_bEOF;
     bool          m_bXercesInitialized;
     bool          SetupParserXerces();
@@ -463,12 +428,12 @@ public:
 
     GMLFeature       *NextFeature() override;
 
-    bool             LoadClasses( const char *pszFile = NULL ) override;
-    bool             SaveClasses( const char *pszFile = NULL ) override;
+    bool             LoadClasses( const char *pszFile = nullptr ) override;
+    bool             SaveClasses( const char *pszFile = nullptr ) override;
 
     bool             ResolveXlinks( const char *pszFile,
                                     bool* pbOutIsTempFile,
-                                    char **papszSkip = NULL,
+                                    char **papszSkip = nullptr,
                                     const bool bStrict = false ) override;
 
     bool             HugeFileResolver( const char *pszFile,
@@ -491,7 +456,7 @@ public:
     bool             ShouldLookForClassAtAnyLevel() { return m_bLookForClassAtAnyLevel; }
 
     int         GetFeatureElementIndex( const char *pszElement, int nLen, GMLAppSchemaType eAppSchemaType );
-    int         GetAttributeElementIndex( const char *pszElement, int nLen, const char* pszAttrKey = NULL );
+    int         GetAttributeElementIndex( const char *pszElement, int nLen, const char* pszAttrKey = nullptr );
     bool        IsCityGMLGenericAttributeElement( const char *pszElement, void* attr );
 
     void        PushFeature( const char *pszElement,

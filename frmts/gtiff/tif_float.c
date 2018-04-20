@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tif_float.c 39191 2017-06-19 11:03:41Z rouault $
+ * $Id: tif_float.c 78b178fa5c7861a10b5eadda77c8e9e697f8fef3 2017-06-19 11:03:33Z Even Rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Floating point conversion functions. Convert 16- and 24-bit
@@ -56,7 +56,7 @@ GUInt32 HalfToFloat( GUInt16 iHalf )
 {
 
     GUInt32 iSign =     (iHalf >> 15) & 0x00000001;
-    GUInt32 iExponent = (iHalf >> 10) & 0x0000001f;
+    int iExponent = (iHalf >> 10) & 0x0000001f;
     GUInt32 iMantissa = iHalf         & 0x000003ff;
 
     if (iExponent == 0)
@@ -117,7 +117,7 @@ GUInt32 HalfToFloat( GUInt16 iHalf )
 /* -------------------------------------------------------------------- */
 
     /* coverity[overflow_sink] */
-    return (iSign << 31) | (iExponent << 23) | iMantissa;
+    return (iSign << 31) | ((GUInt32)iExponent << 23) | iMantissa;
 }
 
 /************************************************************************/
@@ -130,7 +130,7 @@ GUInt32 TripleToFloat( GUInt32 iTriple )
 {
 
     GUInt32 iSign       = (iTriple >> 23) & 0x00000001;
-    GUInt32 iExponent   = (iTriple >> 16) & 0x0000007f;
+    int iExponent   = (iTriple >> 16) & 0x0000007f;
     GUInt32 iMantissa   = iTriple         & 0x0000ffff;
 
     if (iExponent == 0)
@@ -191,5 +191,5 @@ GUInt32 TripleToFloat( GUInt32 iTriple )
 /* -------------------------------------------------------------------- */
 
     /* coverity[overflow_sink] */
-    return (iSign << 31) | (iExponent << 23) | iMantissa;
+    return (iSign << 31) | ((GUInt32)iExponent << 23) | iMantissa;
 }

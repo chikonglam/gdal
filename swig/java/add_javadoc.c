@@ -1,6 +1,6 @@
 
 /******************************************************************************
-* $Id$
+* $Id: add_javadoc.c f070adf64950cae1c6cc86b104ba835c29df06b1 2016-08-28 06:06:11Z Kurt Schwehr $
 *
 * Project:  GDAL/OGR Java bindings
 * Purpose:  Add javadoc located in a special file into generated SWIG Java files

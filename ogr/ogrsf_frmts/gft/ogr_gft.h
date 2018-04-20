@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gft.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_gft.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  GFT Translator
  * Purpose:  Definition of classes for OGR Google Fusion Tables driver.
@@ -227,9 +227,9 @@ class OGRGFTDataSource : public OGRDataSource
     virtual int         TestCapability( const char * ) override;
 
     virtual OGRLayer   *ICreateLayer( const char *pszName,
-                                     OGRSpatialReference *poSpatialRef = NULL,
+                                     OGRSpatialReference *poSpatialRef = nullptr,
                                      OGRwkbGeometryType eGType = wkbUnknown,
-                                     char ** papszOptions = NULL ) override;
+                                     char ** papszOptions = nullptr ) override;
     virtual OGRErr      DeleteLayer(int) override;
 
     virtual OGRLayer*  ExecuteSQL( const char *pszSQLCommand,
@@ -240,7 +240,7 @@ class OGRGFTDataSource : public OGRDataSource
     const CPLString&            GetAccessToken() const { return osAccessToken;}
     const char*                 GetAPIURL() const;
     int                         IsReadWrite() const { return bReadWrite; }
-    char**                      AddHTTPOptions(char** papszOptions = NULL);
+    char**                      AddHTTPOptions(char** papszOptions = nullptr);
     CPLHTTPResult*              RunSQL(const char* pszUnescapedSQL);
 };
 

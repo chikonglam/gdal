@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vfkreaderp.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: vfkreaderp.h 9fa542bff8db58df565fda9115e24dbe3940ef3d 2018-04-09 20:27:32 +0200 Martin Landa $
  *
  * Project:  VFK Reader
  * Purpose:  Private Declarations for OGR free VFK Reader code.
@@ -77,8 +77,8 @@ public:
     bool           IsSpatial() const override { return false; }
     bool           IsPreProcessed() const override { return false; }
     bool           IsValid() const override { return true; }
-    int            ReadDataBlocks() override;
-    int            ReadDataRecords(IVFKDataBlock * = NULL) override;
+    int            ReadDataBlocks(bool = false) override;
+    int            ReadDataRecords(IVFKDataBlock * = nullptr) override;
     int            LoadGeometry() override;
 
     int            GetDataBlockCount() const override { return m_nDataBlockCount; }
@@ -116,13 +116,13 @@ public:
 
     bool          IsSpatial() const override { return m_bSpatial; }
     bool          IsPreProcessed() const override { return !m_bNewDb; }
-    bool          IsValid() const override { return m_poDB != NULL; }
-    int           ReadDataBlocks() override;
-    int           ReadDataRecords(IVFKDataBlock * = NULL) override;
+    bool          IsValid() const override { return m_poDB != nullptr; }
+    int           ReadDataBlocks(bool = false) override;
+    int           ReadDataRecords(IVFKDataBlock * = nullptr) override;
 
     sqlite3_stmt *PrepareStatement(const char *);
-    OGRErr        ExecuteSQL( const char *, bool = false );
-    OGRErr        ExecuteSQL(sqlite3_stmt *);
+    OGRErr        ExecuteSQL(const char *, CPLErr = CE_Failure);
+    OGRErr        ExecuteSQL(sqlite3_stmt *&);
 };
 
 #endif // GDAL_OGR_VFK_VFKREADERP_H_INCLUDED

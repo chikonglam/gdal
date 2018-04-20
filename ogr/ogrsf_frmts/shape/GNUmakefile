@@ -2,15 +2,19 @@
 
 include ../../../GDALmake.opt
 
-OBJ	=	shape2ogr.o shpopen.o dbfopen.o shptree.o sbnsearch.o shp_vsi.o \
+OBJ	=	shape2ogr.o shpopen_wrapper.o dbfopen_wrapper.o shptree_wrapper.o sbnsearch_wrapper.o shp_vsi.o \
 		ogrshapedriver.o ogrshapedatasource.o ogrshapelayer.o
 
 CPPFLAGS :=	-DSAOffset=vsi_l_offset -DUSE_CPL \
 		-I.. -I../.. -I../generic  $(CPPFLAGS)
 
+ifeq ($(RENAME_INTERNAL_SHAPELIB_SYMBOLS),yes)
+CPPFLAGS 	:=	$(CPPFLAGS) -DRENAME_INTERNAL_SHAPELIB_SYMBOLS -DSHPAPI_CALL=
+endif
+
 default:	$(O_OBJ:.o=.$(OBJ_EXT))
 
-$(OBJ) $(O_OBJ):	ogrshape.h shapefil.h
+$(OBJ) $(O_OBJ):	ogrshape.h shapefil.h shpopen.c dbfopen.c shptree.c sbnsearch.c
 
 clean:
 	rm -f *.o $(O_OBJ)

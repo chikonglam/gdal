@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_cloudant.h 37371 2017-02-13 11:41:59Z rouault $
+ * $Id: ogr_cloudant.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  Cloudant Translator
  * Purpose:  Definition of classes for OGR Cloudant driver.
@@ -44,7 +44,7 @@ class OGRCloudantDataSource;
 /*                      OGRCloudantTableLayer                         */
 /************************************************************************/
 
-class OGRCloudantTableLayer : public OGRCouchDBTableLayer
+class OGRCloudantTableLayer final : public OGRCouchDBTableLayer
 {
     int                       bHasStandardSpatial;  // -1, TRUE, FALSE
     const char*               pszSpatialView;
@@ -70,18 +70,18 @@ class OGRCloudantTableLayer : public OGRCouchDBTableLayer
 /*                         OGRCloudantDataSource                        */
 /************************************************************************/
 
-class OGRCloudantDataSource : public OGRCouchDBDataSource
+class OGRCloudantDataSource final: public OGRCouchDBDataSource
 {
   protected:
-            OGRLayer*    OpenDatabase(const char* pszLayerName = NULL);
+            OGRLayer*    OpenDatabase(const char* pszLayerName = nullptr);
   public:
                         OGRCloudantDataSource();
     virtual ~OGRCloudantDataSource();
     virtual int Open( const char * pszFilename, int bUpdateIn);
     virtual OGRLayer   *ICreateLayer( const char *pszName,
-             OGRSpatialReference *poSpatialRef = NULL,
+             OGRSpatialReference *poSpatialRef = nullptr,
              OGRwkbGeometryType eGType = wkbUnknown,
-             char ** papszOptions = NULL ) override;
+             char ** papszOptions = nullptr ) override;
 };
 
 #endif /* ndef OGR_CLOUDANT_H_INCLUDED */

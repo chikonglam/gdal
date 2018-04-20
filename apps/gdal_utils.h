@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_utils.h 35884 2016-10-24 05:56:50Z goatbar $
+ * $Id: gdal_utils.h dc3819d387764593c0fb5a5c4d02c21a848a4c9d 2018-04-12 18:07:28 +0200 Even Rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  GDAL Utilities Public Declarations.
@@ -91,6 +91,8 @@ void CPL_DLL GDALWarpAppOptionsFree( GDALWarpAppOptions *psOptions );
 void CPL_DLL GDALWarpAppOptionsSetProgress( GDALWarpAppOptions *psOptions,
                                               GDALProgressFunc pfnProgress,
                                               void *pProgressData );
+void CPL_DLL GDALWarpAppOptionsSetQuiet( GDALWarpAppOptions *psOptions,
+                                         int bQuiet );
 void CPL_DLL GDALWarpAppOptionsSetWarpOption( GDALWarpAppOptions *psOptions,
                                               const char* pszKey,
                                               const char* pszValue );

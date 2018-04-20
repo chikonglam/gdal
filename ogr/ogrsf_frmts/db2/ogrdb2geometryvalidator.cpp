@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "ogr_db2.h"
 
-CPL_CVSID("$Id: ogrdb2geometryvalidator.cpp 35675 2016-10-10 04:57:58Z goatbar $");
+CPL_CVSID("$Id: ogrdb2geometryvalidator.cpp 98dfb4b4012c5ae4621e246e8eb393b3c05a3f48 2018-04-02 22:09:55 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                   OGRDB2GeometryValidator()                        */
@@ -368,7 +368,7 @@ int OGRDB2GeometryValidator::ValidateMultiPolygon(OGRMultiPolygon* poGeom)
             continue;
         }
 
-        if (!ValidatePolygon((OGRPolygon*)poPolygon))
+        if (!ValidatePolygon(poPolygon->toPolygon()))
         {
             // non valid polygon
             if (!poGeometries)
@@ -455,27 +455,27 @@ int OGRDB2GeometryValidator::ValidateGeometry(OGRGeometry* poGeom)
     {
     case wkbPoint:
     case wkbPoint25D:
-        return ValidatePoint((OGRPoint*)poGeom);
+        return ValidatePoint(poGeom->toPoint());
     case wkbLineString:
     case wkbLineString25D:
-        return ValidateLineString((OGRLineString*)poGeom);
+        return ValidateLineString(poGeom->toLineString());
     case wkbPolygon:
     case wkbPolygon25D:
-        return ValidatePolygon((OGRPolygon*)poGeom);
+        return ValidatePolygon(poGeom->toPolygon());
     case wkbMultiPoint:
     case wkbMultiPoint25D:
-        return ValidateMultiPoint((OGRMultiPoint*)poGeom);
+        return ValidateMultiPoint(poGeom->toMultiPoint());
     case wkbMultiLineString:
     case wkbMultiLineString25D:
-        return ValidateMultiLineString((OGRMultiLineString*)poGeom);
+        return ValidateMultiLineString(poGeom->toMultiLineString());
     case wkbMultiPolygon:
     case wkbMultiPolygon25D:
-        return ValidateMultiPolygon((OGRMultiPolygon*)poGeom);
+        return ValidateMultiPolygon(poGeom->toMultiPolygon());
     case wkbGeometryCollection:
     case wkbGeometryCollection25D:
-        return ValidateGeometryCollection((OGRGeometryCollection*)poGeom);
+        return ValidateGeometryCollection(poGeom->toGeometryCollection());
     case wkbLinearRing:
-        return ValidateLinearRing((OGRLinearRing*)poGeom);
+        return ValidateLinearRing(poGeom->toLinearRing());
     default:
         return FALSE;
     }

@@ -29,7 +29,7 @@
 #include "ogr_xls.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrxlsdriver.cpp 34819 2016-07-28 22:32:18Z goatbar $");
+CPL_CVSID("$Id: ogrxlsdriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************************************************************/
 /*                           ~OGRXLSDriver()                            */
@@ -59,12 +59,12 @@ OGRDataSource *OGRXLSDriver::Open( const char * pszFilename, int bUpdate )
 {
     if (bUpdate)
     {
-        return NULL;
+        return nullptr;
     }
 
     if (!EQUAL(CPLGetExtension(pszFilename), "XLS"))
     {
-        return NULL;
+        return nullptr;
     }
 
     OGRXLSDataSource   *poDS = new OGRXLSDataSource();
@@ -72,7 +72,7 @@ OGRDataSource *OGRXLSDriver::Open( const char * pszFilename, int bUpdate )
     if( !poDS->Open( pszFilename, bUpdate ) )
     {
         delete poDS;
-        poDS = NULL;
+        poDS = nullptr;
     }
 
     return poDS;
@@ -100,6 +100,7 @@ void RegisterOGRXLS()
     poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, "MS Excel format" );
     poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "xls" );
     poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_xls.html" );
+    poDriver->SetMetadataItem( GDAL_DCAP_NONSPATIAL, "YES" );
 
     OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( poDriver );
 }

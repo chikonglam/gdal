@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitffile.c 38086 2017-04-21 14:34:14Z rouault $
+ * $Id: nitffile.c cf79f01d31f2de889a3045a3d09f944cb04d7071 2018-03-03 22:40:32Z Even Rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for opening NITF file, populating NITFFile
@@ -34,7 +34,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitffile.c 38086 2017-04-21 14:34:14Z rouault $");
+CPL_CVSID("$Id: nitffile.c cf79f01d31f2de889a3045a3d09f944cb04d7071 2018-03-03 22:40:32Z Even Rouault $")
 
 CPL_INLINE static void CPL_IGNORE_RET_VAL_INT(CPL_UNUSED int unused) {}
 
@@ -349,7 +349,8 @@ retry_read_header:
 
     if (nOffset != -1)
         nOffset = NITFCollectSegmentInfo( psFile, nHeaderLen, nOffset, "RE", 4, 7, &nNextData);
-    else
+
+    if( nOffset < 0 )
     {
         NITFClose(psFile);
         return NULL;
@@ -1251,7 +1252,8 @@ static int NITFWriteTRE( VSILFILE* fp,
         *pnOffset += 3;
     }
 
-    if (nOldOffset + 11 + nTREDataSize > 99999 || nTREDataSize > 99999)
+    if (nOldOffset + 11 + nTREDataSize > 99999 ||
+        nTREDataSize < 0 || nTREDataSize > 99999)
     {
         CPLError(CE_Failure, CPLE_AppDefined, "Too big TRE to be written");
         return FALSE;
@@ -1264,7 +1266,8 @@ static int NITFWriteTRE( VSILFILE* fp,
 /*      Create TRE prefix.                                              */
 /* -------------------------------------------------------------------- */
     snprintf( szTemp, sizeof(szTemp), "%-6s%05d",
-             pszTREName, nTREDataSize );
+              pszTREName,
+              nTREDataSize );
     bOK &= VSIFSeekL(fp, nOffsetUDIDL + 10 + nOldOffset, SEEK_SET) == 0;
     bOK &= VSIFWriteL(szTemp, 11, 1, fp) == 1;
     bOK &= (int)VSIFWriteL(pabyTREData, 1, nTREDataSize, fp) == nTREDataSize;
@@ -1398,7 +1401,7 @@ static int NITFWriteBLOCKA( VSILFILE* fp, vsi_l_offset nOffsetUDIDL,
             if( pszValue == NULL )
                 pszValue = "";
 
-            if (strlen(pszValue) > (size_t)iSize)
+            if( iSize - (int)strlen(pszValue) < 0 )
             {
                 CPLError(CE_Failure, CPLE_AppDefined,
                          "Too much data for %s. Got %d bytes, max allowed is %d",
@@ -1410,7 +1413,7 @@ static int NITFWriteBLOCKA( VSILFILE* fp, vsi_l_offset nOffsetUDIDL,
             memset( szBLOCKA + iStart, ' ', iSize );
             /* unsigned is always >= 0 */
             /* memcpy( szBLOCKA + iStart + MAX((size_t)0,iSize-strlen(pszValue)), */
-            memcpy( szBLOCKA + iStart + iSize-strlen(pszValue),
+            memcpy( szBLOCKA + iStart + (iSize - (int)strlen(pszValue)),
                     pszValue, strlen(pszValue) );
         }
 

@@ -34,7 +34,7 @@
 
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: pdfio.cpp 40036 2017-09-08 11:23:21Z rouault $");
+CPL_CVSID("$Id: pdfio.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 #ifdef POPPLER_BASE_STREAM_HAS_TWO_ARGS
 /* Poppler 0.31.0 is the first one that needs to know the file size */
@@ -62,7 +62,7 @@ VSIPDFFileStream::VSIPDFFileStream(
 #else
     BaseStream(dictA),
 #endif
-    poParent(NULL),
+    poParent(nullptr),
     poFilename(new GooString(pszFilename)),
     f(fIn),
     nStart(0),
@@ -110,7 +110,7 @@ VSIPDFFileStream::VSIPDFFileStream( VSIPDFFileStream* poParentIn,
 VSIPDFFileStream::~VSIPDFFileStream()
 {
     close();
-    if (poParent == NULL)
+    if (poParent == nullptr)
     {
         delete poFilename;
         if (f)

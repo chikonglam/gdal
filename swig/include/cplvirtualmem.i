@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cplvirtualmem.i 32864 2016-01-08 21:00:50Z goatbar $
+ * $Id: cplvirtualmem.i a2d4bcda7874bbc6de9942874f8d549219e9403d 2016-01-08 21:00:50Z Kurt Schwehr $
  *
  * Name:     cplvirtualmem.i
  * Project:  GDAL Python Interface

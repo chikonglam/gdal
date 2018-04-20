@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_segy.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_segy.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  SEG-Y Translator
  * Purpose:  Definition of classes for OGR SEG-Y driver.
@@ -74,7 +74,7 @@ typedef struct
 /*                          OGRSEGYLayer                                */
 /************************************************************************/
 
-class OGRSEGYLayer: public OGRLayer
+class OGRSEGYLayer final: public OGRLayer
 {
     OGRFeatureDefn*    poFeatureDefn;
     bool               bEOF;
@@ -105,7 +105,7 @@ class OGRSEGYLayer: public OGRLayer
 /*                        OGRSEGYHeaderLayer                            */
 /************************************************************************/
 
-class OGRSEGYHeaderLayer: public OGRLayer
+class OGRSEGYHeaderLayer final: public OGRLayer
 {
     OGRFeatureDefn*    poFeatureDefn;
     bool               bEOF;
@@ -134,7 +134,7 @@ class OGRSEGYHeaderLayer: public OGRLayer
 /*                          OGRSEGYDataSource                           */
 /************************************************************************/
 
-class OGRSEGYDataSource : public OGRDataSource
+class OGRSEGYDataSource final: public OGRDataSource
 {
     char*               pszName;
 

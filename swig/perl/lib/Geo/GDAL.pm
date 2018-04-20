@@ -66,6 +66,7 @@ package Geo::GDAL;
 *GetLastErrorNo = *Geo::GDALc::GetLastErrorNo;
 *GetLastErrorType = *Geo::GDALc::GetLastErrorType;
 *GetLastErrorMsg = *Geo::GDALc::GetLastErrorMsg;
+*GetErrorCounter = *Geo::GDALc::GetErrorCounter;
 *VSIGetLastErrorNo = *Geo::GDALc::VSIGetLastErrorNo;
 *VSIGetLastErrorMsg = *Geo::GDALc::VSIGetLastErrorMsg;
 *PushFinderLocation = *Geo::GDALc::PushFinderLocation;
@@ -83,10 +84,17 @@ package Geo::GDAL;
 *HasThreadSupport = *Geo::GDALc::HasThreadSupport;
 *Mkdir = *Geo::GDALc::Mkdir;
 *Rmdir = *Geo::GDALc::Rmdir;
+*MkdirRecursive = *Geo::GDALc::MkdirRecursive;
+*RmdirRecursive = *Geo::GDALc::RmdirRecursive;
 *Rename = *Geo::GDALc::Rename;
+*GetActualURL = *Geo::GDALc::GetActualURL;
+*GetSignedURL = *Geo::GDALc::GetSignedURL;
+*GetFileSystemsPrefixes = *Geo::GDALc::GetFileSystemsPrefixes;
+*GetFileSystemOptions = *Geo::GDALc::GetFileSystemOptions;
 *Stat = *Geo::GDALc::Stat;
 *VSIFOpenL = *Geo::GDALc::VSIFOpenL;
 *VSIFOpenExL = *Geo::GDALc::VSIFOpenExL;
+*VSIFEofL = *Geo::GDALc::VSIFEofL;
 *VSIFCloseL = *Geo::GDALc::VSIFCloseL;
 *VSIFSeekL = *Geo::GDALc::VSIFSeekL;
 *VSIFTellL = *Geo::GDALc::VSIFTellL;
@@ -380,6 +388,7 @@ sub DESTROY {
 *GetFileList = *Geo::GDALc::Dataset_GetFileList;
 *_WriteRaster = *Geo::GDALc::Dataset__WriteRaster;
 *_ReadRaster = *Geo::GDALc::Dataset__ReadRaster;
+*AdviseRead = *Geo::GDALc::Dataset_AdviseRead;
 *_CreateLayer = *Geo::GDALc::Dataset__CreateLayer;
 *CopyLayer = *Geo::GDALc::Dataset_CopyLayer;
 *_DeleteLayer = *Geo::GDALc::Dataset__DeleteLayer;
@@ -469,6 +478,7 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *HasArbitraryOverviews = *Geo::GDALc::Band_HasArbitraryOverviews;
 *GetCategoryNames = *Geo::GDALc::Band_GetCategoryNames;
 *SetCategoryNames = *Geo::GDALc::Band_SetCategoryNames;
+*AdviseRead = *Geo::GDALc::Band_AdviseRead;
 *ContourGenerate = *Geo::GDALc::Band_ContourGenerate;
 *ClassCounts = *Geo::GDALc::Band_ClassCounts;
 *Reclassify = *Geo::GDALc::Band_Reclassify;
@@ -990,7 +1000,7 @@ package Geo::GDAL;
 
 
     # keeper maintains child -> parent relationships
-    # child is kept as a key, i.e., string not the real object 
+    # child is kept as a key, i.e., string not the real object
     # parent is kept as the value, i.e., a real object
     # a child may have only one parent!
     # call these as Geo::GDAL::*
@@ -1027,7 +1037,7 @@ package Geo::GDAL;
         my ($child) = @_;
         delete $keeper{$child};
     }
-    
+
     sub parent {
         my ($child) = @_;
         $child = tied(%$child) if $child->isa('HASH');
@@ -1056,8 +1066,8 @@ use Geo::GDAL::Const;
 # Note that the 1/100000 digits may be used to create more than one
 # CPAN release from one GDAL release.
 
-our $VERSION = '2.0204';
-our $GDAL_VERSION = '2.2.4';
+our $VERSION = '2.0300';
+our $GDAL_VERSION = '2.3.0';
 
 =pod
 
@@ -1196,12 +1206,13 @@ sub error {
             $error = shift;
         }
         push @error, $error;
-        confess($error);
+        $error = join("\n", reverse @error);
+        confess($error."\n");
     }
     my @stack = @error;
     chomp(@stack);
     @error = ();
-    return wantarray ? @stack : join("\n", @stack);
+    return wantarray ? @stack : join("\n", reverse @stack);
 }
 
 sub last_error {
@@ -1429,7 +1440,7 @@ sub Driver {
     return 'Geo::GDAL::Driver' unless @_;
     my $name = shift;
     my $driver = GetDriver($name);
-    error("Driver \"$name\" not found. Is it built in? Check with Geo::GDAL::Drivers or Geo::OGR::Drivers.") 
+    error("Driver \"$name\" not found. Is it built in? Check with Geo::GDAL::Drivers or Geo::OGR::Drivers.")
         unless $driver;
     return $driver;
 }
@@ -1720,7 +1731,7 @@ use Exporter 'import';
 Geo::GDAL->import(qw(:INTERNAL));
 
 use vars qw/@EXPORT @DOMAINS @CAPABILITIES %CAPABILITIES/;
- 
+
 @EXPORT = qw/BuildVRT/;
 @DOMAINS = qw/IMAGE_STRUCTURE SUBDATASETS GEOLOCATION/;
 
@@ -2609,7 +2620,7 @@ sub Piddle {
     my $t = $self->{DataType};
     unless (defined wantarray) {
         my $pdl = shift;
-        error("The datatype of the Piddle and the band do not match.") 
+        error("The datatype of the Piddle and the band do not match.")
           unless $PDL2DATATYPE{$pdl->get_datatype} == $t;
         my ($xoff, $yoff, $xsize, $ysize) = @_;
         $xoff //= 0;
@@ -2942,7 +2953,7 @@ sub Write {
 }
 
 sub Close {
-    my ($self, $data) = @_;
+    my ($self) = @_;
     Geo::GDAL::VSIFCloseL($self);
 }
 

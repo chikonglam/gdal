@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_java.i 37359 2017-02-12 19:40:53Z rouault $
+ * $Id: typemaps_java.i 854e0d9172da1ebadcbca95c4eaa05cfa610100b 2017-02-12 19:40:53Z Even Rouault $
  *
  * Name:     typemaps_java.i
  * Project:  GDAL SWIG Interface

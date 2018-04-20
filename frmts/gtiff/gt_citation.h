@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_citation.h 34124 2016-04-26 22:00:13Z goatbar $
+ * $Id: gt_citation.h 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements special parsing of Imagine citation strings, and
@@ -59,9 +59,9 @@ OGRBoolean CheckCitationKeyForStatePlaneUTM( GTIF* hGTIF,
                                              OGRBoolean* pLinearUnitIsSet );
 // char* ImagineCitationTranslation( char* psCitation, geokey_t keyID );
 // char** CitationStringParse( char* psCitation, geokey_t keyID );
-void SetLinearUnitCitation( GTIF* psGTIF, char* pszLinearUOMName );
+void SetLinearUnitCitation( GTIF* psGTIF, const char* pszLinearUOMName );
 void SetGeogCSCitation( GTIF * psGTIF, OGRSpatialReference *poSRS,
-                        char* angUnitName, int nDatum, short nSpheroid );
+                        const char* angUnitName, int nDatum, short nSpheroid );
 OGRBoolean SetCitationToSRS(GTIF* hGTIF, char* szCTString, int nCTStringLen,
                             geokey_t geoKey, OGRSpatialReference* poSRS,
                             OGRBoolean* linearUnitIsSet );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_csharp_extend.i 39863 2017-08-18 20:27:45Z tamas $
+ * $Id: gdal_csharp_extend.i 3f9a7a2d72587eebb6c6e84ca7e45e14a3abd9da 2017-08-18 19:31:25Z Tamas Szekeres $
  *
  * Name:     gdal_csharp_extend.i
  * Project:  GDAL CSharp Interface
@@ -48,7 +48,7 @@
        return GDALRasterIO( self, GF_Write, xOff, yOff, xSize, ySize,
 		        buffer, buf_xSize, buf_ySize, buf_type, pixelSpace, lineSpace );
     }
-	CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, void* buffer,
+    CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, void* buffer,
                           int buf_xSize, int buf_ySize, GDALDataType buf_type,
                           int pixelSpace, int lineSpace, GDALRasterIOExtraArg* extraArg) {
        return GDALRasterIOEx( self, GF_Read, xOff, yOff, xSize, ySize,
@@ -81,7 +81,7 @@
 		        buffer, buf_xSize, buf_ySize, buf_type, bandCount,
 		        bandMap, pixelSpace, lineSpace, bandSpace);
     }
-	CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, void* buffer,
+    CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, void* buffer,
                           int buf_xSize, int buf_ySize, GDALDataType buf_type,
                           int bandCount, int* bandMap, int pixelSpace, int lineSpace, int bandSpace,
 						  GDALRasterIOExtraArg* extraArg) {

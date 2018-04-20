@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_htf.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_htf.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
  *
  * Project:  HTF Translator
  * Purpose:  Definition of classes for OGR .htf driver.
@@ -78,7 +78,7 @@ protected:
 /*                      OGRHTFPolygonLayer                              */
 /************************************************************************/
 
-class OGRHTFPolygonLayer : public OGRHTFLayer
+class OGRHTFPolygonLayer final: public OGRHTFLayer
 {
 protected:
     virtual OGRFeature *       GetNextRawFeature() override;
@@ -93,7 +93,7 @@ protected:
 /*                      OGRHTFSoundingLayer                             */
 /************************************************************************/
 
-class OGRHTFSoundingLayer : public OGRHTFLayer
+class OGRHTFSoundingLayer final: public OGRHTFLayer
 {
 private:
     bool                       bHasFPK;
@@ -121,7 +121,7 @@ protected:
 /*                          OGRHTFMetadataLayer                         */
 /************************************************************************/
 
-class OGRHTFMetadataLayer : public OGRLayer
+class OGRHTFMetadataLayer final: public OGRLayer
 {
 protected:
     OGRFeatureDefn        *poFeatureDefn;
@@ -146,7 +146,7 @@ protected:
 /*                           OGRHTFDataSource                           */
 /************************************************************************/
 
-class OGRHTFDataSource : public OGRDataSource
+class OGRHTFDataSource final: public OGRDataSource
 {
     char*               pszName;
 

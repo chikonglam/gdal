@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlutility.h 35516 2016-09-25 14:49:04Z goatbar $
+ * $Id: kmlutility.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  * Project:  KML Driver
  * Purpose:  KML driver utilities
@@ -72,7 +72,7 @@ struct Feature
     OGRGeometry* poGeom;
 
     Feature()
-        : eType(Unknown), poGeom(NULL)
+        : eType(Unknown), poGeom(nullptr)
     {}
 
     ~Feature()

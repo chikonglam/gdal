@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: msgdataset.h 36562 2016-11-30 02:12:01Z goatbar $
+ * $Id: msgdataset.h e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $
  *
  * Project:  MSG Driver
  * Purpose:  GDALDataset driver for MSG translator for read support.
@@ -52,7 +52,7 @@ class MSGRasterBand : public GDALRasterBand
     virtual CPLErr IReadBlock( int, int, void * ) override;
 
   private:
-    double rRadiometricCorrection(unsigned int iDN, int iChannel, int iRow, int iCol, MSGDataset* poGDS);
+    double rRadiometricCorrection(unsigned int iDN, int iChannel, int iRow, int iCol, MSGDataset* poGDS) const;
     bool fScanNorth;
     int iLowerShift; // nr of pixels that lower HRV image is shifted compared to upper
     int iSplitLine; // line from top where the HRV image splits

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tifvsi.h 36579 2016-11-30 15:06:24Z goatbar $
+ * $Id: tifvsi.h 05f0e3bafdd4f8e7fda8646a11acba5fbb77ae21 2017-10-05 15:56:35Z Even Rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implement system hook functions for libtiff on top of CPL/VSI,
@@ -40,5 +40,10 @@
 TIFF* VSI_TIFFOpen( const char* name, const char* mode, VSILFILE* fp );
 VSILFILE* VSI_TIFFGetVSILFile( thandle_t th );
 int VSI_TIFFFlushBufferedWrite( thandle_t th );
+int VSI_TIFFHasCachedRanges( thandle_t th );
+void VSI_TIFFSetCachedRanges( thandle_t th, int nRanges,
+                              void ** ppData, // memory pointed by ppData[i] must be kept alive by caller
+                              const vsi_l_offset* panOffsets,
+                              const size_t* panSizes );
 
 #endif // TIFVSI_H_INCLUDED

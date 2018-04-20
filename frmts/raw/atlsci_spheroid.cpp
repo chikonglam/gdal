@@ -29,7 +29,7 @@
 #include "atlsci_spheroid.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: atlsci_spheroid.cpp 34642 2016-07-12 13:05:02Z goatbar $");
+CPL_CVSID("$Id: atlsci_spheroid.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /**********************************************************************/
 /* ================================================================== */
@@ -38,7 +38,7 @@ CPL_CVSID("$Id: atlsci_spheroid.cpp 34642 2016-07-12 13:05:02Z goatbar $");
 /**********************************************************************/
 
 SpheroidItem::SpheroidItem() :
-    spheroid_name(NULL),
+    spheroid_name(nullptr),
     equitorial_radius(-1.0),
     polar_radius(-1.0),
     inverse_flattening(-1.0)
@@ -89,7 +89,7 @@ char *SpheroidList::GetSpheroidNameByRadii( double eq_radius, double polar_radiu
       return CPLStrdup(spheroids[index].spheroid_name);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 char *SpheroidList::GetSpheroidNameByEqRadiusAndInvFlattening(
@@ -104,7 +104,7 @@ char *SpheroidList::GetSpheroidNameByEqRadiusAndInvFlattening(
       return CPLStrdup(spheroids[index].spheroid_name);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 double SpheroidList::GetSpheroidEqRadius( const char *spheroid_name )

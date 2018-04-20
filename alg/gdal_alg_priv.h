@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_alg_priv.h 36411 2016-11-21 22:03:48Z rouault $
+ * $Id: gdal_alg_priv.h e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $
  *
  * Project:  GDAL Image Processing Algorithms
  * Purpose:  Prototypes and definitions for various GDAL based algorithms:
@@ -60,6 +60,13 @@ typedef struct {
     GDALBurnValueSrc eBurnValueSource;
     GDALRasterMergeAlg eMergeAlg;
 } GDALRasterizeInfo;
+
+typedef enum {
+    GRO_Raster = 0,
+    GRO_Vector = 1,
+    GRO_Auto = 2,
+} GDALRasterizeOptim;
+
 
 /************************************************************************/
 /*      Low level rasterizer API.                                       */
@@ -130,17 +137,17 @@ public:
 
 struct IntEqualityTest
 {
-    bool operator()(GInt32 a, GInt32 b) { return a == b; }
+    bool operator()(GInt32 a, GInt32 b) const { return a == b; }
 };
 
 typedef GDALRasterPolygonEnumeratorT<GInt32, IntEqualityTest> GDALRasterPolygonEnumerator;
 
 typedef void* (*GDALTransformDeserializeFunc)( CPLXMLNode *psTree );
 
-void* GDALRegisterTransformDeserializer(const char* pszTransformName,
+void CPL_DLL *GDALRegisterTransformDeserializer(const char* pszTransformName,
                                        GDALTransformerFunc pfnTransformerFunc,
                                        GDALTransformDeserializeFunc pfnDeserializeFunc);
-void GDALUnregisterTransformDeserializer(void* pData);
+void CPL_DLL GDALUnregisterTransformDeserializer(void* pData);
 
 void GDALCleanupTransformDeserializerMutex();
 

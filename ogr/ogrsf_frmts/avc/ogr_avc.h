@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_avc.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: ogr_avc.h 9c004490af2959176b7d70d9bd67288e15019590 2018-03-03 16:28:26Z Even Rouault $
  *
  * Project:  Arc/Info Coverage (E00 & Binary) Reader
  * Purpose:  Declarations for OGR wrapper classes for coverage access.
@@ -65,8 +65,6 @@ class OGRAVCLayer : public OGRLayer
     virtual ~OGRAVCLayer();
 
     OGRFeatureDefn *    GetLayerDefn() override { return poFeatureDefn; }
-
-    virtual OGRSpatialReference *GetSpatialRef() override;
 
     virtual int         TestCapability( const char * ) override;
 };

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: fme2ogr.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: fme2ogr.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
  *
  * Project:  FMEObjects Translator
  * Purpose:  Declarations for translating IFMEFeatures to OGRFeatures.

@@ -5,7 +5,7 @@
  * driver
  * Author:   Jorge Arevalo, jorge.arevalo@deimos-space.com
  *                          jorgearevalo@libregis.org
- * Last changes: $Id: postgisrastertilerasterband.cpp 35929 2016-10-25 16:09:00Z goatbar $
+ * Last changes: $Id: postgisrastertilerasterband.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
  *
  ***********************************************************************
  * Copyright (c) 2009 - 2013, Jorge Arevalo
@@ -33,7 +33,7 @@
  **********************************************************************/
 #include "postgisraster.h"
 
-CPL_CVSID("$Id: postgisrastertilerasterband.cpp 35929 2016-10-25 16:09:00Z goatbar $");
+CPL_CVSID("$Id: postgisrastertilerasterband.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 
 /************************
  * \brief Constructor
@@ -42,7 +42,7 @@ PostGISRasterTileRasterBand::PostGISRasterTileRasterBand(
     PostGISRasterTileDataset * poRTDSIn, int nBandIn,
     GDALDataType eDataTypeIn, GBool bIsOfflineIn) :
     bIsOffline(bIsOfflineIn),
-    poSource(NULL)
+    poSource(nullptr)
 {
     // Basic properties.
     poDS = poRTDSIn;
@@ -77,7 +77,7 @@ PostGISRasterTileRasterBand::~PostGISRasterTileRasterBand()
 GBool PostGISRasterTileRasterBand::IsCached()
 {
     GDALRasterBlock * poBlock = TryGetLockedBlockRef(0, 0);
-    if (poBlock != NULL) {
+    if (poBlock != nullptr) {
         poBlock->DropLock();
         return true;
     }
@@ -93,7 +93,7 @@ CPLErr PostGISRasterTileRasterBand::IReadBlock(CPL_UNUSED int nBlockXOff,
                                                void * pImage)
 {
     CPLString osCommand;
-    PGresult * poResult = NULL;
+    PGresult * poResult = nullptr;
     int nWKBLength = 0;
 
     int nPixelSize = GDALGetDataTypeSize(eDataType)/8;
@@ -127,7 +127,7 @@ CPLErr PostGISRasterTileRasterBand::IReadBlock(CPL_UNUSED int nBlockXOff,
              osCommand.c_str(), poResult ? PQntuples(poResult) : 0 );
 #endif
 
-    if (poResult == NULL ||
+    if (poResult == nullptr ||
         PQresultStatus(poResult) != PGRES_TUPLES_OK ||
         PQntuples(poResult) <= 0) {
 

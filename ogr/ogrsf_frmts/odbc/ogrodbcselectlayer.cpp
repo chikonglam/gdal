@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_odbc.h"
 
-CPL_CVSID("$Id: ogrodbcselectlayer.cpp 35191 2016-08-24 01:33:06Z goatbar $");
+CPL_CVSID("$Id: ogrodbcselectlayer.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
 /************************************************************************/
 /*                          OGRODBCSelectLayer()                         */
 /************************************************************************/
@@ -43,7 +43,7 @@ OGRODBCSelectLayer::OGRODBCSelectLayer( OGRODBCDataSource *poDSIn,
 
     iNextShapeId = 0;
     nSRSId = -1;
-    poFeatureDefn = NULL;
+    poFeatureDefn = nullptr;
 
     poStmt = poStmtIn;
 
@@ -67,10 +67,10 @@ OGRODBCSelectLayer::~OGRODBCSelectLayer()
 void OGRODBCSelectLayer::ClearStatement()
 
 {
-    if( poStmt != NULL )
+    if( poStmt != nullptr )
     {
         delete poStmt;
-        poStmt = NULL;
+        poStmt = nullptr;
     }
 }
 
@@ -81,7 +81,7 @@ void OGRODBCSelectLayer::ClearStatement()
 CPLODBCStatement *OGRODBCSelectLayer::GetStatement()
 
 {
-    if( poStmt == NULL )
+    if( poStmt == nullptr )
         ResetStatement();
 
     return poStmt;
@@ -107,7 +107,7 @@ OGRErr OGRODBCSelectLayer::ResetStatement()
     else
     {
         delete poStmt;
-        poStmt = NULL;
+        poStmt = nullptr;
         return OGRERR_FAILURE;
     }
 }

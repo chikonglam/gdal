@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: mkgdaldist.sh 37197 2017-01-21 12:58:43Z rouault $
+# $Id: mkgdaldist.sh 9ff211ee9006e21bf05bf75cfbe24d6b7aa7c8d0 2018-03-25 19:40:25 +0200 Even Rouault $
 #
 # mkgdaldist.sh - prepares GDAL source distribution package
 #
@@ -13,14 +13,17 @@ if test $rc != 0; then
     exit $rc;
 fi
 
+GITURL="https://github.com/OSGeo/gdal"
+
 if [ $# -lt 1 ] ; then
-  echo "Usage: mkgdaldist.sh <version> [-date date] [-branch branch] [-rc n]"
+  echo "Usage: mkgdaldist.sh <version> [-date date] [-branch branch] [-rc n] [-url url]"
   echo " <version> - version number used in name of generated archive."
   echo " -date     - date of package generation, current date used if not provided"
-  echo " -branch   - path to SVN branch, trunk is used if not provided"
+  echo " -branch   - path to git branch or tag, master is used if not provided"
   echo " -rc       - gives a release candidate id to embed in filenames"
-  echo "Example: mkgdaldist.sh 1.8.0 -branch branches/1.8 -rc RC2"
-  echo "or       mkgdaldist.sh 1.10.0beta2"
+  echo " -url      - git url, ${GITURL} if not provided"
+  echo "Example: mkgdaldist.sh 2.2.4 -branch v2.2.4 -rc RC1"
+  echo "or       mkgdaldist.sh 2.3.0beta1"
   exit
 fi
 
@@ -39,11 +42,11 @@ else
 fi
 
 if test "$2" = "-branch"; then
-  forcebranch=$3
+  BRANCH=$3
   shift
   shift
 else
-  forcebranch="trunk"
+  BRANCH="master"
 fi
 
 if test "$2" = "-rc"; then
@@ -54,47 +57,56 @@ else
   RC=""
 fi
 
+if test "$2" = "-url"; then
+  GITURL=$3
+  shift
+  shift
+fi
+
 #
 # Checkout GDAL sources from the repository
 #
-echo "* Downloading GDAL sources from SVN..."
+echo "* Downloading GDAL sources from git..."
 rm -rf dist_wrk
 mkdir dist_wrk
 cd dist_wrk
 
-SVNURL="http://svn.osgeo.org/gdal"
-SVNBRANCH=${forcebranch}
-SVNMODULE="gdal"
-
-echo "Generating package '${GDAL_VERSION}' from '${SVNBRANCH}' branch"
+echo "Generating package '${GDAL_VERSION}' from '${BRANCH}' branch"
 echo
 
-# Disable for now, seems to depend on modern SVN versions.
-#SVN_CONFIG="--config-option config:miscellany:use-commit-times=yes"
-
-svn checkout -q ${SVNURL}/${SVNBRANCH}/${SVNMODULE} ${SVNMODULE} ${SVN_CONFIG}
+git clone -b ${BRANCH} --single-branch ${GITURL} gdal
 
 if [ \! -d gdal ] ; then
-	echo "svn checkout reported an error ... abandoning mkgdaldist"
+	echo "git clone reported an error ... abandoning mkgdaldist"
 	cd ..
 	rm -rf dist_wrk
 	exit
 fi
 
+cd gdal
+
 #
 # Make some updates and cleaning
 #
-echo "* Updating release date..."
 if test "$forcedate" != "no" ; then
+  echo "* Updating release date..."
   echo "Forcing Date To: $forcedate"
   rm -f gdal/gcore/gdal_new.h
   sed -e "/define GDAL_RELEASE_DATE/s/20[0-9][0-9][0-9][0-9][0-9][0-9]/$forcedate/" gdal/gcore/gdal.h > gdal/gcore/gdal_new.h
   mv gdal/gcore/gdal_new.h gdal/gcore/gdal.h
 fi
 
-echo "* Cleaning .svn directories under $PWD..."
-find gdal -name .svn | xargs rm -rf
+echo "* Cleaning .gitignore under $PWD..."
 rm -f gdal/.gitignore
+
+echo "* Substituting \$Id\$..."
+for i in `find . -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.dox" \
+              -o -name "*.py" -o -name "*.i" -o -name "*.sh" -o -name "*.cs" \
+              -o -name "*.java" -o -name "*.m4" -o -name "*.xml" \
+              -o -name "*.xsd"`; do
+    ID="`basename $i` `git log -1 --format='%H %ai %aN' $i | sed 's/ +0000/Z/'`";
+    sed -i "s/\\\$Id\\\$/\\\$Id: ${ID} \\\$/" $i;
+done
 
 #
 # Generate man pages
@@ -112,9 +124,8 @@ if test ! -d "man"; then
     echo " make man failed"
 fi
 
-if test -f "doxygen_sqlite3.db"; then
-    rm -f doxygen_sqlite3.db
-fi
+rm -f doxygen_sqlite3.db
+rm -f man/man1/*_dist_wrk_gdal_gdal_apps_.1
 
 cd ${CWD}
 
@@ -153,12 +164,25 @@ echo $GDAL_VERSION > gdal/VERSION
 
 mv gdal gdal-${GDAL_VERSION}
 
-rm -f ../gdal-${GDAL_VERSION}${RC}.tar.gz ../gdal${COMPRESSED_VERSION}${RC}.zip
+rm -f ../../gdal-${GDAL_VERSION}${RC}.tar.gz ../../gdal${COMPRESSED_VERSION}${RC}.zip
 
-tar cf ../gdal-${GDAL_VERSION}${RC}.tar gdal-${GDAL_VERSION}
-xz -k9e ../gdal-${GDAL_VERSION}${RC}.tar
-gzip -9 ../gdal-${GDAL_VERSION}${RC}.tar
-zip -qr ../gdal${COMPRESSED_VERSION}${RC}.zip gdal-${GDAL_VERSION}
+tar cf ../../gdal-${GDAL_VERSION}${RC}.tar gdal-${GDAL_VERSION}
+xz -k9e ../../gdal-${GDAL_VERSION}${RC}.tar
+gzip -9 ../../gdal-${GDAL_VERSION}${RC}.tar
+zip -qr ../../gdal${COMPRESSED_VERSION}${RC}.zip gdal-${GDAL_VERSION}
+
+mv autotest gdalautotest-${GDAL_VERSION}
+rm ../../gdalautotest-${GDAL_VERSION}${RC}.tar.gz
+rm ../../gdalautotest-${GDAL_VERSION}${RC}.zip
+tar cf ../../gdalautotest-${GDAL_VERSION}${RC}.tar.gz gdalautotest-${GDAL_VERSION}
+zip -qr ../../gdalautotest-${GDAL_VERSION}${RC}.zip gdalautotest-${GDAL_VERSION}
+
+cd gdal-${GDAL_VERSION}
+echo "GDAL_VER=${GDAL_VERSION}" > GDALmake.opt
+cd frmts/grass
+make dist
+mv *.tar.gz ../../../../..
+cd ../../..
 
 echo "* Generating MD5 sums ..."
 
@@ -169,7 +193,7 @@ else
 MD5=md5sum
 fi
 
-cd ..
+cd ../..
 $MD5 gdal-${GDAL_VERSION}${RC}.tar.xz > gdal-${GDAL_VERSION}${RC}.tar.xz.md5
 $MD5 gdal-${GDAL_VERSION}${RC}.tar.gz > gdal-${GDAL_VERSION}${RC}.tar.gz.md5
 $MD5 gdal${COMPRESSED_VERSION}${RC}.zip > gdal${COMPRESSED_VERSION}${RC}.zip.md5
