@@ -124,6 +124,7 @@ override_dh_auto_configure:
 			--with-openjpeg=yes \
 			--with-pg \
 			--with-poppler=yes \
+			--with-proj=yes \
 			--with-qhull=yes \
 			--with-sosi=yes \
 			--with-spatialite=/usr \
@@ -132,7 +133,6 @@ override_dh_auto_configure:
 			--with-xerces \
 			--with-zstd \
 			--with-dods-root=/usr \
-			--with-static-proj4=yes \
 			--with-java=/usr/lib/jvm/default-java \
 			--with-perl \
 			--with-python; \
