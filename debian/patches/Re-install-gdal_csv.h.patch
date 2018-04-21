@@ -1,0 +1,16 @@
+Description: Re-install gdal_csv.h
+Author: Even Rouault <even.rouault@spatialys.com>
+Origin: https://github.com/OSGeo/gdal/commit/ae9da1ad7e51cfd4ec714b07cc1296d99964d27b
+
+--- a/port/GNUmakefile
++++ b/port/GNUmakefile
+@@ -97,7 +97,8 @@ INST_H_FILES = \
+ 	cpl_time.h \
+ 	cpl_virtualmem.h \
+ 	cpl_vsi.h \
+-	cpl_vsi_virtual.h
++	cpl_vsi_virtual.h \
++	gdal_csv.h
+ 
+ install:
+ 	for f in $(INST_H_FILES) ; do $(INSTALL_DATA) $$f $(DESTDIR)$(INST_INCLUDE) ; done
