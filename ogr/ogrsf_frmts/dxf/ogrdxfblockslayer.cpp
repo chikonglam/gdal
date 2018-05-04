@@ -29,7 +29,7 @@
 #include "ogr_dxf.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrdxfblockslayer.cpp b561097a376b4c9510f834f0d2338a93acaf1cf2 2018-03-04 10:46:23Z Alan Thomas $")
+CPL_CVSID("$Id: ogrdxfblockslayer.cpp 3746b122f665aff6d6991677da8a0a5cd94b0f71 2018-05-03 12:31:28 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                         OGRDXFBlocksLayer()                          */
@@ -133,7 +133,8 @@ OGRDXFFeature *OGRDXFBlocksLayer::GetNextUnfilteredFeature()
 
         // Let's insert this block at the origin with no rotation and scale.
         OGRDXFLayer oTempLayer(poDS);
-        poFeature = oTempLayer.InsertBlockInline( oIt->first,
+        poFeature = oTempLayer.InsertBlockInline(
+            CPLGetErrorCounter(), oIt->first,
             OGRDXFInsertTransformer(), poFeature, apoPendingFeatures,
             false, poDS->ShouldMergeBlockGeometries() );
 

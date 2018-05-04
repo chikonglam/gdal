@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_avc.h 9c004490af2959176b7d70d9bd67288e15019590 2018-03-03 16:28:26Z Even Rouault $
+ * $Id: ogr_avc.h f4a3c2f4c16433c9733c4a7ef83ee5d8ce637330 2018-04-29 22:51:20 +0200 Even Rouault $
  *
  * Project:  Arc/Info Coverage (E00 & Binary) Reader
  * Purpose:  Declarations for OGR wrapper classes for coverage access.
@@ -76,6 +76,7 @@ class OGRAVCLayer : public OGRLayer
 class OGRAVCDataSource : public OGRDataSource
 {
   protected:
+    bool                 m_bSRSFetched = false;
     OGRSpatialReference *poSRS;
     char                *pszCoverageName;
 

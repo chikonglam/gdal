@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_dxf.h 3299482632a616871b0427f192f706caf5669e81 2018-04-01 01:20:00 +0200 Even Rouault $
+ * $Id: ogr_dxf.h 3746b122f665aff6d6991677da8a0a5cd94b0f71 2018-05-03 12:31:28 +0200 Even Rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Definition of classes for OGR .dxf driver.
@@ -444,7 +444,8 @@ class OGRDXFLayer : public OGRLayer
                                                 int nKnots,
                                                 std::vector<double>& adfWeights );
     static OGRGeometry *SimplifyBlockGeometry( OGRGeometryCollection * );
-    OGRDXFFeature *     InsertBlockInline( const CPLString& osBlockName,
+    OGRDXFFeature *     InsertBlockInline( GUInt32 nInitialErrorCounter,
+                                           const CPLString& osBlockName,
                                            OGRDXFInsertTransformer oTransformer,
                                            OGRDXFFeature* const poFeature,
                                            OGRDXFFeatureQueue& apoExtraFeatures,

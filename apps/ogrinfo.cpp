@@ -53,7 +53,7 @@
 #include "ogrsf_frmts.h"
 
 
-CPL_CVSID("$Id: ogrinfo.cpp 9bae05435e199592be48a2a6c8ef5f649fa5d113 2018-03-26 14:16:35 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrinfo.cpp 2487aa3c7836a7d43351540c252a0d2f4aa9bd60 2018-04-20 17:20:01 +0200 Even Rouault $")
 
 bool bVerbose = true;
 bool bSuperQuiet = false;
@@ -419,6 +419,23 @@ static void RemoveBOM(GByte* pabyData)
     }
 }
 
+static void RemoveSQLComments(char*& pszSQL)
+{
+    char** papszLines = CSLTokenizeStringComplex(pszSQL, "\r\n", FALSE, FALSE);
+    CPLString osSQL;
+    for( char** papszIter = papszLines; papszIter && *papszIter; ++papszIter )
+    {
+        if( !STARTS_WITH(*papszIter, "--") )
+        {
+            osSQL += *papszIter;
+            osSQL += " ";
+        }
+    }
+    CSLDestroy(papszLines);
+    CPLFree(pszSQL);
+    pszSQL = CPLStrdup(osSQL);
+}
+
 /************************************************************************/
 /*                                main()                                */
 /************************************************************************/
@@ -560,6 +577,7 @@ MAIN_START(nArgc, papszArgv)
             {
                 RemoveBOM(pabyRet);
                 pszSQLStatement = reinterpret_cast<char *>(pabyRet);
+                RemoveSQLComments(pszSQLStatement);
             }
             else
             {

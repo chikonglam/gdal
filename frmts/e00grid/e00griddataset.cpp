@@ -39,7 +39,7 @@
 #define E00ReadNextLine     GDALE00GRIDReadNextLine
 #define E00ReadRewind       GDALE00GRIDReadRewind
 
-CPL_CVSID("$Id: e00griddataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: e00griddataset.cpp 62dd0e1d86b69d7cdf7c8731ee6411615f82d414 2018-04-22 15:08:53 +0200 Even Rouault $")
 
 #undef NULL
 #define NULL nullptr
@@ -205,7 +205,10 @@ CPLErr E00GRIDRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
         {
             //CPLDebug("E00GRID", "Forward skip to %d from %d", nBlockYOff, poGDS->nLastYOff);
             for(int i=poGDS->nLastYOff + 1; i < nBlockYOff;i++)
-                IReadBlock(0, i, pImage);
+            {
+                if( IReadBlock(0, i, pImage) != CE_None )
+                    return CE_Failure;
+            }
         }
 
         if (nBlockYOff > poGDS->nMaxYOffset)
@@ -222,7 +225,12 @@ CPLErr E00GRIDRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
             {
                 pszLine = E00ReadNextLine(poGDS->e00ReadPtr);
                 if (pszLine == nullptr || strlen(pszLine) < 5 * E00_FLOAT_SIZE)
+                {
+                    CPLError(CE_Failure, CPLE_FileIO,
+                             "Could not find enough values for line %d",
+                             nBlockYOff);
                     return CE_Failure;
+                }
             }
             if (eDataType == GDT_Float32)
             {
@@ -251,7 +259,12 @@ CPLErr E00GRIDRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
     for(int i=0;i<nBlockXSize;i++)
     {
         if (VSIFReadL(szVal, E00_FLOAT_SIZE, 1, poGDS->fp) != 1)
+        {
+            CPLError(CE_Failure, CPLE_FileIO,
+                             "Could not find enough values for line %d",
+                             nBlockYOff);
             return CE_Failure;
+        }
 
         if (eDataType == GDT_Float32)
         {

@@ -34,7 +34,7 @@
 
 #include <stdexcept>
 
-CPL_CVSID("$Id: ogrdxf_dimension.cpp 5e1acd7f3bef4ea08d149ea6d18cec731cabe01d 2018-01-02 12:40:46Z Alan Thomas $")
+CPL_CVSID("$Id: ogrdxf_dimension.cpp 3746b122f665aff6d6991677da8a0a5cd94b0f71 2018-05-03 12:31:28 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                             PointDist()                              */
@@ -194,7 +194,8 @@ OGRDXFFeature *OGRDXFLayer::TranslateDIMENSION()
         // user likely doesn't know or care about
         try
         {
-            OGRDXFFeature* poBlockFeature = InsertBlockInline( osBlockName,
+            OGRDXFFeature* poBlockFeature = InsertBlockInline(
+                CPLGetErrorCounter(), osBlockName,
                 OGRDXFInsertTransformer(), poFeature, apoPendingFeatures,
                 true, false );
 

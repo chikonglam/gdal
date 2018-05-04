@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_conv.h 07238f4cbcdc1a56c9db7e8dc3a5727346194074 2018-04-02 14:34:13 +0200 Even Rouault $
+ * $Id: cpl_conv.h dfac92801bd83819cbae2501803e02e06b361a43 2018-04-23 18:07:32 +0200 Martin Landa $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Convenience functions declarations.
@@ -86,8 +86,8 @@ char CPL_DLL *CPLStrlwr( char *);
 char CPL_DLL *CPLFGets( char *, int, FILE *);
 const char CPL_DLL *CPLReadLine( FILE * );
 const char CPL_DLL *CPLReadLineL( VSILFILE * );
-const char CPL_DLL *CPLReadLine2L( VSILFILE * , int nMaxCols,
-                                   CSLConstList papszOptions );
+const char CPL_DLL *CPLReadLine2L( VSILFILE *, int, CSLConstList );
+const char CPL_DLL *CPLReadLine3L( VSILFILE *, int, int *, CSLConstList );
 
 /* -------------------------------------------------------------------- */
 /*      Convert ASCII string to floating point number                  */

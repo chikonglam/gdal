@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: ogrmerge.py c1fbba933ab495ea744145c45921b91a2053c513 2018-04-17 18:56:03 +1000 Ben Elliston $
+# $Id: ogrmerge.py acb00496e69f7896f6b4453e9f49d2f2ce3e7b64 2018-04-27 00:56:06 +0200 Even Rouault $
 #
 # Project:  GDAL/OGR samples
 # Purpose:  Merge the content of several vector datasets into a single one.
@@ -130,7 +130,7 @@ def EQUAL(x, y):
 
 def _GetGeomType(src_geom_type_name):
     if EQUAL(src_geom_type_name, "GEOMETRY"):
-        return ogr.wkbGeometry
+        return ogr.wkbUnknown
     try:
         max_geom_type = ogr.wkbTriangle
     except:

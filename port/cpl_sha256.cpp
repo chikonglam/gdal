@@ -41,7 +41,7 @@
 #include "cpl_sha256.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: cpl_sha256.cpp 0f654dda9faabf9d86a44293f0f89903a8e97dd7 2018-04-15 20:18:32 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_sha256.cpp 8e4c736c5491eb2ed544aa2c51c3ac07d55bcca8 2018-05-01 05:05:17 +0800 jerry73204 $")
 
 #define ROTL(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 #define ROTR(x, n) (((x) >> (n)) | ((x) << (32 - (n))))
@@ -508,6 +508,13 @@ void CPL_HMAC_SHA256( const void *pKey, size_t nKeyLen,
 #include "cryptopp/base64.h"
 #include "cryptopp/osrng.h"
 
+// Fix compatibility with Crypto++
+#if CRYPTOPP_VERSION >= 600
+typedef CryptoPP::byte cryptopp_byte;
+#else
+typedef byte cryptopp_byte;
+#endif
+
 #ifdef _MSC_VER
 #pragma warning( pop )
 #endif
@@ -605,7 +612,7 @@ GByte* CPL_RSA_SHA256_Sign(const char* pszPrivateKey,
     CryptoPP::Base64Decoder decoder;
 
     decoder.Attach(new CryptoPP::Redirector(queue));
-    decoder.Put(reinterpret_cast<const byte*>(osKeyB64.data()), osKeyB64.length());
+    decoder.Put(reinterpret_cast<const cryptopp_byte*>(osKeyB64.data()), osKeyB64.length());
     decoder.MessageEnd();
 
     CryptoPP::RSA::PrivateKey rsaPrivate;

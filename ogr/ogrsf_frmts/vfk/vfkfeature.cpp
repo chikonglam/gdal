@@ -35,7 +35,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: vfkfeature.cpp b72c89cc2bbb2c2d90f5cd4778019fa8ac2ff966 2018-04-08 23:54:31 +0200 Martin Landa $")
+CPL_CVSID("$Id: vfkfeature.cpp e3664658758b14b562a23dcee80c32d03a9eeecf 2018-04-22 10:45:06 +0200 Martin Landa $")
 
 /*!
   \brief IVFKFeature constructor
@@ -381,24 +381,33 @@ bool VFKFeature::SetProperties(const char *pszLine)
     if( *poChar == '\0' )
         return false; /* nothing to read */
 
-    poChar++; /* skip ';' after data block name*/
+    poChar++; /* skip ';' after data block name */
 
     /* remove extra quotes (otherwise due to buggy format the parsing is
-     * almost impossible */
+     * almost impossible) */
     CPLString osLine;
-    while ( *poChar != '\0' ) {
-        osLine += *poChar;
+    while( *poChar != '\0' ) {
+        if( *poChar == '"' ) {
+            /* count quotes */
+            int nQuotes = 1;
+            while( *(++poChar) == '"' )
+                nQuotes++;
 
-        if ( *poChar == '"' &&
-             !( *(poChar-1) == ';' && *(poChar+1) == '"' &&     /* skip ;""; */
-                ( *(poChar+2) == ';' || *(poChar+2) == '\0' ) ) ) {
-            while ( *poChar == '"' ) {
-                poChar++;
+            if( nQuotes % 2 != 0 ) {
+                /* even number of quotes -> only last quote used */
+                poChar -= 1;
+            }
+            else {
+                if( ( *poChar == ';' || *poChar == '\0') &&
+                    *(poChar-nQuotes-1) == ';' ) {
+                    /* empty values (;""; / ;"" / ;""""; / ...)
+                       -> only last two quotes used */
+                    poChar -= 2;
+                }
+                /* odd number of quotes -> none of quotes used */
             }
         }
-        else {
-            poChar++;
-        }
+        osLine += *(poChar++);
     }
     poChar = osLine;
 

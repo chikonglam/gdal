@@ -32,7 +32,7 @@
 #include "gdal_frmts.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: rikdataset.cpp 64ce83f4b6408467a7ea2dbe4544f3287b66f600 2018-03-26 13:28:09 +0200 Even Rouault $")
+CPL_CVSID("$Id: rikdataset.cpp 33c893fc72f32e43c9ed2dea9b1621a16f46d6a3 2018-05-04 09:33:05 +0200 Even Rouault $")
 
 #define RIK_HEADER_DEBUG 0
 #define RIK_CLEAR_DEBUG 0
@@ -518,7 +518,12 @@ CPLErr RIKRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
                 if( lastCode != LZW_NO_SUCH_CODE &&
                     lastAdded != LZW_CODES - 1 )
                 {
-                    prefix[++lastAdded] = lastCode;
+                    ++lastAdded;
+                    if( lastAdded >= 8192 )
+                    {
+                        throw "Decode error";
+                    }
+                    prefix[lastAdded] = lastCode;
                     character[lastAdded] = lastOutput;
                 }
 

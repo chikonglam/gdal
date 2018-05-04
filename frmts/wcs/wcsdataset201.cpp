@@ -665,6 +665,17 @@ bool WCSDataset201::ExtractGridInfo()
     // also axis order swap is set
     CPLString path = "boundedBy.Envelope";
     CPLXMLNode *envelope = CPLGetXMLNode(coverage, path);
+    if( envelope == nullptr )
+    {
+        path = "boundedBy.EnvelopeWithTimePeriod";
+        envelope = CPLGetXMLNode(coverage, path);
+        if( envelope == nullptr )
+        {
+            CPLError(CE_Failure, CPLE_AppDefined, "Missing boundedBy.Envelope");
+            return false;
+        }
+        // todo: get time interval
+    }
     std::vector<CPLString> bbox = ParseBoundingBox(envelope);
     if (!SetCRS(ParseCRS(envelope), true) || bbox.size() < 2) {
         return false;
@@ -709,7 +720,8 @@ bool WCSDataset201::ExtractGridInfo()
         return false;
     }
 
-    char **metadata = CSLDuplicate(GetMetadata("SUBDATASETS")); // coverage metadata to be added/updated
+    const char *md_domain = "";
+    char **metadata = CSLDuplicate(GetMetadata(md_domain)); // coverage metadata to be added/updated
 
     metadata = CSLSetNameValue(metadata, "DOMAIN", Join(domain, ","));
 
@@ -740,7 +752,7 @@ bool WCSDataset201::ExtractGridInfo()
         if (i < 2) {
             metadata = CSLSetNameValue(metadata, (key + "INTERVAL").c_str(),
                                        CPLString().Printf("%.15g,%.15g", low[i], high[i]));
-        } else {
+        } else if( i < slow.size() && i < shigh.size() ) {
             metadata = CSLSetNameValue(metadata, (key + "INTERVAL").c_str(),
                                        CPLString().Printf("%s,%s", slow[i].c_str(), shigh[i].c_str()));
         }
@@ -859,11 +871,7 @@ bool WCSDataset201::ExtractGridInfo()
     // and she wants to see the resulting metadata and not just an error message
     // situation is ~the same when bands == 0 when we exit here
 
-    // add PAM metadata to domain SUBDATASET_i
-    CPLString subdataset = GetSubdataset(CPLGetXMLValue(psService, "CoverageName", ""));
-    //this->SetMetadata(metadata, subdataset);
-
-    this->SetMetadata(metadata, "SUBDATASETS");
+    this->SetMetadata(metadata, md_domain);
     CSLDestroy(metadata);
     TrySaveXML();
 

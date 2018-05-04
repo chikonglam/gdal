@@ -30,7 +30,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: iscedataset.cpp 373f8b25e241d5ee1e2816b5eb7642ab7e60e096 2018-04-07 16:25:30 +0200 Even Rouault $")
+CPL_CVSID("$Id: iscedataset.cpp f8efbf846365b869f57eaab03f675c0eaecb1800 2018-04-23 23:30:05 +0200 Even Rouault $")
 
 static const char * const apszISCE2GDALDatatypes[] = {
     "BYTE:Byte",
@@ -661,7 +661,7 @@ GDALDataset *ISCEDataset::Open( GDALOpenInfo *poOpenInfo )
         else
         {
             nLineOffset = nPixelOffset * nWidth;
-            if( nBands > 1 )
+            if( nBands > 1 && nLineOffset < INT_MAX / nBands )
             {
                 // GDAL 2.1.0 had a value of nLineOffset that was equal to the theoretical
                 // nLineOffset multiplied by nBands...

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_port.h 0f654dda9faabf9d86a44293f0f89903a8e97dd7 2018-04-15 20:18:32 +0200 Even Rouault $
+ * $Id: cpl_port.h 83369b4a8075b0cc331eeb3eb8430d49a4f665a6 2018-04-28 11:07:43 +0200 Even Rouault $
  *
  * Project:  CPL - Common Portability Library
  * Author:   Frank Warmerdam, warmerdam@pobox.com
@@ -275,14 +275,8 @@ typedef GUIntBig         GUInt64;
 
 #else
 
-// NOTE: we don't really support such platforms ! Many things might break
+#error "64bit integer support required"
 
-typedef long             GIntBig;
-typedef unsigned long    GUIntBig;
-
-#define GINTBIG_MIN     INT_MIN
-#define GINTBIG_MAX     INT_MAX
-#define GUINTBIG_MAX     UINT_MAX
 #endif
 
 #if SIZEOF_VOIDP == 8

@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogravce00datasource.cpp ae093556e83f38779f29d2569fd56cdef441d778 2018-03-03 16:01:20Z Even Rouault $")
+CPL_CVSID("$Id: ogravce00datasource.cpp f4a3c2f4c16433c9733c4a7ef83ee5d8ce637330 2018-04-29 22:51:20 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                        OGRAVCE00DataSource()                         */
@@ -216,8 +216,9 @@ OGRLayer *OGRAVCE00DataSource::GetLayer( int iLayer )
 /************************************************************************/
 OGRSpatialReference *OGRAVCE00DataSource::GetSpatialRef()
 {
-    if (poSRS != nullptr)
+    if (m_bSRSFetched)
         return poSRS;
+    m_bSRSFetched = true;
     if (psE00 == nullptr)
         return nullptr;
 

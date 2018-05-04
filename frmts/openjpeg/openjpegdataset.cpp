@@ -55,7 +55,7 @@
 
 //#define DEBUG_IO
 
-CPL_CVSID("$Id: openjpegdataset.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: openjpegdataset.cpp a3af874fac8691347a50b2203dcbfe90d3a96378 2018-04-27 21:44:49 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                  JP2OpenJPEGDataset_ErrorCallback()                  */
@@ -2606,9 +2606,10 @@ GDALDataset * JP2OpenJPEGDataset::CreateCopy( const char * pszFilename,
     }
 
     const char* pszYCC = CSLFetchNameValue(papszOptions, "YCC");
-    int bYCC = ((nBands == 3 || nBands == 4) && eDataType == GDT_Byte &&
+    int bYCC = ((nBands == 3 || nBands == 4) &&
             CPLTestBool(CSLFetchNameValueDef(papszOptions, "YCC", "TRUE")));
 
+#if OPJ_VERSION_MAJOR == 2 && OPJ_VERSION_MINOR < 2
     /* TODO: when OpenJPEG 2.2 is released, make this conditional */
     /* Depending on the way OpenJPEG <= r2950 is built, YCC with 4 bands might work on
      * Debug mode, but this relies on unreliable stack buffer overflows, so
@@ -2623,6 +2624,7 @@ GDALDataset * JP2OpenJPEGDataset::CreateCopy( const char * pszFilename,
         }
         bYCC = FALSE;
     }
+#endif
 
     if( bYCBCR420 && bYCC )
     {

@@ -31,7 +31,7 @@
 #include "ogr_srs_api.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: snodasdataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: snodasdataset.cpp bafa08986ed59d7c3382267a0a903a9076ce26a1 2018-04-26 11:24:11 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -292,7 +292,7 @@ GDALDataset *SNODASDataset::Open( GDALOpenInfo * poOpenInfo )
     int nStopSecond = -1;
 
     const char *pszLine = nullptr;
-    while( (pszLine = CPLReadLine2L( poOpenInfo->fpL, 256, nullptr )) != nullptr )
+    while( (pszLine = CPLReadLine2L( poOpenInfo->fpL, 1024, nullptr )) != nullptr )
     {
         char** papszTokens =
             CSLTokenizeStringComplex( pszLine, ":", TRUE, FALSE );

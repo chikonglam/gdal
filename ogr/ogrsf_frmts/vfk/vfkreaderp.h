@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vfkreaderp.h 9fa542bff8db58df565fda9115e24dbe3940ef3d 2018-04-09 20:27:32 +0200 Martin Landa $
+ * $Id: vfkreaderp.h da2feb2ff6614e12787e65febd3f5cee131b358e 2018-04-24 10:48:22 +0200 Martin Landa $
  *
  * Project:  VFK Reader
  * Purpose:  Private Declarations for OGR free VFK Reader code.
@@ -51,7 +51,7 @@ private:
     bool           m_bLatin2;
 
     VSILFILE      *m_poFD;
-    char          *ReadLine( bool = false );
+    char          *ReadLine();
 
     void          AddInfo(const char *) override;
 

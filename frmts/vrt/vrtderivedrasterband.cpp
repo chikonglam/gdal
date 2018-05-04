@@ -49,7 +49,7 @@
 
 /*! @cond Doxygen_Suppress */
 
-CPL_CVSID("$Id: vrtderivedrasterband.cpp 16925d183fdba6f31179d0dd3a9d793411f11070 2018-04-08 19:19:45 +0200 Even Rouault $")
+CPL_CVSID("$Id: vrtderivedrasterband.cpp 56578e74c2851abf597312e07504cfe639cceedd 2018-04-24 20:38:09 +0200 Even Rouault $")
 
 // #define GDAL_VRT_DISABLE_PYTHON
 // #define PYTHONSO_DEFAULT "libpython2.7.so"
@@ -1097,6 +1097,22 @@ VRTDerivedRasterBand::GetPixelFunction( const char *pszFuncName )
 void VRTDerivedRasterBand::SetPixelFunctionName( const char *pszFuncNameIn )
 {
     pszFuncName = CPLStrdup( pszFuncNameIn );
+}
+
+/************************************************************************/
+/*                         SetPixelFunctionLanguage()                   */
+/************************************************************************/
+
+/**
+ * Set the language of the pixel function.
+ *
+ * @param pszLanguage Language of the pixel function (only "C" and "Python"
+ * are supported currently)
+ * @since GDAL 2.3
+ */
+void VRTDerivedRasterBand::SetPixelFunctionLanguage( const char* pszLanguage )
+{
+    m_poPrivate->m_osLanguage = pszLanguage;
 }
 
 /************************************************************************/
