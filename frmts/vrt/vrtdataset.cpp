@@ -39,7 +39,7 @@
 
 /*! @cond Doxygen_Suppress */
 
-CPL_CVSID("$Id: vrtdataset.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: vrtdataset.cpp 56578e74c2851abf597312e07504cfe639cceedd 2018-04-24 20:38:09 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            VRTDataset()                             */
@@ -1001,6 +1001,11 @@ CPLErr VRTDataset::AddBand( GDALDataType eType, char **papszOptions )
                 CSLFetchNameValue(papszOptions, "PixelFunctionType");
             if( pszFuncName != nullptr )
                 poDerivedBand->SetPixelFunctionName(pszFuncName);
+
+            const char* pszLanguage =
+                CSLFetchNameValue(papszOptions, "PixelFunctionLanguage");
+            if( pszLanguage != nullptr )
+                poDerivedBand->SetPixelFunctionLanguage(pszLanguage);
 
             const char* pszTransferTypeName =
                 CSLFetchNameValue(papszOptions, "SourceTransferType");

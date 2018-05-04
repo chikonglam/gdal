@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <set>
 
-CPL_CVSID("$Id: ogrodsdatasource.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrodsdatasource.cpp 59e5ede2cac0762afe7bc68ca19855a5ea42c004 2018-04-21 16:34:01 +0200 Even Rouault $")
 
 namespace OGRODS {
 
@@ -1004,6 +1004,18 @@ void OGRODSDataSource::endElementRow( CPL_UNUSED /*in non-DEBUG*/ const char * p
             if (apoCurLineValues.size() >
                 (size_t)poCurLayer->GetLayerDefn()->GetFieldCount())
             {
+                GIntBig nFeatureCount = poCurLayer->GetFeatureCount(false);
+                if( nFeatureCount > 0 &&
+                    static_cast<size_t>(apoCurLineValues.size() -
+                        poCurLayer->GetLayerDefn()->GetFieldCount()) >
+                            static_cast<size_t>(100000 / nFeatureCount) )
+                {
+                    CPLError(CE_Failure, CPLE_NotSupported,
+                             "Adding too many columns to too many "
+                             "existing features");
+                    bEndTableParsing = true;
+                    return;
+                }
                 for( i = static_cast<size_t>(
                          poCurLayer->GetLayerDefn()->GetFieldCount());
                      i < apoCurLineValues.size();

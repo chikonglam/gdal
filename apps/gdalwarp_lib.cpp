@@ -59,7 +59,7 @@
 #include "ogr_srs_api.h"
 #include "vrtdataset.h"
 
-CPL_CVSID("$Id: gdalwarp_lib.cpp dc3819d387764593c0fb5a5c4d02c21a848a4c9d 2018-04-12 18:07:28 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalwarp_lib.cpp bf6dc2add0064d9c76bbdd9a319641747c5311e3 2018-04-26 20:17:00 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                        GDALWarpAppOptions                            */
@@ -1828,6 +1828,10 @@ GDALDatasetH GDALWarp( const char *pszDest, GDALDatasetH hDstDS, int nSrcCount,
                     hDstDS = nullptr;
                 }
             }
+
+            if( hDstDS )
+                oProgress.Do(1);
+
             return hDstDS;
         }
 

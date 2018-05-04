@@ -39,7 +39,7 @@
 #include <stdexcept>
 #include <memory>
 
-CPL_CVSID("$Id: ogrdxflayer.cpp 98dfb4b4012c5ae4621e246e8eb393b3c05a3f48 2018-04-02 22:09:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrdxflayer.cpp a72f4e4af1c3a9461ed9f48e45a1055711d0b5bf 2018-05-04 00:35:41 +0200 Even Rouault $")
 
 
 /************************************************************************/
@@ -2735,7 +2735,16 @@ OGRGeometry *OGRDXFLayer::SimplifyBlockGeometry(
         {
             OGRGeometry *poGeom = poCollection->getGeometryRef(0);
             poCollection->removeGeometry(0,FALSE);
-            aosPolygons.push_back(poGeom);
+            if( !aosPolygons.empty() && aosPolygons[0]->Equals(poGeom) )
+            {
+                // Avoids a performance issue as in
+                // https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=8067
+                delete poGeom;
+            }
+            else
+            {
+                aosPolygons.push_back(poGeom);
+            }
         }
         delete poCollection;
         int bIsValidGeometry;
@@ -2811,7 +2820,8 @@ OGRDXFFeature *OGRDXFLayer::InsertBlockReference(
 /*       GeometryCollection which is returned by the function.          */
 /************************************************************************/
 
-OGRDXFFeature *OGRDXFLayer::InsertBlockInline( const CPLString& osBlockName,
+OGRDXFFeature *OGRDXFLayer::InsertBlockInline( GUInt32 nInitialErrorCounter,
+    const CPLString& osBlockName,
     OGRDXFInsertTransformer oTransformer,
     OGRDXFFeature* const poFeature,
     OGRDXFFeatureQueue& apoExtraFeatures,
@@ -2893,7 +2903,8 @@ OGRDXFFeature *OGRDXFLayer::InsertBlockInline( const CPLString& osBlockName,
             // Insert this block recursively
             try
             {
-                poSubFeature = InsertBlockInline( poSubFeature->osBlockName,
+                poSubFeature = InsertBlockInline(
+                    nInitialErrorCounter, poSubFeature->osBlockName,
                     oInnerTransformer, poSubFeature, apoInnerExtraFeatures,
                     true, bMergeGeometry );
             }
@@ -2901,11 +2912,19 @@ OGRDXFFeature *OGRDXFLayer::InsertBlockInline( const CPLString& osBlockName,
             {
                 // Block doesn't exist. Skip it and keep going
                 delete poSubFeature;
+                if( CPLGetErrorCounter() > nInitialErrorCounter + 1000 )
+                {
+                    break;
+                }
                 continue;
             }
 
             if( !poSubFeature )
             {
+                if( CPLGetErrorCounter() > nInitialErrorCounter + 1000 )
+                {
+                    break;
+                }
                 if ( apoInnerExtraFeatures.empty() )
                 {
                     // Block is empty. Skip it and keep going
@@ -3014,6 +3033,13 @@ OGRDXFFeature *OGRDXFLayer::InsertBlockInline( const CPLString& osBlockName,
                 apoInnerExtraFeatures.pop();
             }
         }
+    }
+
+    while( !apoInnerExtraFeatures.empty() )
+    {
+        auto poFeatureToDelete = apoInnerExtraFeatures.front();
+        apoInnerExtraFeatures.pop();
+        delete poFeatureToDelete;
     }
 
     poDS->PopBlockInsertion();
@@ -3274,13 +3300,17 @@ void OGRDXFLayer::TranslateINSERTCore(
         OGRDXFFeatureQueue apoExtraFeatures;
         try
         {
-            poFeature = InsertBlockInline( osBlockName,
+            poFeature = InsertBlockInline(
+                CPLGetErrorCounter(),
+                osBlockName,
                 oTransformer, poFeature, apoExtraFeatures,
                 true, poDS->ShouldMergeBlockGeometries() );
         }
         catch( const std::invalid_argument& )
         {
             // Block doesn't exist
+            CPLError(CE_Warning, CPLE_AppDefined,
+                     "Block %s does not exist", osBlockName.c_str());
             delete poFeature;
             return;
         }

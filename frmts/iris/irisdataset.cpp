@@ -37,7 +37,7 @@
 #include <algorithm>
 #include <sstream>
 
-CPL_CVSID("$Id: irisdataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: irisdataset.cpp 58c0c6a3a73ee704d657e04d205a264b443e3075 2018-04-28 18:31:04 +0200 Even Rouault $")
 
 static double DEG2RAD = M_PI / 180.0;
 static double RAD2DEG = 180.0 / M_PI;
@@ -476,6 +476,9 @@ void IRISDataset::LoadProjection()
 
     const float fScaleX = CPL_LSBSINT32PTR(abyHeader + 88 + 12 ) / 100.0f;
     const float fScaleY = CPL_LSBSINT32PTR(abyHeader + 92 + 12 ) / 100.0f;
+    if( fScaleX < 0.0f || fScaleY < 0.0f ||
+        fScaleX >= fPolarRadius || fScaleY >= fPolarRadius )
+        return;
 
     OGRSpatialReference oSRSOut;
 

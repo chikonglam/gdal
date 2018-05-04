@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdataset.h 18eb5c14f2e7f5434b1e0be415761d7322023419 2018-03-19 18:04:53Z Kurt Schwehr $
+ * $Id: vrtdataset.h 56578e74c2851abf597312e07504cfe639cceedd 2018-04-24 20:38:09 +0200 Even Rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Declaration of virtual gdal dataset classes.
@@ -693,6 +693,7 @@ class CPL_DLL VRTDerivedRasterBand : public VRTSourcedRasterBand
 
     void SetPixelFunctionName( const char *pszFuncName );
     void SetSourceTransferType( GDALDataType eDataType );
+    void SetPixelFunctionLanguage( const char* pszLanguage );
 
     virtual CPLErr         XMLInit( CPLXMLNode *, const char *, void* ) override;
     virtual CPLXMLNode *   SerializeToXML( const char *pszVRTPath ) override;

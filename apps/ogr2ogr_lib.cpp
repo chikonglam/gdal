@@ -32,6 +32,7 @@
 #include "gdal_utils.h"
 #include "gdal_utils_priv.h"
 
+#include <cassert>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -63,7 +64,7 @@
 #include "ogrlayerdecorator.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogr2ogr_lib.cpp 7d078e0357d2998edfa713422e607cbadf77f9ff 2018-04-08 22:11:28 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr2ogr_lib.cpp 3e78f98797f6bd1ce644c449e6ac02088a279390 2018-04-28 00:04:29 +0200 Even Rouault $")
 
 typedef enum
 {
@@ -4535,6 +4536,7 @@ int LayerTranslator::Translate( OGRFeature* poFeatureIn,
                     poDstGeometry->toGeometryCollection()->removeGeometry(iPart, FALSE);
                     delete poDstGeometry;
                     poDstGeometry = poPart;
+                    assert(poDstGeometry);
                 }
 
                 if (iSrcZField != -1)
@@ -4785,6 +4787,23 @@ static void RemoveBOM(GByte* pabyData)
     }
 }
 
+static void RemoveSQLComments(char*& pszSQL)
+{
+    char** papszLines = CSLTokenizeStringComplex(pszSQL, "\r\n", FALSE, FALSE);
+    CPLString osSQL;
+    for( char** papszIter = papszLines; papszIter && *papszIter; ++papszIter )
+    {
+        if( !STARTS_WITH(*papszIter, "--") )
+        {
+            osSQL += *papszIter;
+            osSQL += " ";
+        }
+    }
+    CSLDestroy(papszLines);
+    CPLFree(pszSQL);
+    pszSQL = CPLStrdup(osSQL);
+}
+
 /************************************************************************/
 /*                       GDALVectorTranslateOptionsNew()                */
 /************************************************************************/
@@ -4955,6 +4974,7 @@ GDALVectorTranslateOptions *GDALVectorTranslateOptionsNew(char** papszArgv,
             {
                 RemoveBOM(pabyRet);
                 psOptions->pszSQLStatement = reinterpret_cast<char*>(pabyRet);
+                RemoveSQLComments(psOptions->pszSQLStatement);
             }
             else
             {

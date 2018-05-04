@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: geoconcept.c 12f18152fd93843e8e6569cdc0770351e5e00a04 2018-04-03 13:10:44 +0200 Even Rouault $
+ * $Id: geoconcept.c 9acbe8a990f2a1745528a0d3dd7d5c8046034ac5 2018-04-21 12:25:32 +0200 Even Rouault $
  *
  * Name:     geoconcept.c
  * Project:  OpenGIS Simple Features Reference Implementation
@@ -36,7 +36,7 @@
 #include "cpl_string.h"
 #include "ogr_core.h"
 
-CPL_CVSID("$Id: geoconcept.c 12f18152fd93843e8e6569cdc0770351e5e00a04 2018-04-03 13:10:44 +0200 Even Rouault $")
+CPL_CVSID("$Id: geoconcept.c 9acbe8a990f2a1745528a0d3dd7d5c8046034ac5 2018-04-21 12:25:32 +0200 Even Rouault $")
 
 #define kItemSize_GCIO      256
 #define kExtraSize_GCIO    4096
@@ -273,8 +273,11 @@ static long GCIOAPI_CALL _read_GCIO (
   {
     if( c ==  '\r' )            /* PC '\r\n' line, MAC '\r' */
     {
-      VSIFReadL(&c, 1, 1, h);
-      if( c !='\n')
+      if( VSIFReadL(&c, 1, 1, h) != 1 )
+      {
+        c = '\n';
+      }
+      else if( c !='\n')
       {
         VSIFSeekL(h, VSIFTellL(h)-1, SEEK_SET);
         c= '\n';

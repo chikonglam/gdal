@@ -1,5 +1,5 @@
 #ifndef DOXYGEN_SKIP
-/* $Id: gdal_utilities.dox 13e7f81a134e8f2eaf0d75ccc2ab2f8dd045705a 2018-02-03 12:12:35Z Even Rouault $ */
+/* $Id: gdal_utilities.dox 27dcde5e2f5ea66eec45b077a27e0de6f20eb402 2018-05-02 19:12:22 +0200 Even Rouault $ */
 #endif /* DOXYGEN_SKIP */
 
 /*!
@@ -176,7 +176,7 @@ and exit.
 
 \htmlonly
 <p>
-$Id: gdal_utilities.dox 13e7f81a134e8f2eaf0d75ccc2ab2f8dd045705a 2018-02-03 12:12:35Z Even Rouault $
+$Id: gdal_utilities.dox 27dcde5e2f5ea66eec45b077a27e0de6f20eb402 2018-05-02 19:12:22 +0200 Even Rouault $
 </p>
 \endhtmlonly
 */
@@ -1107,7 +1107,9 @@ The value will be burned into all output bands.</dd>
 
 <dt> <b>-3d</b>: </dt><dd>
 Indicates that a burn value should be extracted from the "Z" values of the
-feature. As of now, only points and lines are drawn in 3D.</dd>
+feature. Works with points and lines (linear interpolation along each segment).
+For polygons, works properly only if the are flat (same Z value for all
+vertices).</dd>
 
 <dt> <b>-add</b>: </dt><dd>
 Instead of burning a new value, this adds the new value to the existing raster.

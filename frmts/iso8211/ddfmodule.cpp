@@ -40,7 +40,7 @@
 #include "cpl_error.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: ddfmodule.cpp 01037e400d90e8bc4a74f8d886ea5a27ecce02c5 2018-01-12 23:49:31Z Kurt Schwehr $")
+CPL_CVSID("$Id: ddfmodule.cpp 80814c6b7f169f8a57ab2fb430803e2793b2c686 2018-05-03 17:22:05 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                             DDFModule()                              */
@@ -179,7 +179,9 @@ int DDFModule::Open( const char * pszFilename, int bFailQuietly )
 /* -------------------------------------------------------------------- */
 /*      Open the file.                                                  */
 /* -------------------------------------------------------------------- */
-    fpDDF = VSIFOpenL( pszFilename, "rb" );
+    VSIStatBufL sStat;
+    if( VSIStatL(pszFilename, &sStat) == 0 && !VSI_ISDIR(sStat.st_mode) )
+        fpDDF = VSIFOpenL( pszFilename, "rb" );
 
     if( fpDDF == nullptr )
     {

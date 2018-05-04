@@ -61,7 +61,7 @@
 #include "tifvsi.h"
 #include "xtiffio.h"
 
-CPL_CVSID("$Id: gt_wkt_srs.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: gt_wkt_srs.cpp 14c03330eccb153730f9a30cf5ee4005a7d56b5e 2018-04-27 22:11:07 +0200 Even Rouault $")
 
 static const geokey_t ProjLinearUnitsInterpCorrectGeoKey =
     static_cast<geokey_t>(3059);
@@ -357,7 +357,7 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
             if( strstr( pszWKT,
                         "PROJCS[\"WGS_1984_Web_Mercator_Auxiliary_Sphere\"" ) )
             {
-                oSRS.SetFromUserInput(pszWKT);
+                oSRS.importFromWkt(pszWKT);
                 oSRS.SetExtension(
                     "PROJCS", "PROJ4",
                     "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 "

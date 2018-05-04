@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: mitab.h 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $
+ * $Id: mitab.h 18203f88afa680a5fe0c2dfa787ad8df822e74d9 2018-04-21 17:44:53 +0200 Even Rouault $
  *
  * Name:     mitab.h
  * Project:  MapInfo TAB Read/Write library
@@ -37,6 +37,8 @@
 #include "ogr_feature.h"
 #include "ogr_featurestyle.h"
 #include "ogrsf_frmts.h"
+
+#include <set>
 
 /*---------------------------------------------------------------------
  * Current version of the MITAB library... always useful!
@@ -641,6 +643,7 @@ class MIFFile final : public IMapInfoFile
     MIDDATAFile  *m_poMIFFile;   // Mif File
 
     OGRFeatureDefn *m_poDefn;
+    std::set<CPLString> m_oSetFields;
     OGRSpatialReference *m_poSpatialRef;
 
     int         m_nFeatureCount;

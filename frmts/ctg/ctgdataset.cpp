@@ -30,7 +30,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ctgdataset.cpp 01037e400d90e8bc4a74f8d886ea5a27ecce02c5 2018-01-12 23:49:31Z Kurt Schwehr $")
+CPL_CVSID("$Id: ctgdataset.cpp c110ff1ae189c96166f9d82a9d7873a265806d59 2018-04-29 23:11:43 +0200 Even Rouault $")
 
 constexpr int HEADER_LINE_COUNT = 5;
 
@@ -546,10 +546,10 @@ GDALDataset *CTGDataset::Open( GDALOpenInfo * poOpenInfo )
 CPLErr CTGDataset::GetGeoTransform( double * padfTransform )
 
 {
-    padfTransform[0] = nNWEasting - nCellSize / 2;
+    padfTransform[0] = static_cast<double>(nNWEasting) - nCellSize / 2;
     padfTransform[1] = nCellSize;
     padfTransform[2] = 0;
-    padfTransform[3] = nNWNorthing + nCellSize / 2;
+    padfTransform[3] = static_cast<double>(nNWNorthing) + nCellSize / 2;
     padfTransform[4] = 0.;
     padfTransform[5] = -nCellSize;
 

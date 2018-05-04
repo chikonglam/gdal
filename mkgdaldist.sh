@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: mkgdaldist.sh 9ff211ee9006e21bf05bf75cfbe24d6b7aa7c8d0 2018-03-25 19:40:25 +0200 Even Rouault $
+# $Id: mkgdaldist.sh 41c0d127339db75d544aa3ee342261ecb0f30265 2018-04-20 13:43:02 +0200 Even Rouault $
 #
 # mkgdaldist.sh - prepares GDAL source distribution package
 #
@@ -16,14 +16,15 @@ fi
 GITURL="https://github.com/OSGeo/gdal"
 
 if [ $# -lt 1 ] ; then
-  echo "Usage: mkgdaldist.sh <version> [-date date] [-branch branch] [-rc n] [-url url]"
+  echo "Usage: mkgdaldist.sh <version> [-date date] [-branch branch|-tag tag] [-rc n] [-url url]"
   echo " <version> - version number used in name of generated archive."
   echo " -date     - date of package generation, current date used if not provided"
-  echo " -branch   - path to git branch or tag, master is used if not provided"
+  echo " -branch   - path to git branch, master is used if not provided"
+  echo " -tag      - path to git tag"
   echo " -rc       - gives a release candidate id to embed in filenames"
   echo " -url      - git url, ${GITURL} if not provided"
   echo "Example: mkgdaldist.sh 2.2.4 -branch v2.2.4 -rc RC1"
-  echo "or       mkgdaldist.sh 2.3.0beta1"
+  echo "or       mkgdaldist.sh 2.3.0beta1 -tag v2.3.0beta1"
   exit
 fi
 
@@ -49,6 +50,14 @@ else
   BRANCH="master"
 fi
 
+if test "$2" = "-tag"; then
+  TAG=$3
+  shift
+  shift
+else
+  TAG=""
+fi
+
 if test "$2" = "-rc"; then
   RC=$3
   shift
@@ -71,10 +80,13 @@ rm -rf dist_wrk
 mkdir dist_wrk
 cd dist_wrk
 
-echo "Generating package '${GDAL_VERSION}' from '${BRANCH}' branch"
-echo
-
-git clone -b ${BRANCH} --single-branch ${GITURL} gdal
+if test "$TAG" != ""; then
+   echo "Generating package '${GDAL_VERSION}' from '${TAG}' tag"
+   git clone ${GITURL} gdal
+else
+   echo "Generating package '${GDAL_VERSION}' from '${BRANCH}' branch"
+   git clone -b ${BRANCH} --single-branch ${GITURL} gdal
+fi
 
 if [ \! -d gdal ] ; then
 	echo "git clone reported an error ... abandoning mkgdaldist"
@@ -84,6 +96,11 @@ if [ \! -d gdal ] ; then
 fi
 
 cd gdal
+
+if test "$TAG" != ""; then
+   echo "Checkout tag $TAG"
+   git checkout $TAG || exit 1
+fi
 
 #
 # Make some updates and cleaning

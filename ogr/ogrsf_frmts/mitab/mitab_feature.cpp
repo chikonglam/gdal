@@ -54,7 +54,7 @@
 #include "ogr_featurestyle.h"
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: mitab_feature.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_feature.cpp b76322570f756b90e33fbe642edd0eb1a6b3b699 2018-05-04 17:45:31 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABFeature
@@ -8605,6 +8605,7 @@ void  ITABFeatureBrush::SetBrushFromStyleString(const char *pszStyleString)
     // Set the Brush Id (FillPattern)
     const char *pszBrushId = poBrushStyle->Id(bIsNull);
     if(bIsNull) pszBrushId = nullptr;
+    bool bHasBrushId = false;
 
     if(pszBrushId &&
        (strstr(pszBrushId, "mapinfo-brush-") ||
@@ -8614,6 +8615,7 @@ void  ITABFeatureBrush::SetBrushFromStyleString(const char *pszStyleString)
         {
             const int nBrushId = atoi(pszBrushId+14);
             SetBrushPattern((GByte)nBrushId);
+            bHasBrushId = true;
         }
         else if(strstr(pszBrushId, "ogr-brush-"))
         {
@@ -8621,6 +8623,7 @@ void  ITABFeatureBrush::SetBrushFromStyleString(const char *pszStyleString)
             if(nBrushId > 1)
                 nBrushId++;
             SetBrushPattern((GByte)nBrushId);
+            bHasBrushId = true;
         }
     }
 
@@ -8632,9 +8635,20 @@ void  ITABFeatureBrush::SetBrushFromStyleString(const char *pszStyleString)
     {
         if(pszBrushColor[0] == '#')
             pszBrushColor++;
-        const int nBrushColor =
-            static_cast<int>(strtol(pszBrushColor, nullptr, 16));
-        SetBrushBGColor((GInt32)nBrushColor);
+        if( strlen(pszBrushColor) == 8 &&
+            pszBrushColor[6] == '0' && pszBrushColor[7] == '0' )
+        {
+            SetBrushTransparent(1);
+        }
+        else
+        {
+            CPLString osBrushColor(pszBrushColor);
+            if( strlen(pszBrushColor) > 6 )
+                osBrushColor.resize(6);
+            const int nBrushColor =
+                static_cast<int>(strtol(osBrushColor, nullptr, 16));
+            SetBrushBGColor((GInt32)nBrushColor);
+        }
     }
     else
     {
@@ -8649,8 +8663,23 @@ void  ITABFeatureBrush::SetBrushFromStyleString(const char *pszStyleString)
     {
         if(pszBrushColor[0] == '#')
             pszBrushColor++;
+        if( strlen(pszBrushColor) == 8 &&
+            pszBrushColor[6] == '0' && pszBrushColor[7] == '0' )
+        {
+            if( !bHasBrushId )
+                SetBrushPattern(static_cast<GByte>(1)); // No-fill
+        }
+        else
+        {
+            if( !bHasBrushId )
+                SetBrushPattern(static_cast<GByte>(2)); // Solid-fill
+        }
+
+        CPLString osBrushColor(pszBrushColor);
+        if( strlen(pszBrushColor) > 6 )
+            osBrushColor.resize(6);
         const int nBrushColor =
-            static_cast<int>(strtol(pszBrushColor, nullptr, 16));
+            static_cast<int>(strtol(osBrushColor, nullptr, 16));
         SetBrushFGColor((GInt32)nBrushColor);
     }
 

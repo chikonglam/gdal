@@ -53,7 +53,7 @@
 #include "gdal.h"
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: gdalmediancut.cpp 7c397f8aee59df906fb51153f5a7980a8cc86d43 2018-04-05 22:42:08 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalmediancut.cpp 83369b4a8075b0cc331eeb3eb8430d49a4f665a6 2018-04-28 11:07:43 +0200 Even Rouault $")
 
 template<typename T> static T* HISTOGRAM( T *h, int n, int r, int g, int b )
 {
@@ -171,7 +171,6 @@ GDALComputeMedianCutPCT( GDALRasterBandH hRed,
     }
     else
     {
-#ifdef CPL_HAS_GINT64
         return GDALComputeMedianCutPCTInternal(hRed, hGreen, hBlue,
                                                nullptr, nullptr, nullptr,
                                                pfnIncludePixel, nColors,
@@ -179,9 +178,6 @@ GDALComputeMedianCutPCT( GDALRasterBandH hRed,
                                                static_cast<GUIntBig * >(nullptr),
                                                hColorTable,
                                                pfnProgress, pProgressArg);
-#else
-        return CE_Failure;
-#endif
     }
 }
 
