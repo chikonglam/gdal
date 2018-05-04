@@ -42,6 +42,11 @@ else
   WITH_HDF5:=
 endif
 
+NJOBS := -j1
+ifneq (,$(filter parallel=%,$(subst $(COMMA), ,$(DEB_BUILD_OPTIONS))))
+NJOBS := -j$(subst parallel=,,$(filter parallel=%,$(subst $(COMMA), ,$(DEB_BUILD_OPTIONS))))
+endif
+
 versions:
 	@echo Gdal version: $(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 	@echo Swig version: $(SWIGVER)
@@ -141,32 +146,32 @@ override_dh_auto_configure:
 
 override_dh_auto_build:
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
-	$(MAKE) lib-target apps-target
+	$(MAKE) $(NJOBS) lib-target apps-target
 	rm -rf $(CURDIR)/swig/perl/*.c  $(CURDIR)/swig/perl/*.cpp
-	$(MAKE) -C $(CURDIR)/swig/perl generate build doc
-	$(MAKE) -C $(CURDIR)/swig/java clean generate build
+	$(MAKE) $(NJOBS) -C $(CURDIR)/swig/perl generate build doc
+	$(MAKE) $(NJOBS) -C $(CURDIR)/swig/java clean generate build
 
 	# It needs pre-installing just after the building due to intermediate cleaning.
 	# Apply conditionally an on-fly patch for pre 1.3.38 swig versions.
 	for V in $(PYVERS); do \
 		cp GDALmake.opt-$$V GDALmake.opt; \
-		$(MAKE) -C $(CURDIR)/swig/python clean; \
-		$(MAKE) -C $(CURDIR)/swig/python generate build; \
-		$(MAKE) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
+		$(MAKE) $(NJOBS) -C $(CURDIR)/swig/python clean; \
+		$(MAKE) $(NJOBS) -C $(CURDIR)/swig/python generate build; \
+		$(MAKE) $(NJOBS) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
 	done
 
 	mkdir $(CURDIR)/html || true
-	$(MAKE) docs
-	$(MAKE) man
+	$(MAKE) $(NJOBS) docs
+	$(MAKE) $(NJOBS) man
 
 override_dh_auto_install:
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
-	$(MAKE) install BINDINGS="perl java" DESTDIR=$(CURDIR)/debian/tmp \
-			INST_DATA="\$$(prefix)/share/gdal/$(GDAL_MAJOR).$(GDAL_MINOR)"
-	$(MAKE) install-docs DESTDIR=$(CURDIR)/debian/tmp \
+	$(MAKE) $(NJOBS) install BINDINGS="perl java" DESTDIR=$(CURDIR)/debian/tmp \
+		INST_DATA="\$$(prefix)/share/gdal/$(GDAL_MAJOR).$(GDAL_MINOR)"
+	$(MAKE) $(NJOBS) install-docs DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man"
-	$(MAKE) install-man DESTDIR=$(CURDIR)/debian/tmp \
+	$(MAKE) $(NJOBS) install-man DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man"
 

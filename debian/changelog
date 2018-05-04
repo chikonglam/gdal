@@ -4,6 +4,7 @@ gdal (2.3.0~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Update symbols for 2.3.0~beta1.
   * Drop Re-install-gdal_csv.h.patch, included upstream.
     Refresh remaining patches.
+  * Enable parallel make.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 04 May 2018 18:30:16 +0200
 
