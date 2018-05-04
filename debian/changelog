@@ -1,4 +1,4 @@
-gdal (2.3.0~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.3.0~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
   * Update symbols for 2.3.0~beta1.
@@ -6,7 +6,7 @@ gdal (2.3.0~rc1+dfsg-1) UNRELEASED; urgency=medium
     Refresh remaining patches.
   * Enable parallel make.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 04 May 2018 18:30:16 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 04 May 2018 18:33:14 +0200
 
 gdal (2.3.0~beta1+dfsg-2~exp1) experimental; urgency=medium
 
