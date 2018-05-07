@@ -2273,6 +2273,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"VRTDerivedRasterBand::SetPixelFunctionName(char const*)@Base" 1.10.1 1
  (c++)"VRTDerivedRasterBand::SetSourceTransferType(GDALDataType)@Base" 1.10.1 1
  (c++)"VRTDerivedRasterBand::IGetDataCoverageStatus(int, int, int, int, int, double*)@Base" 2.2.0 1
+ (c++)"VRTDerivedRasterBand::SetPixelFunctionLanguage(char const*)@Base" 2.3.0~rc1 1
  (c++)"VRTDerivedRasterBand::Cleanup()@Base" 2.2.0 1
  (c++)"VRTDerivedRasterBand::XMLInit(CPLXMLNode*, char const*, void*)@Base" 2.3.0~beta1 1
  (c++)"VRTDerivedRasterBand::IRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.1 1

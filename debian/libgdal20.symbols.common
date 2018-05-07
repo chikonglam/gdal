@@ -188,6 +188,7 @@
  CPLQuietErrorHandler@Base 1.8.0
  CPLReadDir@Base 1.8.0
  CPLReadLine2L@Base 1.8.0
+ CPLReadLine3L@Base 2.3.0~rc1
  CPLReadLine@Base 1.8.0
  CPLReadLineL@Base 1.8.0
  CPLRealloc@Base 1.8.0
