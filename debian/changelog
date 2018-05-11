@@ -1,6 +1,7 @@
 gdal (2.3.0+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Update watch file for final releases.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 11 May 2018 12:31:05 +0200
 
