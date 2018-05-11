@@ -1,3 +1,9 @@
+gdal (2.3.0+dfsg-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 11 May 2018 12:31:05 +0200
+
 gdal (2.3.0~rc1+dfsg-1~exp2) experimental; urgency=medium
 
   * Drop ancient X-Python3-Version field.
