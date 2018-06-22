@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_mssqlspatial.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
+ * $Id: ogr_mssqlspatial.h eb9f38ed0b59555a745cf11fe42ae16f64b58b3c 2018-05-13 22:25:08 +0200 Tamas Szekeres $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Definition of classes for OGR MSSQL Spatial driver.
@@ -378,6 +378,12 @@ class OGRMSSQLSpatialTableLayer final: public OGRMSSQLSpatialLayer
     int                 FetchSRSId();
 
     void                SetUseCopy(int bcpSize) { bUseCopy = TRUE; nBCPSize = bcpSize; }
+
+    // cppcheck-suppress functionStatic
+    OGRErr              StartCopy();
+    // cppcheck-suppress functionStatic
+    OGRErr              EndCopy();
+
     int                 Failed( int nRetCode );
 #ifdef MSSQL_BCP_SUPPORTED
     OGRErr              CreateFeatureBCP( OGRFeature *poFeature );
@@ -448,6 +454,8 @@ class OGRMSSQLSpatialDataSource final: public OGRDataSource
     int                *panSRID;
     OGRSpatialReference **papoSRS;
 
+    OGRMSSQLSpatialTableLayer *poLayerInCopyMode;
+
     char                *pszConnection;
 
   public:
@@ -499,6 +507,9 @@ class OGRMSSQLSpatialDataSource final: public OGRDataSource
     // Internal use
     CPLODBCSession     *GetSession() { return &oSession; }
     const char         *GetConnectionString() { return pszConnection; }
+
+    void                StartCopy(OGRMSSQLSpatialTableLayer *poMSSQLSpatialLayer);
+    OGRErr              EndCopy();
 };
 
 /************************************************************************/

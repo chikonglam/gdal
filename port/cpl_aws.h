@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_aws.h e648607661fdd5cbc6bb778c17c20c3e7979a734 2018-04-04 19:27:08 +0200 Even Rouault $
+ * $Id: cpl_aws.h 1d0f559204e90d0e54d4aebe6ea8b65f0851be69 2018-06-20 16:38:42 +0200 Even Rouault $
  *
  * Name:     cpl_aws.h
  * Project:  CPL - Common Portability Library
@@ -117,6 +117,8 @@ public:
                             std::map<CPLString, CPLString>& oSortedMapHeaders,
                             const struct curl_slist* psExistingHeaders,
                             const char* pszHeaderPrefix);
+
+        static CPLString GetRFC822DateTime();
 };
 
 class VSIS3HandleHelper final: public IVSIS3LikeHandleHelper

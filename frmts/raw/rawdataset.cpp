@@ -50,7 +50,7 @@
 #include "gdal.h"
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: rawdataset.cpp fd36e6e301fed174388ef67b996c34c9b16dba7e 2018-04-16 13:29:56 +0200 Even Rouault $")
+CPL_CVSID("$Id: rawdataset.cpp 74385c8cc244684d8cff57e1b66ec50a255057c1 2018-06-21 20:46:53 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           RawRasterBand()                            */
@@ -1241,8 +1241,11 @@ bool RAWDatasetCheckMemoryUsage(int nXSize, int nYSize, int nBands,
     // small files.
     // But ultimately we should fix RawRasterBand to have a shared buffer
     // among bands.
-    if( nBands > 10 ||
-        static_cast<vsi_l_offset>(nPixelOffset) * nXSize > 20000 )
+    const char* pszCheck = CPLGetConfigOption("RAW_CHECK_FILE_SIZE", nullptr);
+    if( (nBands > 10 ||
+         static_cast<vsi_l_offset>(nPixelOffset) * nXSize > 20000 ||
+         (pszCheck && CPLTestBool(pszCheck))) &&
+        !(pszCheck && !CPLTestBool(pszCheck)) )
     {
         vsi_l_offset nExpectedFileSize =
             nHeaderSize + nBandOffset * (nBands - 1) +

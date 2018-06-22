@@ -32,7 +32,7 @@
 #include "cpl_csv.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrbnalayer.cpp 3299482632a616871b0427f192f706caf5669e81 2018-04-01 01:20:00 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrbnalayer.cpp f9af14bc04e6f4fea8175f0e212455c2b6520378 2018-06-01 14:24:48 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            OGRBNALayer()                             */
@@ -313,7 +313,8 @@ OGRErr OGRBNALayer::ICreateFeature( OGRFeature *poFeature )
         eol[1] = 0;
     }
 
-    if ( ! bWriter )
+    VSILFILE* fp = poDS->GetOutputFP();
+    if ( ! bWriter || fp == nullptr )
     {
         return OGRERR_FAILURE;
     }
@@ -321,7 +322,6 @@ OGRErr OGRBNALayer::ICreateFeature( OGRFeature *poFeature )
     if( poFeature->GetFID() == OGRNullFID )
         poFeature->SetFID( nFeatures++ );
 
-    VSILFILE* fp = poDS->GetOutputFP();
     int nbPairPerLine = poDS->GetNbPairPerLine();
 
     switch( poGeom->getGeometryType() )

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_bna.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: ogr_bna.h f9af14bc04e6f4fea8175f0e212455c2b6520378 2018-06-01 14:24:48 +0200 Even Rouault $
  *
  * Project:  BNA Translator
  * Purpose:  Definition of classes for OGR .bna driver.
@@ -108,8 +108,6 @@ class OGRBNADataSource : public OGRDataSource
     OGRBNALayer**       papoLayers;
     int                 nLayers;
 
-    int                 bUpdate;
-
     /*  Export related */
     VSILFILE                *fpOutput; /* Virtual file API */
     bool                bUseCRLF;
@@ -133,8 +131,7 @@ class OGRBNADataSource : public OGRDataSource
     int                 GetCoordinatePrecision() { return coordinatePrecision; }
     const char*         GetCoordinateSeparator() { return pszCoordinateSeparator; }
 
-    int                 Open( const char * pszFilename,
-                              int bUpdate );
+    int                 Open( const char * pszFilename );
 
     int                 Create( const char *pszFilename,
                               char **papszOptions );

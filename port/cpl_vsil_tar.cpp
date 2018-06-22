@@ -45,7 +45,7 @@
 #include "cpl_string.h"
 #include "cpl_vsi_virtual.h"
 
-CPL_CVSID("$Id: cpl_vsil_tar.cpp 0f654dda9faabf9d86a44293f0f89903a8e97dd7 2018-04-15 20:18:32 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_vsil_tar.cpp 04558cb519c0345b92efb598af3bb44c5af65cf5 2018-06-08 19:53:00 +0200 Even Rouault $")
 
 #if (defined(DEBUG) || defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)) && !defined(HAVE_FUZZER_FRIENDLY_ARCHIVE)
 /* This is a completely custom archive format that is rather inefficient */
@@ -333,23 +333,23 @@ int VSITarReader::GotoNextFile()
         }
     }
 #endif
-    char abyHeader[512] = {};
+    GByte abyHeader[512] = {};
     if (VSIFReadL(abyHeader, 512, 1, fp) != 1)
         return FALSE;
 
-    if (abyHeader[99] != '\0' ||
-        abyHeader[107] != '\0' ||
-        abyHeader[115] != '\0' ||
-        abyHeader[123] != '\0' ||
-        (abyHeader[135] != '\0' && abyHeader[135] != ' ') ||
-        (abyHeader[147] != '\0' && abyHeader[147] != ' '))
+    if (abyHeader[99] != '\0' || /* end of filename */
+        !(abyHeader[100] == 0x80 || abyHeader[107] == '\0') || /* start/end of filemode */
+        !(abyHeader[108] == 0x80 || abyHeader[115] == '\0') || /* start/end of owner ID */
+        !(abyHeader[116] == 0x80 || abyHeader[123] == '\0') || /* start/end of group ID */
+        (abyHeader[135] != '\0' && abyHeader[135] != ' ') || /* end of file size */
+        (abyHeader[147] != '\0' && abyHeader[147] != ' ')) /* end of mtime */
     {
         return FALSE;
     }
     if( abyHeader[124] < '0' || abyHeader[124] > '7' )
         return FALSE;
 
-    osNextFileName = abyHeader;
+    osNextFileName = reinterpret_cast<const char*>(abyHeader);
     nNextFileSize = 0;
     for(int i=0;i<11;i++)
         nNextFileSize = nNextFileSize * 8 + (abyHeader[124+i] - '0');

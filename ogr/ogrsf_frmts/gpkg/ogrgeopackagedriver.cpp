@@ -28,7 +28,7 @@
 
 #include "ogr_geopackage.h"
 
-CPL_CVSID("$Id: ogrgeopackagedriver.cpp b7e1b1ddcb26a8716a1beea7a2e5f4e711481080 2018-03-22 10:28:21Z Even Rouault $")
+CPL_CVSID("$Id: ogrgeopackagedriver.cpp 3bc98ac2e895141cb38924f83d1182b59d711148 2018-06-14 16:22:26 +0200 Even Rouault $")
 
 // g++ -g -Wall -fPIC -shared -o ogr_geopackage.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/gpkg ogr/ogrsf_frmts/gpkg/*.c* -L. -lgdal
 
@@ -40,10 +40,6 @@ static int OGRGeoPackageDriverIdentify( GDALOpenInfo* poOpenInfo, bool bEmitWarn
 {
     if( STARTS_WITH_CI(poOpenInfo->pszFilename, "GPKG:") )
         return TRUE;
-
-    /* Check that the filename exists and is a file */
-    if( poOpenInfo->fpL == nullptr)
-        return FALSE;
 
 #ifdef ENABLE_SQL_GPKG_FORMAT
     if( poOpenInfo->pabyHeader &&

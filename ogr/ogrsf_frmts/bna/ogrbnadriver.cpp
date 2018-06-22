@@ -29,7 +29,7 @@
 #include "ogr_bna.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrbnadriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrbnadriver.cpp f9af14bc04e6f4fea8175f0e212455c2b6520378 2018-06-01 14:24:48 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                                Open()                                */
@@ -55,10 +55,14 @@ static GDALDataset *OGRBNADriverOpen( GDALOpenInfo* poOpenInfo )
     {
         return nullptr;
     }
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        return nullptr;
+    }
 
     OGRBNADataSource   *poDS = new OGRBNADataSource();
 
-    if( !poDS->Open( pszFilename, poOpenInfo->eAccess == GA_Update ) )
+    if( !poDS->Open( pszFilename ) )
     {
         delete poDS;
         poDS = nullptr;

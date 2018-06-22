@@ -40,6 +40,7 @@
 #include <cstring>
 #include <algorithm>
 #include <limits>
+#include <string>
 
 #include "cpl_conv.h"
 #include "cpl_csv.h"
@@ -51,7 +52,7 @@
 #include "ogr_p.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogr_srs_esri.cpp 4942e6b19a5f82ab343ec686154644effd0fcbde 2018-04-18 21:13:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr_srs_esri.cpp 307445e29097746ae602c7149101ef485efbbfbf 2018-06-19 06:51:52 -0700 Kurt Schwehr $")
 
 extern void OGREPSGDatumNameMassage( char ** ppszDatum );
 
@@ -1884,17 +1885,20 @@ OGRErr OGRSpatialReference::morphToESRI()
           }
         }
 
+        // pszProjection might be deleted in DeleteParamBasedOnPrjName,
+        // so make and use a copy.
+        const std::string osProjection(pszProjection);
         DeleteParamBasedOnPrjName(
-            this, pszProjection,
+            this, osProjection.c_str(),
             apszDeleteParametersBasedOnProjection);
         AddParamBasedOnPrjName(
-            this, pszProjection,
+            this, osProjection.c_str(),
             apszAddParametersBasedOnProjection);
         RemapPValuesBasedOnProjCSAndPName(
-            this, pszProjection,
+            this, osProjection.c_str(),
             apszParamValueMapping);
         RemapPNamesBasedOnProjCSAndPName(
-            this, pszProjection,
+            this, osProjection.c_str(),
             apszParamNameMapping,
             true /* to ESRI */ );
       }

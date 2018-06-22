@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: avc_e00read.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $
+ * $Id: avc_e00read.cpp 9293beb488fcbb5b09dbf290a74e3084a13f9043 2018-05-14 11:37:04 +0200 Even Rouault $
  *
  * Name:     avc_e00read.c
  * Project:  Arc/Info vector coverage (AVC)  BIN->E00 conversion library
@@ -135,6 +135,9 @@
 #endif
 
 #include <ctype.h>      /* toupper() */
+
+// Should be 80 but let's be laxer
+constexpr int knMAX_CHARS_PER_LINE = 1024;
 
 static void _AVCE00ReadScanE00(AVCE00ReadE00Ptr psRead);
 static int _AVCE00ReadBuildSqueleton(AVCE00ReadPtr psInfo,
@@ -1366,7 +1369,7 @@ static void _AVCE00ReadScanE00(AVCE00ReadE00Ptr psRead)
     GBool      bFirstLine = TRUE;
 
     while (CPLGetLastErrorNo() == 0 &&
-            (pszLine = CPLReadLineL(psRead->hFile) ) != nullptr )
+            (pszLine = CPLReadLine2L(psRead->hFile, knMAX_CHARS_PER_LINE, nullptr) ) != nullptr )
     {
         if (bFirstLine)
         {
@@ -2060,7 +2063,7 @@ static int _AVCE00ReadSeekE00(AVCE00ReadE00Ptr psRead, int nOffset,
 
     while (nOffset-- &&
             CPLGetLastErrorNo() == 0 &&
-            (pszLine = CPLReadLineL(psRead->hFile) ) != nullptr )
+            (pszLine = CPLReadLine2L(psRead->hFile, knMAX_CHARS_PER_LINE, nullptr) ) != nullptr )
     {
         /* obj = */
         /* coverity[tainted_data] */
@@ -2090,7 +2093,7 @@ void *AVCE00ReadNextObjectE00(AVCE00ReadE00Ptr psRead)
 
     do
     {
-        pszLine = CPLReadLineL(psRead->hFile);
+        pszLine = CPLReadLine2L(psRead->hFile, knMAX_CHARS_PER_LINE, nullptr);
         if (pszLine == nullptr)
             break;
         /* coverity[tainted_data] */

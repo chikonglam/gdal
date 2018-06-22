@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: envidataset.h efa3baed8f50e0fcbe6f2d147bd3889bbce34d20 2018-03-10 18:47:09Z Even Rouault $
+ * $Id: envidataset.h 74385c8cc244684d8cff57e1b66ec50a255057c1 2018-06-21 20:46:53 +0200 Even Rouault $
  *
  * Project:  ENVI .hdr Driver
  * Purpose:  Implementation of ENVI .hdr labelled raw raster support.
@@ -124,6 +124,7 @@ class ENVIDataset : public RawDataset
                     const char *pszGCPProjection ) override;
 
     static GDALDataset *Open( GDALOpenInfo * );
+    static GDALDataset *Open( GDALOpenInfo *, bool bFileSizeCheck );
     static GDALDataset *Create( const char *pszFilename,
                                 int nXSize, int nYSize, int nBands,
                                 GDALDataType eType, char ** papszOptions );

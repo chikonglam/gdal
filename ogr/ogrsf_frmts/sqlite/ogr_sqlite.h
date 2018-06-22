@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_sqlite.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
+ * $Id: ogr_sqlite.h 3bc98ac2e895141cb38924f83d1182b59d711148 2018-06-14 16:22:26 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/SQLite driver.
@@ -695,6 +695,7 @@ class OGRSQLiteBaseDataSource : public GDALPamDataset
 {
   protected:
     char               *m_pszFilename;
+    bool                m_bCallUndeclareFileNotToOpen = false;
 
     sqlite3             *hDB;
     int                 bUpdate;

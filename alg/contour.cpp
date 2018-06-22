@@ -42,10 +42,11 @@
 #include "cpl_vsi.h"
 #include "gdal.h"
 #include "gdal_priv.h"
+#include "gdal_priv_templates.hpp"
 #include "ogr_api.h"
 #include "ogr_core.h"
 
-CPL_CVSID("$Id: contour.cpp 9ff327806cd64df6d73a6c91f92d12ca0c5e07df 2018-04-07 20:25:06 +0200 Even Rouault $")
+CPL_CVSID("$Id: contour.cpp 8ee787afde31c77a0420e7fdfcf083a563450258 2018-05-08 16:25:14 +0200 Even Rouault $")
 
 // The amount of a contour interval that pixels should be fudged by if they
 // match a contour level exactly.
@@ -547,10 +548,20 @@ CPLErr GDALContourGenerator::ProcessRect(
     // Otherwise figure out the start and end using the base and offset.
     else
     {
-        iStartLevel = static_cast<int>(
-            ceil((dfMin - dfContourOffset) / dfContourInterval));
-        iEndLevel = static_cast<int>(
-            floor((dfMax - dfContourOffset) / dfContourInterval));
+        const double dfStartLevel =
+            ceil((dfMin - dfContourOffset) / dfContourInterval);
+        const double dfEndLevel =
+            floor((dfMax - dfContourOffset) / dfContourInterval);
+        if( !GDALIsValueInRange<int>(dfStartLevel) ||
+            !GDALIsValueInRange<int>(dfEndLevel) )
+        {
+            CPLError(CE_Failure, CPLE_NotSupported,
+                     "Range of levels [%g,%g] not supported",
+                     dfStartLevel, dfEndLevel);
+            return CE_Failure;
+        }
+        iStartLevel = static_cast<int>(dfStartLevel);
+        iEndLevel = static_cast<int>(dfStartLevel);
     }
 
     if( iStartLevel > iEndLevel )

@@ -30,7 +30,7 @@
 #include "ogr_ili1.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrili1driver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrili1driver.cpp 3bc98ac2e895141cb38924f83d1182b59d711148 2018-06-14 16:22:26 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                                Open()                                */
@@ -43,7 +43,7 @@ static GDALDataset *OGRILI1DriverOpen( GDALOpenInfo* poOpenInfo )
         (!poOpenInfo->bStatOK && strchr(poOpenInfo->pszFilename, ',') == nullptr) )
         return nullptr;
 
-    if( poOpenInfo->fpL != nullptr )
+    if( poOpenInfo->pabyHeader != nullptr )
     {
         if( strstr((const char*)poOpenInfo->pabyHeader,"SCNT") == nullptr )
         {

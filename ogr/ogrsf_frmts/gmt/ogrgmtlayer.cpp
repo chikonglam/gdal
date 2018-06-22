@@ -32,7 +32,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrgmtlayer.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgmtlayer.cpp 1c2526e2b3420759972009a9584b3173e7e7e4da 2018-05-13 11:45:43 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            OGRGmtLayer()                             */
@@ -199,18 +199,20 @@ OGRGmtLayer::OGRGmtLayer( const char * pszFilename, int bUpdateIn ) :
                                                    TRUE, TRUE );
         char **papszFT = CSLTokenizeStringComplex( osFieldTypes, "|",
                                                    TRUE, TRUE );
-        const int nFieldCount = std::max(CSLCount(papszFN), CSLCount(papszFT));
+        const int nFNCount = CSLCount(papszFN);
+        const int nFTCount = CSLCount(papszFT);
+        const int nFieldCount = std::max(nFNCount, nFTCount);
 
         for( int iField = 0; iField < nFieldCount; iField++ )
         {
             OGRFieldDefn oField("", OFTString );
 
-            if( iField < CSLCount(papszFN) )
+            if( iField < nFNCount )
                 oField.SetName( papszFN[iField] );
             else
                 oField.SetName( CPLString().Printf( "Field_%d", iField+1 ));
 
-            if( iField < CSLCount(papszFT) )
+            if( iField < nFTCount )
             {
                 if( EQUAL(papszFT[iField],"integer") )
                     oField.SetType( OFTInteger );

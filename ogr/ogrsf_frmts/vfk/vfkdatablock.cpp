@@ -37,7 +37,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: vfkdatablock.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: vfkdatablock.cpp 9da3c678d3d6b0516afe085809843a521b75817f 2018-06-07 11:27:35 +0200 Martin Landa $")
 
 /*!
   \brief VFK Data Block constructor
@@ -171,6 +171,13 @@ void IVFKDataBlock::SetProperties(const char *poLine)
 */
 int IVFKDataBlock::AddProperty(const char *pszName, const char *pszType)
 {
+    /* Force text attributes to avoid int64 overflow
+       see https://github.com/OSGeo/gdal/issues/672 */
+    if( EQUAL( m_pszName, "VLA" ) &&
+        ( EQUAL( pszName, "PODIL_CITATEL" ) ||
+          EQUAL( pszName, "PODIL_JMENOVATEL" ) ) )
+        pszType = "T30";
+
     VFKPropertyDefn *poNewProperty = new VFKPropertyDefn(pszName, pszType,
                                                          m_poReader->IsLatin2());
 

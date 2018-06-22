@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: Dataset.i 97ddfe1f4daf2fa4fc965117a66e147ab18f1f9b 2017-12-21 13:14:49Z Even Rouault $
+ * $Id: Dataset.i 637961e9df5633b77d011c8e5f53dcab7a58c497 2018-04-20 13:59:35 +0200 Even Rouault $
  *
  * Name:     Dataset.i
  * Project:  GDAL Python Interface
@@ -150,6 +150,8 @@ CPLErr DSReadRaster_internal( GDALDatasetShadow *obj,
 
 #endif
 
+#if !defined(SWIGJAVA)
+
 //************************************************************************/
 //
 // Define the extensions for GDALAsyncReader (nee GDALAsyncReaderShadow)
@@ -294,6 +296,8 @@ public:
 
     } /* extend */
 }; /* GDALAsyncReaderShadow */
+
+#endif // !defined(SWIGJAVA)
 
 //************************************************************************/
 //

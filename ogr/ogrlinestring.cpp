@@ -35,7 +35,7 @@
 #include <algorithm>
 #include <limits>
 
-CPL_CVSID("$Id: ogrlinestring.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrlinestring.cpp acc0aaff03020268c0ea5d54e5840db079e07a49 2018-06-07 19:47:12 +0200 Even Rouault $")
 
 namespace {
 
@@ -2815,15 +2815,19 @@ OGRLineString* OGRLineString::TransferMembersAndDestroy(
     OGRLineString* poSrc,
     OGRLineString* poDst )
 {
-    poDst->set3D(poSrc->Is3D());
-    poDst->setMeasured(poSrc->IsMeasured());
+    if( poSrc->Is3D())
+        poDst->flags |= OGR_G_3D;
+    if( poSrc->IsMeasured())
+        poDst->flags |= OGR_G_MEASURED;
     poDst->assignSpatialReference(poSrc->getSpatialReference());
     poDst->nPointCount = poSrc->nPointCount;
     poDst->paoPoints = poSrc->paoPoints;
     poDst->padfZ = poSrc->padfZ;
+    poDst->padfM = poSrc->padfM;
     poSrc->nPointCount = 0;
     poSrc->paoPoints = nullptr;
     poSrc->padfZ = nullptr;
+    poSrc->padfM = nullptr;
     delete poSrc;
     return poDst;
 }

@@ -55,7 +55,7 @@
 
 //#define DEBUG_IO
 
-CPL_CVSID("$Id: openjpegdataset.cpp a3af874fac8691347a50b2203dcbfe90d3a96378 2018-04-27 21:44:49 +0200 Even Rouault $")
+CPL_CVSID("$Id: openjpegdataset.cpp fa393e39325cb00a5a2d26323f562478201c01a0 2018-06-12 22:08:02 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                  JP2OpenJPEGDataset_ErrorCallback()                  */
@@ -851,8 +851,8 @@ CPLErr JP2OpenJPEGDataset::ReadBlock( int nBand, VSILFILE* fpIn,
 #else
             // We may leak objects, but the cleanup of openjpeg can cause
             // double frees sometimes...
-#endif
             return CE_Failure;
+#endif
         }
     }
 

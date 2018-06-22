@@ -38,7 +38,7 @@
 #include "cpl_sha1.h"
 #include <algorithm>
 
-CPL_CVSID("$Id: cpl_alibaba_oss.cpp 07238f4cbcdc1a56c9db7e8dc3a5727346194074 2018-04-02 14:34:13 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_alibaba_oss.cpp 1d0f559204e90d0e54d4aebe6ea8b65f0851be69 2018-06-20 16:38:42 +0200 Even Rouault $")
 
 // #define DEBUG_VERBOSE 1
 
@@ -82,12 +82,7 @@ CPLGetOSSHeaders( const CPLString& osSecretAccessKey,
     CPLString osDate = CPLGetConfigOption("CPL_OSS_TIMESTAMP", "");
     if( osDate.empty() )
     {
-        char szDate[64];
-        time_t nNow = time(nullptr);
-        struct tm tm;
-        CPLUnixTimeToYMDHMS(nNow, &tm);
-        strftime(szDate, sizeof(szDate), "%a, %d %b %Y %H:%M:%S GMT", &tm);
-        osDate = szDate;
+        osDate = IVSIS3LikeHandleHelper::GetRFC822DateTime();
     }
 
     std::map<CPLString, CPLString> oSortedMapHeaders;
@@ -286,7 +281,7 @@ VSIOSSHandleHelper::GetCurlHeaders( const CPLString& osVerb,
     }
 
     CPLString osCanonicalizedResource( m_osBucket.empty() ? CPLString("/") :
-        "/" + m_osBucket +  "/" + CPLAWSURLEncode(m_osObjectKey, false));
+        "/" + m_osBucket +  "/" + m_osObjectKey );
     osCanonicalizedResource += osCanonicalQueryString;
 
     return CPLGetOSSHeaders(
@@ -425,7 +420,7 @@ CPLString VSIOSSHandleHelper::GetSignedURL(CSLConstList papszOptions)
     CPLString osVerb(CSLFetchNameValueDef(papszOptions, "VERB", "GET"));
 
     CPLString osCanonicalizedResource( m_osBucket.empty() ? CPLString("/") :
-        "/" + m_osBucket +  "/" + CPLAWSURLEncode(m_osObjectKey, false));
+        "/" + m_osBucket +  "/" + m_osObjectKey );
 
     CPLString osStringToSign;
     osStringToSign += osVerb + "\n";

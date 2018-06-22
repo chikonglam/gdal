@@ -36,7 +36,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: usgsdemdataset.cpp d7b7e67cdb4cce3c918816ba6ef97cda6717e8fb 2018-04-03 13:22:27 +0200 Even Rouault $")
+CPL_CVSID("$Id: usgsdemdataset.cpp 90484c20576bc6b25ffb8bfa471b358412ac9d8f 2018-05-11 11:51:03 +0200 Even Rouault $")
 
 typedef struct {
     double      x;
@@ -112,6 +112,35 @@ static void USGSDEMRefillBuffer( Buffer* psBuffer )
                                        1, psBuffer->max_size - psBuffer->buffer_size,
                                        psBuffer->fp));
     psBuffer->cur_index = 0;
+}
+
+/************************************************************************/
+/*                      USGSDEMGetCurrentFilePos()                      */
+/************************************************************************/
+
+static vsi_l_offset USGSDEMGetCurrentFilePos( const Buffer* psBuffer )
+{
+    return VSIFTellL(psBuffer->fp) - psBuffer->buffer_size + psBuffer->cur_index;
+}
+
+/************************************************************************/
+/*                      USGSDEMSetCurrentFilePos()                      */
+/************************************************************************/
+
+static void USGSDEMSetCurrentFilePos( Buffer* psBuffer, vsi_l_offset nNewPos )
+{
+    vsi_l_offset nCurPosFP = VSIFTellL(psBuffer->fp);
+    if( nNewPos >= nCurPosFP - psBuffer->buffer_size && nNewPos < nCurPosFP )
+    {
+        psBuffer->cur_index =
+            static_cast<int>(nNewPos - (nCurPosFP - psBuffer->buffer_size));
+    }
+    else
+    {
+        CPL_IGNORE_RET_VAL( VSIFSeekL(psBuffer->fp, nNewPos, SEEK_SET) );
+        psBuffer->buffer_size = 0;
+        psBuffer->cur_index = 0;
+    }
 }
 
 /************************************************************************/
@@ -364,18 +393,43 @@ CPLErr USGSDEMRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
     for( int i = 0; i < GetXSize(); i++)
     {
         int bSuccess;
-        /* njunk = */ USGSDEMReadIntFromBuffer(&sBuffer, &bSuccess);
+        const int nRowNumber = USGSDEMReadIntFromBuffer(&sBuffer, &bSuccess);
+        if( nRowNumber != 1 )
+            CPLDebug("USGSDEM", "i = %d, nRowNumber = %d", i, nRowNumber);
         if( bSuccess )
-        /* njunk = */ USGSDEMReadIntFromBuffer(&sBuffer, &bSuccess);
+        {
+            const int nColNumber = USGSDEMReadIntFromBuffer(&sBuffer, &bSuccess);
+            if( nColNumber != i + 1 )
+            {
+                CPLDebug("USGSDEM", "i = %d, nColNumber = %d", i, nColNumber);
+            }
+        }
         const int nCPoints = (bSuccess) ? USGSDEMReadIntFromBuffer(&sBuffer, &bSuccess) : 0;
-        /* njunk = */ USGSDEMReadIntFromBuffer(&sBuffer, &bSuccess);
+#ifdef DEBUG_VERBOSE
+        CPLDebug("USGSDEM", "i = %d, nCPoints = %d", i, nCPoints);
+#endif
 
         if( bSuccess )
+        {
+            const int nNumberOfCols = USGSDEMReadIntFromBuffer(&sBuffer, &bSuccess);
+            if( nNumberOfCols != 1 )
+            {
+                CPLDebug("USGSDEM", "i = %d, nNumberOfCols = %d", i, nNumberOfCols);
+            }
+        }
+
+        // x-start
+        if( bSuccess )
         /* dxStart = */ USGSDEMReadDoubleFromBuffer(&sBuffer, 24, &bSuccess);
+
         double dyStart = (bSuccess) ? USGSDEMReadDoubleFromBuffer(&sBuffer, 24, &bSuccess) : 0;
         const double dfElevOffset = (bSuccess) ? USGSDEMReadDoubleFromBuffer(&sBuffer, 24, &bSuccess) : 0;
+
+        // min z value
         if( bSuccess )
         /* djunk = */ USGSDEMReadDoubleFromBuffer(&sBuffer, 24, &bSuccess);
+
+        // max z value
         if( bSuccess )
         /* djunk = */ USGSDEMReadDoubleFromBuffer(&sBuffer, 24, &bSuccess);
         if( !bSuccess )
@@ -404,6 +458,10 @@ CPLErr USGSDEMRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
             const int iY = GetYSize() - j - 1;
 
             const int nElev = USGSDEMReadIntFromBuffer(&sBuffer, &bSuccess);
+#ifdef DEBUG_VERBOSE
+            CPLDebug("USGSDEM", "  j - lygap = %d, nElev = %d", j - lygap, nElev);
+#endif
+
             if( !bSuccess )
             {
                 CPLFree(sBuffer.buffer);
@@ -432,6 +490,18 @@ CPLErr USGSDEMRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
                     reinterpret_cast<float *>( pImage )[i + iY*GetXSize()]
                         = fComputedElev;
                 }
+            }
+        }
+
+        if( poGDS->nDataStartOffset == 1024 )
+        {
+            // Seek to the next 1024 byte boundary.
+            // Some files have 'junk' profile values after the valid/declared ones
+            vsi_l_offset nCurPos = USGSDEMGetCurrentFilePos(&sBuffer);
+            vsi_l_offset nNewPos = (nCurPos + 1023) / 1024 * 1024;
+            if( nNewPos > nCurPos )
+            {
+                USGSDEMSetCurrentFilePos(&sBuffer, nNewPos);
             }
         }
     }
@@ -516,7 +586,7 @@ int USGSDEMDataset::LoadFromFile(VSILFILE *InDem)
     // Read DEM into matrix
     const int nRow = ReadInt(InDem);
     const int nColumn = ReadInt(InDem);
-    const bool bNewFormat = nRow != 1 || nColumn != 1;
+    const bool bNewFormat = VSIFTellL(InDem) >= 1024 || nRow != 1 || nColumn != 1;
     if (bNewFormat)
     {
         CPL_IGNORE_RET_VAL(VSIFSeekL(InDem, 1024, 0));  // New Format
@@ -670,7 +740,6 @@ int USGSDEMDataset::LoadFromFile(VSILFILE *InDem)
             }
         }
     }
-
     else if (nCoordSystem == 2)  // state plane
     {
         if( nGUnit == 1 )

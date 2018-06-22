@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal.h 0f654dda9faabf9d86a44293f0f89903a8e97dd7 2018-04-15 20:18:32 +0200 Even Rouault $
+ * $Id: gdal.h 2a145ae8e090b07cdddea4397fd43a26d2a78591 2018-05-07 20:12:57 +0200 Even Rouault $
  *
  * Project:  GDAL Core
  * Purpose:  GDAL Core C/Public declarations.
@@ -241,7 +241,7 @@ const char CPL_DLL *GDALGetPaletteInterpretationName( GDALPaletteInterp );
 /*      error codes 100 to 299 reserved for GDAL.                       */
 /* -------------------------------------------------------------------- */
 #ifndef DOXYGEN_SKIP
-#define CPLE_WrongFormat        (CPLErrorNum)200
+#define CPLE_WrongFormat        CPL_STATIC_CAST(CPLErrorNum, 200)
 #endif
 
 /* -------------------------------------------------------------------- */

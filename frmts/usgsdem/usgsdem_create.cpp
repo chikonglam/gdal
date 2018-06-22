@@ -40,7 +40,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: usgsdem_create.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: usgsdem_create.cpp 2149b7955fc5a5b2fc685688bf95ade0c6219295 2018-06-20 10:51:08 +0200 Even Rouault $")
 
 /* used by usgsdemdataset.cpp */
 GDALDataset *USGSDEMCreateCopy( const char *, GDALDataset *, int, char **,
@@ -1205,10 +1205,9 @@ static int USGSDEMProductSetup_DEFAULT( USGSDEMWriteInfo *psWInfo )
     OGRSpatialReference DstoSRS;
     OGRSpatialReference SrcoSRS;
     int                 bNorth = TRUE;
-        /* XXX here we are assume (!) northern hemisphere UTM datasets  */
-    int                 numdatums = 4;
+    const int           numdatums = 4;
     const char          DatumCodes[4][2] = { "1", "2", "3", "4" };
-    char                Datums[4][6] = { "NAD27", "WGS72", "WGS84",
+    const char          Datums[4][6] = { "NAD27", "WGS72", "WGS84",
                                             "NAD83" };
 
     /* get the source dataset's projection */
@@ -1241,6 +1240,10 @@ static int USGSDEMProductSetup_DEFAULT( USGSDEMWriteInfo *psWInfo )
         {
             break;
         }
+    }
+    if( i == numdatums )
+    {
+        i = numdatums - 1;
     }
     CPLStrlcpy( psWInfo->horizdatum, DatumCodes[i], 2 );
 

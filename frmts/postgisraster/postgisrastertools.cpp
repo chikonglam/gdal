@@ -7,7 +7,7 @@
  *
  * Author:       David Zwarg, dzwarg@azavea.com
  *
- * Last changes: $Id: postgisrastertools.cpp 4971449609881d6ffdca70188292293852d12691 2017-12-17 16:48:14Z Even Rouault $
+ * Last changes: $Id: postgisrastertools.cpp 2a145ae8e090b07cdddea4397fd43a26d2a78591 2018-05-07 20:12:57 +0200 Even Rouault $
  *
  ***********************************************************************
  * Copyright (c) 2009 - 2013, Jorge Arevalo, David Zwarg
@@ -34,7 +34,7 @@
  **********************************************************************/
  #include "postgisraster.h"
 
-CPL_CVSID("$Id: postgisrastertools.cpp 4971449609881d6ffdca70188292293852d12691 2017-12-17 16:48:14Z Even Rouault $")
+CPL_CVSID("$Id: postgisrastertools.cpp 2a145ae8e090b07cdddea4397fd43a26d2a78591 2018-05-07 20:12:57 +0200 Even Rouault $")
 
  /**********************************************************************
  * \brief Replace the quotes by single quotes in the input string
@@ -48,7 +48,7 @@ char * ReplaceQuotes(const char * pszInput, int nLength) {
     if (nLength == -1)
         nLength = static_cast<int>(strlen(pszInput));
 
-    pszOutput = (char*) CPLCalloc(nLength + 1, sizeof (char));
+    pszOutput = static_cast<char*>(CPLCalloc(nLength + 1, sizeof (char)));
 
     for (i = 0; i < nLength; i++) {
         if (pszInput[i] == '"')
@@ -72,7 +72,7 @@ char * ReplaceSingleQuotes(const char * pszInput, int nLength) {
     if (nLength == -1)
         nLength = static_cast<int>(strlen(pszInput));
 
-    pszOutput = (char*) CPLCalloc(nLength + 1, sizeof (char));
+    pszOutput = static_cast<char*>(CPLCalloc(nLength + 1, sizeof (char)));
 
     for (i = 0; i < nLength; i++)
     {
@@ -100,8 +100,7 @@ char** ParseConnectionString(const char * pszConnectionString) {
         ReplaceSingleQuotes(pszConnectionString, -1);
 
     /* Avoid PG: part */
-    char* pszStartPos = (char*)
-        strstr(pszEscapedConnectionString, ":") + 1;
+    char* pszStartPos = strstr(pszEscapedConnectionString, ":") + 1;
 
     /* Tokenize */
     char** papszParams =

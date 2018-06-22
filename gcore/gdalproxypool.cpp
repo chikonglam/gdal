@@ -44,7 +44,7 @@
 
 //! @cond Doxygen_Suppress
 
-CPL_CVSID("$Id: gdalproxypool.cpp ec7b85e6bb8f9737693a31f0bf7166e31e10992e 2018-04-16 00:08:36 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalproxypool.cpp a712f9c44aabd6c6ed41b659ce0ae8a82cff28dd 2018-05-05 21:53:53 +0200 Even Rouault $")
 
 /* We *must* share the same mutex as the gdaldataset.cpp file, as we are */
 /* doing GDALOpen() calls that can indirectly call GDALOpenShared() on */
@@ -623,13 +623,13 @@ GDALProxyPoolDataset::GDALProxyPoolDataset(const char* pszSourceDatasetDescripti
 
     if (pszProjectionRefIn)
     {
-        pszProjectionRef = nullptr;
-        bHasSrcProjection = FALSE;
+        pszProjectionRef = CPLStrdup(pszProjectionRefIn);
+        bHasSrcProjection = TRUE;
     }
     else
     {
-        pszProjectionRef = CPLStrdup(pszProjectionRefIn);
-        bHasSrcProjection = TRUE;
+        pszProjectionRef = nullptr;
+        bHasSrcProjection = FALSE;
     }
     if (padfGeoTransform)
     {

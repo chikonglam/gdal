@@ -100,7 +100,7 @@
 #include "xtiffio.h"
 
 
-CPL_CVSID("$Id: geotiff.cpp 94030a7dada3b45ece3461dd3d6b38809eacadf3 2018-05-02 16:33:54 +0200 Even Rouault $")
+CPL_CVSID("$Id: geotiff.cpp 84c03d49546d24f13bc385b4f3bce905190814f5 2018-05-23 19:27:00 +0200 Even Rouault $")
 
 static bool bGlobalInExternalOvr = false;
 static std::mutex gMutexThreadPool;
@@ -14847,12 +14847,12 @@ void GTiffDataset::ScanDirectories()
     // hasn't done its job, so SetDirectory() would be confused and think it
     // has nothing to do. To avoid that reset to a fake offset before calling
     // SetDirectory()
-    if( TIFFCurrentDirOffset(hTIFF) == nDirOffset )
-    {
-        TIFFSetSubDirectory( hTIFF, 0 );
-        *ppoActiveDSRef = nullptr;
-        CPL_IGNORE_RET_VAL( SetDirectory() );
-    }
+    // This can also occur if the last directory cycles to the IFD of the
+    // mask dataset and we activate this mask dataset.
+    // So always completely reset
+    TIFFSetSubDirectory( hTIFF, 0 );
+    *ppoActiveDSRef = nullptr;
+    CPL_IGNORE_RET_VAL( SetDirectory() );
 
     // If we have a mask for the main image, loop over the overviews, and if
     // they have a mask, let's set this mask as an overview of the main mask.

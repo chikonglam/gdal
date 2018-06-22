@@ -34,7 +34,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrmysqldatasource.cpp 6574497e5ddfd7c08c094a76756a0ef477cef6a1 2018-04-04 22:15:20 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrmysqldatasource.cpp a995b072c91ec820867389c10d21df3f97ee0b56 2018-05-19 00:01:56 +0200 Mateusz Loskot $")
 /************************************************************************/
 /*                         OGRMySQLDataSource()                         */
 /************************************************************************/
@@ -233,9 +233,13 @@ int OGRMySQLDataSource::Open( const char * pszNewName, char** papszOpenOptionsIn
     else
     {
         // Enable automatic reconnection
+#if defined(LIBMYSQL_VERSION_ID) && (LIBMYSQL_VERSION_ID >= 80000)
+        bool reconnect = 1;
+#else
+        my_bool reconnect = 1;
+#endif
         // Must be called after mysql_real_connect() on MySQL < 5.0.19
         // and at any point on more recent versions.
-        my_bool reconnect = 1;
         mysql_options(hConn, MYSQL_OPT_RECONNECT, &reconnect);
     }
 

@@ -35,7 +35,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: vfkfeature.cpp e3664658758b14b562a23dcee80c32d03a9eeecf 2018-04-22 10:45:06 +0200 Martin Landa $")
+CPL_CVSID("$Id: vfkfeature.cpp 8494c555e432c531d09806f21b633aee41a67f41 2018-06-07 10:36:03 +0200 Martin Landa $")
 
 /*!
   \brief IVFKFeature constructor
@@ -546,11 +546,24 @@ bool VFKFeature::SetProperty( int iIndex, const char *pszValue )
 
     switch (fType) {
     case OFTInteger:
-        m_propertyList[iIndex] = VFKProperty(atoi(pszValue));
+    case OFTInteger64: {
+        errno = 0;
+        int pbOverflow = 0;
+        char *pszLast = nullptr;
+        if( fType == OFTInteger )
+            m_propertyList[iIndex] = VFKProperty(static_cast<int>(strtol(pszValue, &pszLast, 10)));
+        else /* OFTInteger64 */
+            m_propertyList[iIndex] = VFKProperty(CPLAtoGIntBigEx(pszValue, true, &pbOverflow));
+
+        if( ( fType == OFTInteger && ( errno == ERANGE || !pszLast || *pszLast ) ) ||
+            CPLGetValueType(pszValue) != CPL_VALUE_INTEGER || pbOverflow )
+            CPLError( CE_Warning, CPLE_AppDefined,
+                      "Value '%s' parsed incompletely to integer " CPL_FRMT_GIB ".",
+                      pszValue,
+                      (fType == OFTInteger) ? m_propertyList[iIndex].GetValueI() :
+                      m_propertyList[iIndex].GetValueI64() );
         break;
-    case OFTInteger64:
-        m_propertyList[iIndex] = VFKProperty(CPLAtoGIntBig(pszValue));
-        break;
+    }
     case OFTReal:
         m_propertyList[iIndex] = VFKProperty(CPLAtof(pszValue));
         break;

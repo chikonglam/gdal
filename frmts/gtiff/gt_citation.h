@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_citation.h 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $
+ * $Id: gt_citation.h 81a008b84e9f8d2594e30aa06f9fd08cc1c6e624 2018-05-23 17:44:17 +0200 Even Rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements special parsing of Imagine citation strings, and
@@ -36,6 +36,9 @@
 #include "geo_normalize.h"
 #include "ogr_spatialref.h"
 
+#include <string>
+#include <map>
+
 char* ImagineCitationTranslation( char* psCitation, geokey_t keyID );
 char** CitationStringParse( char* psCitation, geokey_t keyID );
 
@@ -57,10 +60,12 @@ OGRBoolean CheckCitationKeyForStatePlaneUTM( GTIF* hGTIF,
                                              GTIFDefn* psDefn,
                                              OGRSpatialReference* poSRS,
                                              OGRBoolean* pLinearUnitIsSet );
-// char* ImagineCitationTranslation( char* psCitation, geokey_t keyID );
-// char** CitationStringParse( char* psCitation, geokey_t keyID );
-void SetLinearUnitCitation( GTIF* psGTIF, const char* pszLinearUOMName );
-void SetGeogCSCitation( GTIF * psGTIF, OGRSpatialReference *poSRS,
+
+void SetLinearUnitCitation( std::map<geokey_t, std::string>& oMapAsciiKeys,
+                            const char* pszLinearUOMName );
+void SetGeogCSCitation( GTIF * psGTIF,
+                        std::map<geokey_t, std::string>& oMapAsciiKeys,
+                        OGRSpatialReference *poSRS,
                         const char* angUnitName, int nDatum, short nSpheroid );
 OGRBoolean SetCitationToSRS(GTIF* hGTIF, char* szCTString, int nCTStringLen,
                             geokey_t geoKey, OGRSpatialReference* poSRS,

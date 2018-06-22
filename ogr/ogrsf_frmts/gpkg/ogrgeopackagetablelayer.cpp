@@ -33,7 +33,7 @@
 #include "cpl_time.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgeopackagetablelayer.cpp 0d8efe0e9c0156d4de155e4d85ba6b825ed345d3 2018-04-19 23:58:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeopackagetablelayer.cpp 3b495c65e84e938192dead1d28cc7c6552c3149e 2018-06-14 16:21:05 +0200 Even Rouault $")
 
 static const char UNSUPPORTED_OP_READ_ONLY[] =
   "%s : unsupported operation on a read-only datasource.";
@@ -1519,18 +1519,9 @@ OGRErr OGRGeoPackageTableLayer::CreateGeomField( OGRGeomFieldDefn *poGeomFieldIn
 /*                      DisableFeatureCount()                           */
 /************************************************************************/
 
-void OGRGeoPackageTableLayer::DisableFeatureCount(bool bInMemoryOnly)
+void OGRGeoPackageTableLayer::DisableFeatureCount()
 {
     m_nTotalFeatureCount = -1;
-    if( !bInMemoryOnly && m_poDS->m_bHasGPKGOGRContents )
-    {
-        char* pszSQL = sqlite3_mprintf(
-            "UPDATE gpkg_ogr_contents SET feature_count = NULL WHERE "
-            "lower(table_name )= lower('%q')",
-            m_pszTableName);
-        SQLCommand(m_poDS->GetDB(), pszSQL);
-        sqlite3_free(pszSQL);
-    }
 }
 
 /************************************************************************/

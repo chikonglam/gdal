@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_port.h 83369b4a8075b0cc331eeb3eb8430d49a4f665a6 2018-04-28 11:07:43 +0200 Even Rouault $
+ * $Id: cpl_port.h 9b81cd476af4dd1a40b1a79f9e3e355114e2cd33 2018-05-08 11:21:07 +0200 Even Rouault $
  *
  * Project:  CPL - Common Portability Library
  * Author:   Frank Warmerdam, warmerdam@pobox.com
@@ -123,7 +123,7 @@
 #endif
 
 /* Needed for std=c11 on Solaris to have strcasecmp() */
-#if defined(GDAL_COMPILATION) && defined(__sun__) && __STDC_VERSION__ >= 201112L && _XOPEN_SOURCE < 600
+#if defined(GDAL_COMPILATION) && defined(__sun__) && (__STDC_VERSION__ + 0) >= 201112L && (_XOPEN_SOURCE + 0) < 600
 #ifdef _XOPEN_SOURCE
 #undef _XOPEN_SOURCE
 #endif
