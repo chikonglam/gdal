@@ -49,7 +49,7 @@
 #include "ogr_geometry.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrutils.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrutils.cpp 1d0f559204e90d0e54d4aebe6ea8b65f0851be69 2018-06-20 16:38:42 +0200 Even Rouault $")
 
 // Returns whether a double fits within an int.
 // Unable to put this in cpl_port.h as include limit breaks grib.
@@ -1339,7 +1339,7 @@ int OGRGetDayOfWeek( int day, int month, int year )
 char* OGRGetRFC822DateTime( const OGRField* psField )
 {
     char* pszTZ = nullptr;
-    const char* aszDayOfWeek[] =
+    const char* const aszDayOfWeek[] =
         { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
 
     int dayofweek = OGRGetDayOfWeek(psField->Date.Day, psField->Date.Month,

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonreader.h 55901e50fd8583acecc3d37c9cc2870043fc8bdb 2018-01-11 09:11:21Z Dmitry Baryshnikov $
+ * $Id: ogrgeojsonreader.h 132748ccaf9343a5bc1eb2aa6db99834ba42dc24 2018-06-06 11:50:02 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines GeoJSON reader within OGR OGRGeoJSON Driver.
@@ -149,11 +149,12 @@ class OGRGeoJSONReader
     // bFlatten... is a tri-state boolean with -1 being unset.
     int bFlattenGeocouchSpatiallistFormat;
 
-    bool bFoundId;
+    bool bFoundGeocouchId;
     bool bFoundRev;
     bool bFoundTypeFeature;
     bool bIsGeocouchSpatiallistFormat;
-    bool bFoundFeatureId_;
+    bool bFeatureLevelIdAsFID_;
+    bool bFeatureLevelIdAsAttribute_;
 
     //
     // Copy operations not supported.

@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: rs2dataset.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: rs2dataset.cpp 5981802c741cf08fa3223438b7efd1ec11bb6c94 2018-06-20 10:38:23 +0200 Even Rouault $")
 
 typedef enum eCalibration_t {
     Sigma0 = 0,
@@ -804,9 +804,9 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Open each of the data files as a complex band.                  */
 /* -------------------------------------------------------------------- */
-    char *pszBeta0LUT = nullptr;
-    char *pszGammaLUT = nullptr;
-    char *pszSigma0LUT = nullptr;
+    CPLString osBeta0LUT;
+    CPLString osGammaLUT;
+    CPLString osSigma0LUT;
 
     char *pszPath = CPLStrdup(CPLGetPath( osMDFilename ));
     const int nFLen = static_cast<int>(osMDFilename.size());
@@ -839,7 +839,7 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
 
                 const size_t nBufLen = nFLen + 27;
                 char *pszBuf = reinterpret_cast<char *>( CPLMalloc(nBufLen) );
-                pszBeta0LUT = VSIStrdup( pszLUTFile );
+                osBeta0LUT = pszLUTFile;
                 poDS->SetMetadataItem( "BETA_NOUGHT_LUT", pszLUTFile );
 
                 snprintf(pszBuf, nBufLen, "RADARSAT_2_CALIB:BETA0:%s",
@@ -859,7 +859,7 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
 
                 const size_t nBufLen = nFLen + 27;
                 char *pszBuf = reinterpret_cast<char *>( CPLMalloc(nBufLen) );
-                pszSigma0LUT = VSIStrdup( pszLUTFile );
+                osSigma0LUT = pszLUTFile;
                 poDS->SetMetadataItem( "SIGMA_NOUGHT_LUT", pszLUTFile );
 
                 snprintf(pszBuf, nBufLen,"RADARSAT_2_CALIB:SIGMA0:%s",
@@ -879,7 +879,7 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
 
                 const size_t nBufLen = nFLen + 27;
                 char *pszBuf = reinterpret_cast<char *>( CPLMalloc(nBufLen) );
-                pszGammaLUT = VSIStrdup( pszLUTFile );
+                osGammaLUT = pszLUTFile;
                 poDS->SetMetadataItem( "GAMMA_LUT", pszLUTFile );
                 snprintf(pszBuf, nBufLen,"RADARSAT_2_CALIB:GAMMA:%s",
                         osMDFilename.c_str());
@@ -941,17 +941,17 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
             const char *pszLUT = nullptr;
             switch (eCalib) {
               case Sigma0:
-                pszLUT = pszSigma0LUT;
+                pszLUT = osSigma0LUT;
                 break;
               case Beta0:
-                pszLUT = pszBeta0LUT;
+                pszLUT = osBeta0LUT;
                 break;
               case Gamma:
-                pszLUT = pszGammaLUT;
+                pszLUT = osGammaLUT;
                 break;
               default:
                 /* we should bomb gracefully... */
-                pszLUT = pszSigma0LUT;
+                pszLUT = osSigma0LUT;
             }
             RS2CalibRasterBand *poBand
                 = new RS2CalibRasterBand( poDS, CPLGetXMLValue( psNode,
@@ -1320,9 +1320,6 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
     }
 
     CPLFree( pszPath );
-    if (pszBeta0LUT) CPLFree(pszBeta0LUT);
-    if (pszSigma0LUT) CPLFree(pszSigma0LUT);
-    if (pszGammaLUT) CPLFree(pszGammaLUT);
 
 /* -------------------------------------------------------------------- */
 /*      Collect RPC.                                                   */

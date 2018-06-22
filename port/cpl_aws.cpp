@@ -38,7 +38,7 @@
 #include "cpl_http.h"
 #include <algorithm>
 
-CPL_CVSID("$Id: cpl_aws.cpp 07238f4cbcdc1a56c9db7e8dc3a5727346194074 2018-04-02 14:34:13 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_aws.cpp 1d0f559204e90d0e54d4aebe6ea8b65f0851be69 2018-06-20 16:38:42 +0200 Even Rouault $")
 
 // #define DEBUG_VERBOSE 1
 
@@ -506,6 +506,22 @@ CPLString IVSIS3LikeHandleHelper::BuildCanonicalizedHeaders(
         osCanonicalizedHeaders += oIter->first + ":" + oIter->second + "\n";
     }
     return osCanonicalizedHeaders;
+}
+
+/************************************************************************/
+/*                         GetRFC822DateTime()                          */
+/************************************************************************/
+
+CPLString IVSIS3LikeHandleHelper::GetRFC822DateTime()
+{
+    char szDate[64];
+    time_t nNow = time(nullptr);
+    struct tm tm;
+    CPLUnixTimeToYMDHMS(nNow, &tm);
+    int nRet = CPLPrintTime(szDate, sizeof(szDate)-1,
+                    "%a, %d %b %Y %H:%M:%S GMT", &tm, "C");
+    szDate[nRet] = 0;
+    return szDate;
 }
 
 /************************************************************************/

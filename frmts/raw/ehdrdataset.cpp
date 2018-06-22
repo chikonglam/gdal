@@ -57,7 +57,7 @@
 #include "ogr_core.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ehdrdataset.cpp 21c7e5e3da55e728a678ecafa226451e19b31a48 2018-05-02 21:02:33 +0200 Even Rouault $")
+CPL_CVSID("$Id: ehdrdataset.cpp 74385c8cc244684d8cff57e1b66ec50a255057c1 2018-06-21 20:46:53 +0200 Even Rouault $")
 
 constexpr int HAS_MIN_FLAG = 0x1;
 constexpr int HAS_MAX_FLAG = 0x2;
@@ -965,6 +965,12 @@ char **EHdrDataset::GetFileList()
 GDALDataset *EHdrDataset::Open( GDALOpenInfo * poOpenInfo )
 
 {
+    return Open(poOpenInfo, true);
+}
+
+GDALDataset *EHdrDataset::Open( GDALOpenInfo * poOpenInfo, bool bFileSizeCheck )
+
+{
     // Assume the caller is pointing to the binary (i.e. .bil) file.
     if( poOpenInfo->nHeaderBytes < 2 || poOpenInfo->fpL == nullptr )
         return nullptr;
@@ -1314,7 +1320,8 @@ GDALDataset *EHdrDataset::Open( GDALOpenInfo * poOpenInfo )
         nBandOffset = static_cast<vsi_l_offset>(nItemSize) * nCols;
     }
 
-    if( nBits >= 8 && !RAWDatasetCheckMemoryUsage(
+    if( nBits >= 8 && bFileSizeCheck &&
+        !RAWDatasetCheckMemoryUsage(
                         poDS->nRasterXSize, poDS->nRasterYSize, nBands,
                         nItemSize,
                         nPixelOffset, nLineOffset, nSkipBytes, nBandOffset,
@@ -1793,8 +1800,8 @@ GDALDataset *EHdrDataset::Create( const char * pszFilename,
     if( !bOK )
         return nullptr;
 
-    return
-        reinterpret_cast<GDALDataset *>(GDALOpen(pszFilename, GA_Update));
+    GDALOpenInfo oOpenInfo( pszFilename, GA_Update );
+    return Open(&oOpenInfo, false);
 }
 
 /************************************************************************/

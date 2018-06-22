@@ -59,7 +59,7 @@
 // We restrict to 64bit processors because they are guaranteed to have SSE2.
 // Could possibly be used too on 32bit, but we would need to check at runtime.
 #if defined(__x86_64) || defined(_M_X64)
-#include <gdalsse_priv.h>
+#include "gdalsse_priv.h"
 
 #if __SSE4_1__
 #include <smmintrin.h>
@@ -71,7 +71,7 @@
 
 #endif
 
-CPL_CVSID("$Id: gdalwarpkernel.cpp 9ff327806cd64df6d73a6c91f92d12ca0c5e07df 2018-04-07 20:25:06 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalwarpkernel.cpp 80bae6ae660f1b7509c5c7a1ce7c825eacbc905f 2018-05-25 08:13:12 +0200 Even Rouault $")
 
 constexpr double BAND_DENSITY_THRESHOLD = 0.0000000001;
 constexpr float SRC_DENSITY_THRESHOLD =  0.000000001f;

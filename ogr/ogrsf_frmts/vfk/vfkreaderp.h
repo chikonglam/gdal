@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: vfkreaderp.h da2feb2ff6614e12787e65febd3f5cee131b358e 2018-04-24 10:48:22 +0200 Martin Landa $
+ * $Id: vfkreaderp.h 40eca81e09c5ff13b3249f7f3777610ada591358 2018-04-28 12:35:28 +0200 Martin Landa $
  *
  * Project:  VFK Reader
  * Purpose:  Private Declarations for OGR free VFK Reader code.
  * Author:   Martin Landa, landa.martin gmail.com
  *
  ******************************************************************************
- * Copyright (c) 2009-2010, 2012-2013, Martin Landa <landa.martin gmail.com>
+ * Copyright (c) 2012-2018, Martin Landa <landa.martin gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -108,6 +108,7 @@ private:
     void           StoreInfo2DB();
 
     void           CreateIndex(const char *, const char *, const char *, bool = true);
+    void           CreateIndices();
 
     friend class   VFKFeatureSQLite;
 public:

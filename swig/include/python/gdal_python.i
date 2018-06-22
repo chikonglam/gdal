@@ -1,5 +1,5 @@
 /*
- * $Id: gdal_python.i 8841c132cddac612d9a8382e8da21c976715763a 2018-04-17 22:23:53 +0200 Even Rouault $
+ * $Id: gdal_python.i ef146bfd0120d5a79d078ceea650a9aaeead7bf0 2018-05-05 21:21:02 +0300 tzickel $
  *
  * python specific code for gdal bindings.
  */
@@ -145,6 +145,7 @@ static void update_buffer_size(void* obj, char* data, char* data_aligned, size_t
 %rename (VSIFReadL) wrapper_VSIFReadL;
 
 %apply ( void **outPythonObject ) { (void **buf ) };
+%apply Pointer NONNULL {VSILFILE* fp};
 %inline %{
 unsigned int wrapper_VSIFReadL( void **buf, unsigned int nMembSize, unsigned int nMembCount, VSILFILE *fp)
 {
@@ -200,6 +201,7 @@ unsigned int wrapper_VSIFReadL( void **buf, unsigned int nMembSize, unsigned int
 }
 %}
 %clear (void **buf );
+%clear VSILFILE* fp;
 
 /* -------------------------------------------------------------------- */
 /*      GDAL_GCP                                                        */

@@ -45,7 +45,7 @@
 #include "cpl_string.h"
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: swq_expr_node.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: swq_expr_node.cpp aa7260c1320624fa206b04bf86fecc9e1cf02bbd 2018-06-11 23:44:05 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           swq_expr_node()                            */
@@ -746,7 +746,20 @@ swq_expr_node *swq_expr_node::Evaluate( swq_field_fetcher pfnFetcher,
                                         void *pRecord )
 
 {
+    return Evaluate(pfnFetcher, pRecord, 0);
+}
+
+swq_expr_node *swq_expr_node::Evaluate( swq_field_fetcher pfnFetcher,
+                                        void *pRecord, int nRecLevel )
+
+{
     swq_expr_node *poRetNode = nullptr;
+    if( nRecLevel == 32 )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                 "Too many recursion levels in expression to evaluate");
+        return nullptr;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Duplicate ourselves if we are already a constant.               */
@@ -783,7 +796,7 @@ swq_expr_node *swq_expr_node::Evaluate( swq_field_fetcher pfnFetcher,
         else
         {
             swq_expr_node* poSubExprVal =
-                papoSubExpr[i]->Evaluate(pfnFetcher, pRecord);
+                papoSubExpr[i]->Evaluate(pfnFetcher, pRecord, nRecLevel + 1);
             if( poSubExprVal == nullptr )
                 bError = true;
             else

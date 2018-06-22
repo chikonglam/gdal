@@ -33,7 +33,7 @@
 #include <stdexcept>
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrdxf_leader.cpp 3746b122f665aff6d6991677da8a0a5cd94b0f71 2018-05-03 12:31:28 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrdxf_leader.cpp f163ad1925eae2fc0fc48d4c45a59e20df8d5eae 2018-05-13 11:32:14 +0200 Even Rouault $")
 
 static void InterpolateSpline( OGRLineString* const poLine,
     const DXFTriple& oEndTangentDirection );
@@ -263,7 +263,7 @@ OGRDXFFeature *OGRDXFLayer::TranslateLEADER()
 /*      additional vertex, so we need to create it ourselves.           */
 /* -------------------------------------------------------------------- */
 
-    if( bWantExtension && bHasTextAnnotation && nNumVertices >= 2 )
+    if( bWantExtension && bHasTextAnnotation && poLine->getNumPoints() >= 2 )
     {
         OGRPoint oLastVertex;
         poLine->getPoint( poLine->getNumPoints() - 1, &oLastVertex );

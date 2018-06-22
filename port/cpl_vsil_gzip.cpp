@@ -108,7 +108,7 @@
 #include "cpl_vsi_virtual.h"
 
 
-CPL_CVSID("$Id: cpl_vsil_gzip.cpp 0f654dda9faabf9d86a44293f0f89903a8e97dd7 2018-04-15 20:18:32 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_vsil_gzip.cpp e3de16f66f8aa84f9027cc4d8b1beddab22442a8 2018-06-19 17:52:53 -0700 Kurt Schwehr $")
 
 constexpr int Z_BUFSIZE = 65536;  // Original size is 16384
 constexpr int gz_magic[2] = {0x1f, 0x8b};  // gzip magic header
@@ -2203,6 +2203,7 @@ VSIVirtualHandle* VSIZipFilesystemHandler::Open( const char *pszFilename,
         CPLError(CE_Failure, CPLE_AppDefined,
                  "cpl_unzOpenCurrentFile() failed");
         delete poReader;
+        delete poVirtualHandle;
         return nullptr;
     }
 
@@ -2216,6 +2217,7 @@ VSIVirtualHandle* VSIZipFilesystemHandler::Open( const char *pszFilename,
                  "cpl_unzGetCurrentFileInfo() failed");
         cpl_unzCloseCurrentFile(unzF);
         delete poReader;
+        delete poVirtualHandle;
         return nullptr;
     }
 

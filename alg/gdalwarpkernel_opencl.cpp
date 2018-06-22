@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarpkernel_opencl.cpp ca76710dc9c6dab9893995d2a0ab51c93dc02bbd 2018-01-23 12:39:57Z Even Rouault $
+ * $Id: gdalwarpkernel_opencl.cpp 954f08fbdfb979ce26329fefa4fb2b07240a1ca2 2018-05-12 08:21:45 +0800 liminlu $
  *
  * Project:  OpenCL Image Reprojector
  * Purpose:  Implementation of the GDALWarpKernel reprojector in OpenCL.
@@ -42,7 +42,7 @@
 #include "cpl_string.h"
 #include "gdalwarpkernel_opencl.h"
 
-CPL_CVSID("$Id: gdalwarpkernel_opencl.cpp ca76710dc9c6dab9893995d2a0ab51c93dc02bbd 2018-01-23 12:39:57Z Even Rouault $")
+CPL_CVSID("$Id: gdalwarpkernel_opencl.cpp 954f08fbdfb979ce26329fefa4fb2b07240a1ca2 2018-05-12 08:21:45 +0800 liminlu $")
 
 #define handleErr(err) if((err) != CL_SUCCESS) { \
     CPLError(CE_Failure, CPLE_AppDefined, "Error at file %s line %d: %s", __FILE__, __LINE__, getCLErrorString(err)); \
@@ -1813,12 +1813,13 @@ cl_int execute_kern(struct oclWarper *warper, cl_kernel kern, size_t loc_size)
                                             sizeof(size_t), &end_time, nullptr));
     assert(end_time != 0);
     assert(start_time != 0);
-    handleErr(err = clReleaseEvent(ev));
     if (kern == warper->kern4)
         vecTxt = "(vec)";
 
     CPLDebug("OpenCL", "Kernel Time: %6s %10lu", vecTxt, (long int)((end_time-start_time)/100000));
 #endif
+
+    handleErr(err = clReleaseEvent(ev));
     return CL_SUCCESS;
 }
 

@@ -38,7 +38,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: sgidataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: sgidataset.cpp 38e955f23c28c251b5ff50803cbcec74faf2f6eb 2018-06-14 21:29:20 +0200 Even Rouault $")
 
 struct ImageRec
 {
@@ -349,7 +349,7 @@ CPLErr SGIRasterBand::IWriteBlock(CPL_UNUSED int nBlockXOff,
 
         if( nRepeatCount > 2
             || iX + nRepeatCount == image->xsize
-            || (iX + nRepeatCount < image->xsize - 2
+            || (iX + nRepeatCount < image->xsize - 3
                 && pabyRawBuf[iX + nRepeatCount + 1]
                 == pabyRawBuf[iX + nRepeatCount + 2]
                 && pabyRawBuf[iX + nRepeatCount + 1]

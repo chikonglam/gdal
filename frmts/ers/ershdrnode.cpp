@@ -30,7 +30,7 @@
 #include "cpl_string.h"
 #include "ershdrnode.h"
 
-CPL_CVSID("$Id: ershdrnode.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ershdrnode.cpp f49c61c59a89bfdbf90f066a59767f6f492ee974 2018-05-29 21:18:51 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                             ERSHdrNode()                             */
@@ -146,9 +146,16 @@ int ERSHdrNode::ReadLine( VSILFILE * fp, CPLString &osLine )
 /*      This function is used recursively to read sub-objects.          */
 /************************************************************************/
 
-int ERSHdrNode::ParseChildren( VSILFILE * fp )
+int ERSHdrNode::ParseChildren( VSILFILE * fp, int nRecLevel )
 
 {
+    if( nRecLevel == 100 ) // arbitrary limit
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                 "Too many recursion level while parsing .ers header");
+        return false;
+    }
+
     while( true )
     {
 /* -------------------------------------------------------------------- */
@@ -195,7 +202,7 @@ int ERSHdrNode::ParseChildren( VSILFILE * fp )
 
             nItemCount++;
 
-            if( !papoItemChild[nItemCount-1]->ParseChildren( fp ) )
+            if( !papoItemChild[nItemCount-1]->ParseChildren( fp, nRecLevel + 1 ) )
                 return FALSE;
         }
 

@@ -57,7 +57,7 @@
 
 #include "ogrgeojsonreader.h"
 
-CPL_CVSID("$Id: ogrgeojsonlayer.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrgeojsonlayer.cpp c7a85063f3aed63008861e94f030482ed2ce7177 2018-06-02 11:57:52 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                       STATIC MEMBERS DEFINITION                      */
@@ -108,6 +108,7 @@ void OGRGeoJSONLayer::TerminateAppendSession()
     {
         VSILFILE* fp = poReader_->GetFP();
         VSIFPrintfL(fp, "\n]\n}\n");
+        VSIFFlushL(fp);
         bHasAppendedFeatures_ = false;
     }
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geopackage.h 5524ee5324f7bd364d391d842a6488c90c0186a7 2018-04-02 16:20:13 +0200 Even Rouault $
+ * $Id: ogr_geopackage.h 3b495c65e84e938192dead1d28cc7c6552c3149e 2018-06-14 16:21:05 +0200 Even Rouault $
  *
  * Project:  GeoPackage Translator
  * Purpose:  Definition of classes for OGR GeoPackage driver.
@@ -549,7 +549,7 @@ class OGRGeoPackageTableLayer final : public OGRGeoPackageLayer
     void                SetOGRFeatureCountTriggersEnabled(bool b)
                                     { m_bOGRFeatureCountTriggersEnabled = b; }
 
-    void                DisableFeatureCount( bool bInMemoryOnly = false );
+    void                DisableFeatureCount();
 #endif
 
     /************************************************************************/

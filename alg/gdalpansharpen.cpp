@@ -50,7 +50,7 @@
 // Limit types to practical use cases.
 #define LIMIT_TYPES 1
 
-CPL_CVSID("$Id: gdalpansharpen.cpp 9ff327806cd64df6d73a6c91f92d12ca0c5e07df 2018-04-07 20:25:06 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalpansharpen.cpp 80bae6ae660f1b7509c5c7a1ce7c825eacbc905f 2018-05-25 08:13:12 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                     GDALCreatePansharpenOptions()                    */
@@ -554,7 +554,7 @@ void GDALPansharpenOperation::WeightedBrovey3(
 /* Could possibly be used too on 32bit, but we would need to check at runtime */
 #if defined(__x86_64) || defined(_M_X64)
 
-#include <gdalsse_priv.h>
+#include "gdalsse_priv.h"
 
 template<class T, int NINPUT, int NOUTPUT>
 int GDALPansharpenOperation::WeightedBroveyPositiveWeightsInternal(

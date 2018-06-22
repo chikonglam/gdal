@@ -30,7 +30,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: iscedataset.cpp f8efbf846365b869f57eaab03f675c0eaecb1800 2018-04-23 23:30:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: iscedataset.cpp 74385c8cc244684d8cff57e1b66ec50a255057c1 2018-06-21 20:46:53 +0200 Even Rouault $")
 
 static const char * const apszISCE2GDALDatatypes[] = {
     "BYTE:Byte",
@@ -93,6 +93,7 @@ class ISCEDataset : public RawDataset
 
     static int          Identify( GDALOpenInfo *poOpenInfo );
     static GDALDataset *Open( GDALOpenInfo *poOpenInfo );
+    static GDALDataset *Open( GDALOpenInfo *poOpenInfo, bool bFileSizeCheck );
     static GDALDataset *Create( const char *pszFilename,
                                 int nXSize, int nYSize, int nBands,
                                 GDALDataType eType, char **papszOptions );
@@ -481,6 +482,11 @@ int ISCEDataset::Identify( GDALOpenInfo *poOpenInfo )
 
 GDALDataset *ISCEDataset::Open( GDALOpenInfo *poOpenInfo )
 {
+    return Open(poOpenInfo, true);
+}
+
+GDALDataset *ISCEDataset::Open( GDALOpenInfo *poOpenInfo, bool bFileSizeCheck )
+{
 /* -------------------------------------------------------------------- */
 /*      Confirm that the header is compatible with a ISCE dataset.    */
 /* -------------------------------------------------------------------- */
@@ -712,7 +718,8 @@ GDALDataset *ISCEDataset::Open( GDALOpenInfo *poOpenInfo )
         return nullptr;
     }
 
-    if( !RAWDatasetCheckMemoryUsage(
+    if( bFileSizeCheck &&
+        !RAWDatasetCheckMemoryUsage(
                         poDS->nRasterXSize, poDS->nRasterYSize, nBands,
                         nDTSize,
                         nPixelOffset, nLineOffset, 0, nBandOffset,
@@ -894,7 +901,8 @@ GDALDataset *ISCEDataset::Create( const char *pszFilename,
 /* -------------------------------------------------------------------- */
     CPLDestroyXMLNode( psDocNode );
 
-    return static_cast<GDALDataset *>( GDALOpen( pszFilename, GA_Update ) );
+    GDALOpenInfo oOpenInfo( pszFilename, GA_Update );
+    return Open(&oOpenInfo, false);
 }
 
 /************************************************************************/

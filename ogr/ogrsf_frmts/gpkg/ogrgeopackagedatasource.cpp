@@ -38,7 +38,14 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrgeopackagedatasource.cpp 98f6a4abb1a7e0e67f22da3a954885732c3286b2 2018-04-29 11:43:30 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeopackagedatasource.cpp 3bc98ac2e895141cb38924f83d1182b59d711148 2018-06-14 16:22:26 +0200 Even Rouault $")
+
+// Keep in sync prototype of those 2 functions between gdalopeninfo.cpp,
+// ogrsqlitedatasource.cpp and ogrgeopackagedatasource.cpp
+void GDALOpenInfoDeclareFileNotToOpen(const char* pszFilename,
+                                       const GByte* pabyHeader,
+                                       int nHeaderBytes);
+void GDALOpenInfoUnDeclareFileNotToOpen(const char* pszFilename);
 
 /************************************************************************/
 /*                             Tiling schemes                           */
@@ -814,6 +821,14 @@ int GDALGeoPackageDataset::Open( GDALOpenInfo* poOpenInfo )
         }
         pabyHeader = abyHeaderLetMeHerePlease;
     }
+    else if( poOpenInfo->pabyHeader &&
+            STARTS_WITH((const char*)poOpenInfo->pabyHeader, "SQLite format 3") )
+    {
+        m_bCallUndeclareFileNotToOpen = true;
+        GDALOpenInfoDeclareFileNotToOpen(osFilename,
+                                    poOpenInfo->pabyHeader,
+                                    poOpenInfo->nHeaderBytes);
+    }
 
     bUpdate = poOpenInfo->eAccess == GA_Update;
     eAccess = poOpenInfo->eAccess; /* hum annoying duplication */
@@ -913,6 +928,14 @@ int GDALGeoPackageDataset::Open( GDALOpenInfo* poOpenInfo )
     else if( pabyHeader != nullptr )
 #endif
     {
+        if (poOpenInfo->fpL )
+        {
+            // See above comment about -wal locking for the importance of
+            // closing that file, prior to calling sqlite3_open()
+            VSIFCloseL(poOpenInfo->fpL);
+            poOpenInfo->fpL = nullptr;
+        }
+
         /* See if we can open the SQLite database */
         if( !OpenOrCreateDB(bUpdate
                         ? SQLITE_OPEN_READWRITE
@@ -2878,7 +2901,10 @@ void GDALGeoPackageDataset::WriteMetadata(CPLXMLNode* psXMLNode, /* will be dest
     if( !HasMetadataTables() )
     {
         if( bIsEmpty || !CreateMetadataTables() )
+        {
+            CPLDestroyXMLNode(psXMLNode);
             return;
+        }
     }
 
     char *pszXML = nullptr;
@@ -5221,19 +5247,23 @@ OGRLayer * GDALGeoPackageDataset::ExecuteSQL( const char *pszSQLCommand,
 
     if( pszDialect == nullptr || !EQUAL(pszDialect, "DEBUG") )
     {
+        // Some SQL commands will influence the feature count behind our
+        // back, so disable it in that case.
 #ifdef ENABLE_GPKG_OGR_CONTENTS
         const bool bInsertOrDelete =
             osSQLCommand.ifind("insert into ") != std::string::npos ||
             osSQLCommand.ifind("delete from ") != std::string::npos;
+        const bool bRollback = osSQLCommand.ifind("rollback ") != std::string::npos;
 #endif
 
         for( int i = 0; i < m_nLayers; i++ )
         {
 #ifdef ENABLE_GPKG_OGR_CONTENTS
-            if( bInsertOrDelete &&
-                osSQLCommand.ifind(m_papoLayers[i]->GetName()) != std::string::npos )
+            if( bRollback ||
+                (bInsertOrDelete &&
+                 osSQLCommand.ifind(m_papoLayers[i]->GetName()) != std::string::npos) )
             {
-                m_papoLayers[i]->DisableFeatureCount(true);
+                m_papoLayers[i]->DisableFeatureCount();
             }
 #endif
             m_papoLayers[i]->SyncToDisk();

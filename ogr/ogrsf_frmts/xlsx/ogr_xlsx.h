@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_xlsx.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
+ * $Id: ogr_xlsx.h a93116ad67a7eb88c4fe4d2f0e1e12cbd78f665d 2018-05-10 12:21:13 +0200 Even Rouault $
  *
  * Project:  XLSX Translator
  * Purpose:  Definition of classes for OGR OpenOfficeSpreadsheet .xlsx driver.
@@ -95,8 +95,7 @@ class OGRXLSXLayer final: public OGRMemLayer
     { Init(); return OGRMemLayer::GetFeatureCount(bForce); }
 
     virtual OGRErr      CreateField( OGRFieldDefn *poField,
-                                     int bApproxOK = TRUE ) override
-    { Init(); SetUpdated(); return OGRMemLayer::CreateField(poField, bApproxOK); }
+                                     int bApproxOK = TRUE ) override;
 
     virtual OGRErr      DeleteField( int iField ) override
     { Init(); SetUpdated(); return OGRMemLayer::DeleteField(iField); }

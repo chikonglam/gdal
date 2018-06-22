@@ -32,7 +32,7 @@
 #include "cpl_csv.h"
 #include "ogrbnaparser.h"
 
-CPL_CVSID("$Id: ogrbnadatasource.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrbnadatasource.cpp f9af14bc04e6f4fea8175f0e212455c2b6520378 2018-06-01 14:24:48 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                          OGRBNADataSource()                          */
@@ -42,7 +42,6 @@ OGRBNADataSource::OGRBNADataSource() :
     pszName(nullptr),
     papoLayers(nullptr),
     nLayers(0),
-    bUpdate(false),
     fpOutput(nullptr),
     bUseCRLF(false),
     bMultiLine(FALSE),
@@ -150,13 +149,12 @@ OGRLayer * OGRBNADataSource::ICreateLayer( const char * pszLayerName,
 /*                                Open()                                */
 /************************************************************************/
 
-int OGRBNADataSource::Open( const char * pszFilename, int bUpdateIn)
+int OGRBNADataSource::Open( const char * pszFilename )
 
 {
     int ok = FALSE;
 
     pszName = CPLStrdup( pszFilename );
-    bUpdate = CPL_TO_BOOL(bUpdateIn);
 
     VSILFILE* fp = VSIFOpenL(pszFilename, "rb");
     if (fp)

@@ -59,7 +59,7 @@
 
 #define DIGIT_ZERO '0'
 
-CPL_CVSID("$Id: ogrcsvlayer.cpp d351572e9c80046fafd934e829cb7b888641b5dc 2018-04-19 13:10:25 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrcsvlayer.cpp 44883aedf6565b4d86cf522cf97c76c7f60fa912 2018-05-31 04:25:10 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            CSVSplitLine()                            */
@@ -2076,10 +2076,12 @@ OGRErr OGRCSVLayer::WriteHeader()
         if( bHiddenWKTColumn )
         {
             if( fpCSV )
+            {
+                const char* pszColName =
+                    bCreateCSVT ? poFeatureDefn->GetGeomFieldDefn(0)->GetNameRef() : "WKT";
                 bOK &=
-                    VSIFPrintfL(
-                        fpCSV, "%s",
-                        poFeatureDefn->GetGeomFieldDefn(0)->GetNameRef()) >= 0;
+                    VSIFPrintfL(fpCSV, "%s", pszColName) >= 0;
+            }
             if( fpCSVT )
                 bOK &= VSIFPrintfL(fpCSVT, "%s", "WKT") > 0;
         }

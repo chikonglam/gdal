@@ -29,7 +29,7 @@
 
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialdatasource.cpp 6574497e5ddfd7c08c094a76756a0ef477cef6a1 2018-04-04 22:15:20 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrmssqlspatialdatasource.cpp eb9f38ed0b59555a745cf11fe42ae16f64b58b3c 2018-05-13 22:25:08 +0200 Tamas Szekeres $")
 
 /************************************************************************/
 /*                          OGRMSSQLSpatialDataSource()                 */
@@ -46,6 +46,8 @@ OGRMSSQLSpatialDataSource::OGRMSSQLSpatialDataSource() :
     nKnownSRID = 0;
     panSRID = nullptr;
     papoSRS = nullptr;
+
+    poLayerInCopyMode = nullptr;
 
     nGeometryFormat = MSSQLGEOMETRY_NATIVE;
     pszConnection = nullptr;
@@ -177,6 +179,8 @@ OGRErr OGRMSSQLSpatialDataSource::DeleteLayer( int iLayer )
     if( iLayer < 0 || iLayer >= nLayers )
         return OGRERR_FAILURE;
 
+    EndCopy();
+
 /* -------------------------------------------------------------------- */
 /*      Blow away our OGR structures related to the layer.  This is     */
 /*      pretty dangerous if anything has a reference to this layer!     */
@@ -243,6 +247,8 @@ OGRLayer * OGRMSSQLSpatialDataSource::ICreateLayer( const char * pszLayerName,
     const char          *pszGeomColumn = nullptr;
     int                 nCoordDimension = 3;
     char                *pszFIDColumnName = nullptr;
+
+    EndCopy();
 
     /* determine the dimension */
     if( eType == wkbFlatten(eType) )
@@ -1189,6 +1195,8 @@ OGRSpatialReference *OGRMSSQLSpatialDataSource::FetchSRS( int nId )
             return papoSRS[i];
     }
 
+    EndCopy();
+
     OGRSpatialReference *poSRS = nullptr;
 
 /* -------------------------------------------------------------------- */
@@ -1519,4 +1527,34 @@ OGRErr OGRMSSQLSpatialDataSource::RollbackTransaction()
     }
 
     return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                             StartCopy()                              */
+/************************************************************************/
+
+void OGRMSSQLSpatialDataSource::StartCopy(OGRMSSQLSpatialTableLayer *poMSSQLSpatialLayer)
+{
+    if (poLayerInCopyMode == poMSSQLSpatialLayer)
+        return;
+    EndCopy();
+    poLayerInCopyMode = poMSSQLSpatialLayer;
+    poLayerInCopyMode->StartCopy();
+}
+
+/************************************************************************/
+/*                              EndCopy()                               */
+/************************************************************************/
+
+OGRErr OGRMSSQLSpatialDataSource::EndCopy()
+{
+    if (poLayerInCopyMode != nullptr)
+    {
+        OGRErr result = poLayerInCopyMode->EndCopy();
+        poLayerInCopyMode = nullptr;
+
+        return result;
+    }
+    else
+        return OGRERR_NONE;
 }

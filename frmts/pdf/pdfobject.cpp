@@ -38,7 +38,7 @@
 #include <vector>
 #include "pdfobject.h"
 
-CPL_CVSID("$Id: pdfobject.cpp 42129b10a632239a605d45109b32792e086b2e56 2018-01-01 15:38:55Z Even Rouault $")
+CPL_CVSID("$Id: pdfobject.cpp f1985bbec97048c08fdcb91b7dd7e9c7bec4d36f 2018-05-11 15:50:43 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                        ROUND_TO_INT_IF_CLOSE()                       */
@@ -1055,7 +1055,12 @@ const CPLString& GDALPDFObjectPoppler::GetString()
 {
     if (GetType() == PDFObjectType_String)
     {
+#ifdef POPPLER_0_58_OR_LATER
+        // At least available since poppler 0.41
+        const GooString* gooString = m_po->getString();
+#else
         GooString* gooString = m_po->getString();
+#endif
         return (osStr = GDALPDFGetUTF8StringFromBytes(reinterpret_cast<const GByte*>(gooString->getCString()),
                                                       static_cast<int>(gooString->getLength())));
     }
@@ -2046,7 +2051,7 @@ GDALPDFObjectType GDALPDFObjectPdfium::GetType()
 {
     switch(m_po->GetType())
     {
-        case PDFOBJ_nullptr:                     return PDFObjectType_Null;
+        case PDFOBJ_NULL:                     return PDFObjectType_Null;
         case PDFOBJ_BOOLEAN:                  return PDFObjectType_Bool;
         case PDFOBJ_NUMBER:
           return (reinterpret_cast<CPDF_Number*>(m_po))->IsInteger()

@@ -55,7 +55,7 @@
 #include "ogr_spatialref.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: envidataset.cpp 373f8b25e241d5ee1e2816b5eb7642ab7e60e096 2018-04-07 16:25:30 +0200 Even Rouault $")
+CPL_CVSID("$Id: envidataset.cpp 74385c8cc244684d8cff57e1b66ec50a255057c1 2018-06-21 20:46:53 +0200 Even Rouault $")
 
 // TODO(schwehr): This really should be defined in port/somewhere.h.
 constexpr double kdfDegToRad = M_PI / 180.0;
@@ -1921,6 +1921,11 @@ bool ENVIDataset::ReadHeader( VSILFILE *fpHdr )
 /************************************************************************/
 
 GDALDataset *ENVIDataset::Open( GDALOpenInfo *poOpenInfo )
+{
+    return Open(poOpenInfo, true);
+}
+
+GDALDataset *ENVIDataset::Open( GDALOpenInfo *poOpenInfo, bool bFileSizeCheck )
 
 {
     // Assume the caller is pointing to the binary (i.e. .bil) file.
@@ -2306,7 +2311,8 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo *poOpenInfo )
     // small files.
     // But ultimately we should fix RawRasterBand to have a shared buffer
     // among bands.
-    if( !RAWDatasetCheckMemoryUsage(
+    if( bFileSizeCheck &&
+        !RAWDatasetCheckMemoryUsage(
                         poDS->nRasterXSize, poDS->nRasterYSize, nBands,
                         nDataSize,
                         nPixelOffset, nLineOffset, nHeaderSize, nBandOffset,
@@ -2642,7 +2648,7 @@ GDALDataset *ENVIDataset::Create( const char *pszFilename,
         return nullptr;
 
     GDALOpenInfo oOpenInfo(pszFilename, GA_Update);
-    ENVIDataset *poDS = reinterpret_cast<ENVIDataset *>(Open(&oOpenInfo));
+    ENVIDataset *poDS = reinterpret_cast<ENVIDataset *>(Open(&oOpenInfo, false));
     if( poDS )
     {
         poDS->SetFillFile();

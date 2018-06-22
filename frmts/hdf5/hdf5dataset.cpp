@@ -58,7 +58,7 @@
 #include "gdal_priv.h"
 #
 
-CPL_CVSID("$Id: hdf5dataset.cpp ccc20c818e81de34b09d59027da101070f78bb5a 2018-04-06 04:32:08 -0700 piyushrpt $")
+CPL_CVSID("$Id: hdf5dataset.cpp f629c4efe77bfb1aea7332f2c658588fe58c1d45 2018-05-13 23:13:35 +0200 Even Rouault $")
 
 constexpr size_t MAX_METADATA_LEN = 32768;
 
@@ -504,26 +504,23 @@ static void CreatePath( HDF5GroupObjects *poH5Object )
     CPLString osUnderscoreSpaceInName;
     if( poH5Object->pszPath == nullptr )
     {
+        // This is completely useless but needed if we want to keep
+        // subdataset names as they have "always" been formatted,
+        // with double slash at the beginning
+        if( osPath.empty() )
+            osPath = "/";
 
-        if( strlen(poH5Object->pszName) == 1 )
-        {
-            osPath.append(poH5Object->pszName);
-            osUnderscoreSpaceInName = poH5Object->pszName;
-        }
-        else
-        {
-            // Change space for underscore.
-            char **papszPath =
-                CSLTokenizeString2(osPath.c_str(), " ", CSLT_HONOURSTRINGS);
+        // Change space for underscore.
+        char **papszPath =
+            CSLTokenizeString2(osPath.c_str(), " ", CSLT_HONOURSTRINGS);
 
-            for( int i = 0; papszPath[i] != nullptr ; i++ )
-            {
-                if( i > 0 )
-                    osUnderscoreSpaceInName.append("_");
-                osUnderscoreSpaceInName.append(papszPath[i]);
-            }
-            CSLDestroy(papszPath);
+        for( int i = 0; papszPath[i] != nullptr ; i++ )
+        {
+            if( i > 0 )
+                osUnderscoreSpaceInName.append("_");
+            osUnderscoreSpaceInName.append(papszPath[i]);
         }
+        CSLDestroy(papszPath);
 
         // -1 to give room for NUL in C strings.
         constexpr size_t MAX_PATH = 8192 - 1;
