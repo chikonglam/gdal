@@ -1,7 +1,6 @@
 gdal (2.3.1~rc2+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release candidate.
-  * Add upstream patch to fix install target dependencies.
   * Drop parallel build patch, fixed with upstream patch.
   * Update symbols for 2.3.1~rc1.
 

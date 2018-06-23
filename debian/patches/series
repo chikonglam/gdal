@@ -9,4 +9,3 @@ perl-vendor
 privacy-breach-logo.patch
 privacy-breach-generic.patch
 perl-doxyfile
-0001-GNUmakfile-fix-dependency-of-install-target-fixes-70.patch
