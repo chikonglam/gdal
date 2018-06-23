@@ -1,11 +1,11 @@
-gdal (2.3.1~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.3.1~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
   * Update watch file for 2.3.1 pre-releases.
   * Refresh patches.
   * Add patch to fix parallel build failure.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 22 Jun 2018 14:46:38 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 23 Jun 2018 09:45:22 +0200
 
 gdal (2.3.0+dfsg-1) unstable; urgency=medium
 
