@@ -33,7 +33,7 @@
 #include "cpl_time.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgeopackagetablelayer.cpp 3b495c65e84e938192dead1d28cc7c6552c3149e 2018-06-14 16:21:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeopackagetablelayer.cpp 237ed221add6deb5a0bec00353d7c0e45fc4f5cf 2018-06-23 12:30:59 +0200 Even Rouault $")
 
 static const char UNSUPPORTED_OP_READ_ONLY[] =
   "%s : unsupported operation on a read-only datasource.";
@@ -1853,7 +1853,7 @@ OGRErr OGRGeoPackageTableLayer::ISetFeature( OGRFeature *poFeature )
             CPLString osCommand = FeatureGenerateInsertSQL(poFeature, true, true);
 
             /* Prepare the SQL into a statement */
-            int err = sqlite3_prepare_v2(m_poDS->GetDB(), osCommand, -1, &m_poUpdateStatement, NULL);
+            int err = sqlite3_prepare_v2(m_poDS->GetDB(), osCommand, -1, &m_poUpdateStatement, nullptr);
             if ( err != SQLITE_OK )
             {
                 CPLError( CE_Failure, CPLE_AppDefined,
