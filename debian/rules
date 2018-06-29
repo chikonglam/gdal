@@ -12,11 +12,11 @@
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 
 # Disable PIE on Ubuntu where it's still problematic
-distrelease	:= $(shell lsb_release -cs)
 VENDOR_DERIVES_FROM_UBUNTU ?= $(shell dpkg-vendor --derives-from Ubuntu && echo yes)
+DISTRIBUTION_RELEASE       := $(shell lsb_release -cs)
 
 ifeq ($(VENDOR_DERIVES_FROM_UBUNTU),yes)
-  ifneq (,$(filter $(distrelease),trusty xenial artful bionic))
+  ifneq (,$(filter $(DISTRIBUTION_RELEASE),trusty xenial artful bionic))
     export DEB_BUILD_MAINT_OPTIONS=hardening=+all,-pie
   endif
 endif
