@@ -11,6 +11,13 @@
 # Enable hardening build flags
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 
+# Disable PIE on Ubuntu where it's still problematic
+VENDOR_DERIVES_FROM_UBUNTU ?= $(shell dpkg-vendor --derives-from Ubuntu && echo yes)
+
+ifeq ($(VENDOR_DERIVES_FROM_UBUNTU),yes)
+	export DEB_BUILD_MAINT_OPTIONS=hardening=+all,-pie
+endif
+
 include /usr/share/dpkg/pkg-info.mk
 
 UPSTREAM_VERSION = $(shell echo $(DEB_VERSION_UPSTREAM) | sed -e 's/\+.*//')
