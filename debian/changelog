@@ -1,7 +1,11 @@
 gdal (2.3.1+dfsg-2) UNRELEASED; urgency=medium
 
+  [ Gianfranco Costamagna ]
   * Disable PIE for older ubuntu releases, PIE
     works correctly with cosmic+ releases.
+
+  [ Bas Couwenberg ]
+  * Bump Standards-Version to 4.1.5, no changes.
 
  -- Gianfranco Costamagna <locutusofborg@debian.org>  Fri, 29 Jun 2018 18:13:09 +0200
 
