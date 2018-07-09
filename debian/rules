@@ -16,7 +16,7 @@ VENDOR_DERIVES_FROM_UBUNTU ?= $(shell dpkg-vendor --derives-from Ubuntu && echo 
 DISTRIBUTION_RELEASE       := $(shell lsb_release -cs)
 
 ifeq ($(VENDOR_DERIVES_FROM_UBUNTU),yes)
-  ifneq (,$(filter $(DISTRIBUTION_RELEASE),trusty xenial artful bionic))
+  ifneq (,$(filter $(DISTRIBUTION_RELEASE),trusty xenial bionic))
     export DEB_BUILD_MAINT_OPTIONS=hardening=+all,-pie
   endif
 endif
