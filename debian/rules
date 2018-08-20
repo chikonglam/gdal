@@ -159,7 +159,8 @@ override_dh_auto_build:
 		cp GDALmake.opt-$$V GDALmake.opt && \
 		$(MAKE) $(NJOBS) -C $(CURDIR)/swig/python clean && \
 		$(MAKE) -C $(CURDIR)/swig/python generate && \
-		$(MAKE) $(NJOBS) -C $(CURDIR)/swig/python build install DESTDIR=$(CURDIR)/debian/python-tmp; \
+		$(MAKE) $(NJOBS) -C $(CURDIR)/swig/python build && \
+		$(MAKE) $(NJOBS) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
 	done
 
 	mkdir $(CURDIR)/html || true
