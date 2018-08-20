@@ -2,6 +2,7 @@ gdal (2.3.1+dfsg-3) UNRELEASED; urgency=medium
 
   * Bump Standards-Version to 4.2.0, no changes.
   * Don't run python generate target in parallel.
+    (closes: #906222)
 
  -- Bas Couwenberg <sebastic@debian.org>  Sat, 04 Aug 2018 11:59:03 +0200
 
