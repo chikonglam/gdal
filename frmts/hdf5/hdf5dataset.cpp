@@ -58,7 +58,7 @@
 #include "gdal_priv.h"
 #
 
-CPL_CVSID("$Id: hdf5dataset.cpp f629c4efe77bfb1aea7332f2c658588fe58c1d45 2018-05-13 23:13:35 +0200 Even Rouault $")
+CPL_CVSID("$Id: hdf5dataset.cpp d47e89a5a34d08ec47fd0191efce3076246f5dd7 2018-09-20 00:05:59 +0200 Even Rouault $")
 
 constexpr size_t MAX_METADATA_LEN = 32768;
 
@@ -776,7 +776,13 @@ static herr_t HDF5AttrIterate( hid_t hH5ObjID,
     const hid_t hAttrSpace = H5Aget_space(hAttrID);
 
     if( H5Tget_class(hAttrNativeType) == H5T_VLEN )
+    {
+        H5Sclose(hAttrSpace);
+        H5Tclose(hAttrNativeType);
+        H5Tclose(hAttrTypeID);
+        H5Aclose(hAttrID);
         return 0;
+    }
 
     hsize_t nSize[64] = {};
     const unsigned int nAttrDims =

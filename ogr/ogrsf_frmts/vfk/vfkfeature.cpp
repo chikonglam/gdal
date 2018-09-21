@@ -35,7 +35,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: vfkfeature.cpp 8494c555e432c531d09806f21b633aee41a67f41 2018-06-07 10:36:03 +0200 Martin Landa $")
+CPL_CVSID("$Id: vfkfeature.cpp 3c0cf17244733d709fc698362a7fe2ec16e0f119 2018-07-27 12:46:11 +0200 Martin Landa $")
 
 /*!
   \brief IVFKFeature constructor
@@ -332,7 +332,8 @@ bool IVFKFeature::LoadGeometry()
 
         return LoadGeometryPoint();
     }
-    else if (EQUAL (pszName, "SBP")) {
+    else if (EQUAL (pszName, "SBP") ||
+             EQUAL (pszName, "SBPG")) {
         /* -> wkbLineString */
         return LoadGeometryLineStringSBP();
     }
@@ -641,7 +642,7 @@ bool VFKFeature::LoadGeometryPoint()
 }
 
 /*!
-  \brief Load geometry (linestring SBP layer)
+  \brief Load geometry (linestring SBP/SBPG layer)
 
   \todo Really needed?
 

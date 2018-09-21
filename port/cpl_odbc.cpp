@@ -27,12 +27,14 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#include <wchar.h>
+
 #include "cpl_odbc.h"
 #include "cpl_vsi.h"
 #include "cpl_string.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: cpl_odbc.cpp 0f654dda9faabf9d86a44293f0f89903a8e97dd7 2018-04-15 20:18:32 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_odbc.cpp e35753e6e8155208b062425bdfac2e36d66ab2a4 2018-08-11 08:18:55 -0400 Simon South $")
 
 #ifndef SQLColumns_TABLE_CAT
 #define SQLColumns_TABLE_CAT 1
@@ -1030,7 +1032,24 @@ int CPLODBCStatement::Fetch( int nOrientation, int nOffset )
         if( nFetchType == SQL_C_WCHAR && m_papszColValues[iCol] != nullptr
             && m_panColValueLengths[iCol] > 0 )
         {
+#if WCHAR_MAX == 0xFFFFu
             wchar_t *pwszSrc = reinterpret_cast<wchar_t*>(m_papszColValues[iCol]);
+#else
+            unsigned int i = 0;
+            GUInt16 *panColValue =
+                reinterpret_cast<GUInt16 *>(m_papszColValues[iCol]);
+            wchar_t *pwszSrc =
+                static_cast<wchar_t *>(CPLMalloc((m_panColValueLengths[iCol] / 2 + 1)
+                                                 * sizeof(wchar_t)));
+
+            while( panColValue[i] != 0 ) {
+                pwszSrc[i] = static_cast<wchar_t>(panColValue[i]);
+                i += 1;
+            }
+            pwszSrc[i] = L'\0';
+
+            CPLFree( panColValue );
+#endif
 
             m_papszColValues[iCol] =
                 CPLRecodeFromWChar( pwszSrc, CPL_ENC_UCS2, CPL_ENC_UTF8 );

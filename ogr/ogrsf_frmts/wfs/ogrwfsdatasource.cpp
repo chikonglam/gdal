@@ -38,7 +38,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrwfsdatasource.cpp 82025de8ed8c31e58bf2adf2f98c2f9b6214ad33 2018-03-30 17:17:49 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrwfsdatasource.cpp 28e3311b5384977d0b85cbb2e28b024e73c15502 2018-08-09 23:14:24 +0200 Even Rouault $")
 
 constexpr int DEFAULT_BASE_START_INDEX = 0;
 constexpr int DEFAULT_PAGE_SIZE = 100;
@@ -1620,7 +1620,7 @@ void OGRWFSDataSource::LoadMultipleLayerDefn(const char* pszLayerName,
     else
         *pszPrefix = 0;
 
-    OGRWFSLayer* poRefLayer = (OGRWFSLayer*)GetLayerByName(pszLayerName);
+    OGRWFSLayer* poRefLayer = dynamic_cast<OGRWFSLayer*>(GetLayerByName(pszLayerName));
     if (poRefLayer == nullptr)
         return;
 

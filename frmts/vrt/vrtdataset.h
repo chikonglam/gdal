@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdataset.h 56578e74c2851abf597312e07504cfe639cceedd 2018-04-24 20:38:09 +0200 Even Rouault $
+ * $Id: vrtdataset.h c14f7e09fe06fcc8a02cdcce2f0ebc5d192d1597 2018-08-27 13:29:12 +0200 Even Rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Declaration of virtual gdal dataset classes.
@@ -942,6 +942,8 @@ typedef enum
 
 class CPL_DLL VRTComplexSource : public VRTSimpleSource
 {
+    bool           AreValuesUnchanged() const;
+
 protected:
     VRTComplexSourceScaling m_eScalingType;
     double         m_dfScaleOff;  // For linear scaling.

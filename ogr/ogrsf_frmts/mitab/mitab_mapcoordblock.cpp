@@ -43,7 +43,7 @@
 #include "cpl_error.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: mitab_mapcoordblock.cpp 6508d9ac778fff47e6ef4eef3a3e6b70556f3814 2018-03-27 14:28:44 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_mapcoordblock.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABMAPCoordBlock
@@ -194,7 +194,7 @@ int     TABMAPCoordBlock::CommitToFile()
     WriteInt32(m_nNextCoordBlock);
 
     if( CPLGetLastErrorType() == CE_Failure )
-        nStatus = CPLGetLastErrorNo();
+        nStatus = -1;
 
     /*-----------------------------------------------------------------
      * OK, call the base class to write the block to disk.
@@ -361,7 +361,7 @@ int     TABMAPCoordBlock::ReadIntCoords(GBool bCompressed, int numCoordPairs,
             panXY[i+1] = ReadInt16();
             TABSaturatedAdd(panXY[i], m_nComprOrgX);
             TABSaturatedAdd(panXY[i+1], m_nComprOrgY);
-            if (CPLGetLastErrorType() != 0)
+            if (CPLGetLastErrorType() == CE_Failure)
                 return -1;
         }
     }
@@ -371,7 +371,7 @@ int     TABMAPCoordBlock::ReadIntCoords(GBool bCompressed, int numCoordPairs,
         {
             panXY[i]   = ReadInt32();
             panXY[i+1] = ReadInt32();
-            if (CPLGetLastErrorType() != 0)
+            if (CPLGetLastErrorType() == CE_Failure)
                 return -1;
         }
     }

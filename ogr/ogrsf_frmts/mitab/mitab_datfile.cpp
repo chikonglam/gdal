@@ -52,7 +52,7 @@
 #include "ogr_feature.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: mitab_datfile.cpp fb05bb01e50ab04dafa92c305b95be97442981eb 2018-01-29 20:58:12Z Even Rouault $")
+CPL_CVSID("$Id: mitab_datfile.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABDATFile
@@ -1759,7 +1759,7 @@ int TABDATFile::ReadDateField(int nWidth, int *nYear, int *nMonth, int *nDay)
         *nDay = m_poRecordBlock->ReadByte();
     }
 
-    if (CPLGetLastErrorNo() != 0 || (*nYear == 0 && *nMonth == 0 && *nDay == 0))
+    if (CPLGetLastErrorType() == CE_Failure || (*nYear == 0 && *nMonth == 0 && *nDay == 0))
        return -1;
 
     return 0;
@@ -1828,7 +1828,7 @@ int TABDATFile::ReadTimeField(int nWidth, int *nHour, int *nMinute,
     }
 
     // nS is set to -1 when the value is 'not set'
-    if (CPLGetLastErrorNo() != 0 || nS < 0 || (nS > 86400000))
+    if (CPLGetLastErrorType() == CE_Failure || nS < 0 || (nS > 86400000))
         return -1;
 
     *nHour = int(nS / 3600000);
@@ -1912,7 +1912,7 @@ int TABDATFile::ReadDateTimeField(int nWidth, int *nYear, int *nMonth,
         nS = m_poRecordBlock->ReadInt32();
     }
 
-    if (CPLGetLastErrorNo() != 0 ||
+    if (CPLGetLastErrorType() == CE_Failure ||
         (*nYear == 0 && *nMonth == 0 && *nDay == 0) || (nS > 86400000))
         return -1;
 
@@ -2229,7 +2229,7 @@ int TABDATFile::WriteDateField(int nYear, int nMonth, int nDay,
     m_poRecordBlock->WriteByte(static_cast<GByte>(nMonth));
     m_poRecordBlock->WriteByte(static_cast<GByte>(nDay));
 
-    if (CPLGetLastErrorNo() != 0)
+    if (CPLGetLastErrorType() == CE_Failure)
         return -1;
 
     // Update Index
@@ -2346,7 +2346,7 @@ int TABDATFile::WriteTimeField(int nHour, int nMinute, int nSecond, int nMS,
         nS = -1;
     m_poRecordBlock->WriteInt32(nS);
 
-    if (CPLGetLastErrorNo() != 0)
+    if (CPLGetLastErrorType() == CE_Failure)
         return -1;
 
     // Update Index
@@ -2489,7 +2489,7 @@ int TABDATFile::WriteDateTimeField(int nYear, int nMonth, int nDay,
     m_poRecordBlock->WriteByte(static_cast<GByte>(nDay));
     m_poRecordBlock->WriteInt32(nS);
 
-    if (CPLGetLastErrorNo() != 0)
+    if (CPLGetLastErrorType() == CE_Failure)
         return -1;
 
     // Update Index

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gtiff.h 7b0895f5efe8a4ef023dc66fffbe8db2b02317c3 2018-04-14 17:22:05 +0200 Even Rouault $
+ * $Id: gtiff.h a0b1af8454c28cc14b6cb728230e2e4fc2603a49 2018-07-02 20:09:41 +0200 Even Rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  GDAL GeoTIFF support.
@@ -101,7 +101,7 @@ uint16 GTiffGetAlphaValue(const char* pszValue, uint16 nDefault);
 #endif
 
 #if !defined(TIFFTAG_ZSTD_LEVEL)
-#define TIFFTAG_ZSTD_LEVEL      65534    /* ZSTD compression level */
+#define TIFFTAG_ZSTD_LEVEL      65564    /* ZSTD compression level */
 #endif
 
 #endif // GTIFF_H_INCLUDED

@@ -52,7 +52,7 @@
 
 constexpr int MAX_BUFFER_SIZE = 65536;
 
-CPL_CVSID("$Id: cpl_vsil_buffered_reader.cpp 5524ee5324f7bd364d391d842a6488c90c0186a7 2018-04-02 16:20:13 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_vsil_buffered_reader.cpp 64155ea5f96d17aeaa0c1986a642f62046a12830 2018-07-25 18:30:52 +0200 Even Rouault $")
 
 class VSIBufferedReaderHandle final : public VSIVirtualHandle
 {
@@ -165,6 +165,7 @@ int VSIBufferedReaderHandle::Seek( vsi_l_offset nOffset, int nWhence )
               static_cast<int>(nOffset), static_cast<int>(nWhence) );
 #endif
     bEOF = false;
+    int ret = 0;
     if( nWhence == SEEK_CUR )
     {
         nCurOffset += nOffset;
@@ -177,7 +178,7 @@ int VSIBufferedReaderHandle::Seek( vsi_l_offset nOffset, int nWhence )
         }
         else
         {
-            m_poBaseHandle->Seek(nOffset, nWhence);
+            ret = m_poBaseHandle->Seek(nOffset, nWhence);
             nCurOffset = m_poBaseHandle->Tell();
             bNeedBaseHandleSeek = true;
         }
@@ -187,7 +188,7 @@ int VSIBufferedReaderHandle::Seek( vsi_l_offset nOffset, int nWhence )
         nCurOffset = nOffset;
     }
 
-    return 0;
+    return ret;
 }
 
 /************************************************************************/

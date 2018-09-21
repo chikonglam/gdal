@@ -33,7 +33,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: pcidskdataset2.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: pcidskdataset2.cpp 8bbc3a0c3cd76cff0f46d7c096a65cc4c41af23d 2018-08-28 11:46:23 +0200 Even Rouault $")
 
 const PCIDSK::PCIDSKInterfaces *PCIDSK2GetInterfaces(void);
 
@@ -1509,6 +1509,48 @@ CPLErr PCIDSK2Dataset::IBuildOverviews( const char *pszResampling,
                                         void *pProgressData )
 
 {
+    PCIDSK2Band *poBand = reinterpret_cast<PCIDSK2Band*>(
+        GetRasterBand( panBandList[0] ) );
+
+/* -------------------------------------------------------------------- */
+/*      If RRD overviews requested, then invoke generic handling.       */
+/* -------------------------------------------------------------------- */
+    bool bUseGenericHandling = false;
+
+    if( CPLTestBool(CPLGetConfigOption( "USE_RRD", "NO" ) ) )
+    {
+        bUseGenericHandling = true;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      If we don't have read access, then create the overviews         */
+/*      externally.                                                     */
+/* -------------------------------------------------------------------- */
+    if( GetAccess() != GA_Update )
+    {
+        CPLDebug( "PCIDSK",
+                  "File open for read-only accessing, "
+                  "creating overviews externally." );
+
+        bUseGenericHandling = true;
+    }
+
+    if( bUseGenericHandling )
+    {
+        if( poBand->GetOverviewCount() != 0 )
+        {
+            CPLError(
+                CE_Failure, CPLE_NotSupported,
+                "Cannot add external overviews when there are already "
+                "internal overviews" );
+            return CE_Failure;
+        }
+
+        return GDALDataset::IBuildOverviews(
+            pszResampling, nOverviews, panOverviewList,
+            nListBands, panBandList, pfnProgress, pProgressData );
+    }
+
     if( nListBands == 0 )
         return CE_None;
 
@@ -1527,8 +1569,6 @@ CPLErr PCIDSK2Dataset::IBuildOverviews( const char *pszResampling,
 /*      which are new.  We assume that band 1 of the file is            */
 /*      representative.                                                 */
 /* -------------------------------------------------------------------- */
-    PCIDSK2Band *poBand = reinterpret_cast<PCIDSK2Band*>(
-        GetRasterBand( panBandList[0] ) );
 
     int nNewOverviews = 0;
     int *panNewOverviewList = reinterpret_cast<int *>(

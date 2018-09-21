@@ -46,7 +46,7 @@
 #include "ogr_api.h"
 #include "ogr_core.h"
 
-CPL_CVSID("$Id: contour.cpp 8ee787afde31c77a0420e7fdfcf083a563450258 2018-05-08 16:25:14 +0200 Even Rouault $")
+CPL_CVSID("$Id: contour.cpp a36a30aef269491f2f4c2adc91a6e44e650efd3a 2018-08-29 22:42:54 +0200 Even Rouault $")
 
 // The amount of a contour interval that pixels should be fudged by if they
 // match a contour level exactly.
@@ -561,7 +561,7 @@ CPLErr GDALContourGenerator::ProcessRect(
             return CE_Failure;
         }
         iStartLevel = static_cast<int>(dfStartLevel);
-        iEndLevel = static_cast<int>(dfStartLevel);
+        iEndLevel = static_cast<int>(dfEndLevel);
     }
 
     if( iStartLevel > iEndLevel )

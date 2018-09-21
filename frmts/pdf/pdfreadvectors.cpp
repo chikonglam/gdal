@@ -31,7 +31,7 @@
 #define SQUARE(x) ((x)*(x))
 #define EPSILON 1e-5
 
-CPL_CVSID("$Id: pdfreadvectors.cpp 6574497e5ddfd7c08c094a76756a0ef477cef6a1 2018-04-04 22:15:20 +0200 Even Rouault $")
+CPL_CVSID("$Id: pdfreadvectors.cpp acf813919020dfdc36edba989b9f01a4f2a22fc7 2018-06-29 12:11:30 +0200 Even Rouault $")
 
 #if defined(HAVE_POPPLER) || defined(HAVE_PODOFO) || defined(HAVE_PDFIUM)
 
@@ -662,7 +662,7 @@ OGRGeometry* PDFDataset::ParseContent(const char* pszContent,
         {
             nArrayLevel ++;
         }
-        else if (!bInString && nArrayLevel && nTokenSize == 0 && ch == ']')
+        else if (!bInString && nArrayLevel && ch == ']')
         {
             nArrayLevel --;
         }
@@ -726,7 +726,12 @@ OGRGeometry* PDFDataset::ParseContent(const char* pszContent,
         }
         else
         {
-            ADD_CHAR(szToken, ch);
+            // Do not create too long tokens in arrays, that we will ignore
+            // anyway
+            if( nArrayLevel == 0 || nTokenSize == 0 )
+            {
+                ADD_CHAR(szToken, ch);
+            }
         }
 
         pszContent ++;

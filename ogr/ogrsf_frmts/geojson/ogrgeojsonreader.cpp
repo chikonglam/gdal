@@ -41,18 +41,22 @@
 #include "cpl_json_streaming_parser.h"
 #include <ogr_api.h>
 
-CPL_CVSID("$Id: ogrgeojsonreader.cpp 132748ccaf9343a5bc1eb2aa6db99834ba42dc24 2018-06-06 11:50:02 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeojsonreader.cpp 15f3082b5174da57ecd2ff3b645c0957e50f272c 2018-07-27 17:22:27 +0200 Even Rouault $")
 
 static
 OGRGeometry* OGRGeoJSONReadGeometry( json_object* poObj,
                                      OGRSpatialReference* poParentSRS );
 
-const size_t MAX_OBJECT_SIZE = 100 * 1024 * 1024;
+const size_t MAX_OBJECT_SIZE = 200 * 1024 * 1024;
 
 #if (!defined(JSON_C_VERSION_NUM)) || (JSON_C_VERSION_NUM < JSON_C_VER_013)
 const size_t ESTIMATE_BASE_OBJECT_SIZE = sizeof(struct json_object);
 #elif JSON_C_VERSION_NUM == JSON_C_VER_013 // no way to get the size
-const size_t ESTIMATE_BASE_OBJECT_SIZE = 96;
+#if SIZEOF_VOIDP == 8
+const size_t ESTIMATE_BASE_OBJECT_SIZE = 72;
+#else
+const size_t ESTIMATE_BASE_OBJECT_SIZE = 36;
+#endif
 #elif JSON_C_VERSION_NUM > JSON_C_VER_013 // we have json_c_object_sizeof()
 const size_t ESTIMATE_BASE_OBJECT_SIZE = json_c_object_sizeof();
 #endif

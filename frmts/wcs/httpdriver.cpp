@@ -33,7 +33,7 @@
 #include "gdal_frmts.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: httpdriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: httpdriver.cpp d755771083342f9f0fb88dfbeae49abab2b5ebe9 2018-07-25 17:55:54 +0200 Even Rouault $")
 
 /************************************************************************/
 /*               HTTPFetchContentDispositionFilename()                 */
@@ -146,6 +146,15 @@ static GDALDataset *HTTPOpen( GDALOpenInfo * poOpenInfo )
                     poOpenInfo->papszAllowedDrivers,
                     poOpenInfo->papszOpenOptions, nullptr);
     CPLPopErrorHandler();
+
+    // The JP2OpenJPEG driver may need to reopen the file, hence this special
+    // behaviour
+    if( poDS != nullptr && poDS->GetDriver() != nullptr &&
+        EQUAL(poDS->GetDriver()->GetDescription(), "JP2OpenJPEG") )
+    {
+        poDS->MarkSuppressOnClose();
+        return poDS;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      If opening it in memory didn't work, perhaps we need to         */

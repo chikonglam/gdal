@@ -35,7 +35,7 @@
 #include "cpl_aws.h"
 #include "cpl_json.h"
 
-CPL_CVSID("$Id: cpl_google_cloud.cpp 1d0f559204e90d0e54d4aebe6ea8b65f0851be69 2018-06-20 16:38:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_google_cloud.cpp 81d3302875f614e8649d4f7e98e602cd34643840 2018-07-26 18:38:40 +0200 Even Rouault $")
 
 #ifdef HAVE_CURL
 
@@ -63,8 +63,7 @@ bool CPLIsMachineForSureGCEInstance()
         return true;
     }
 #ifdef __linux
-    // If /var/log/kern.log exists, it should contain a string like
-    // DMI: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+    // If /sys/class/dmi/id/product_name exists, it contains "Google Compute Engine"
     bool bIsGCEInstance = false;
     if( CPLTestBool(CPLGetConfigOption(
                         "CPL_GCE_CHECK_LOCAL_FILES", "YES")) )
@@ -77,21 +76,12 @@ bool CPLIsMachineForSureGCEInstance()
             {
                 bDone = true;
 
-                VSILFILE* fp = VSIFOpenL("/var/log/kern.log", "rb"); // Ubuntu 16.04
-                if( fp == nullptr )
-                    fp = VSIFOpenL("/var/log/dmesg", "rb"); // CentOS 6
-                if( fp != nullptr )
+                VSILFILE* fp = VSIFOpenL("/sys/class/dmi/id/product_name", "rb");
+                if( fp )
                 {
-                    const char* pszLine;
-                    while( (pszLine = CPLReadLineL(fp)) != nullptr )
-                    {
-                        if( strstr(pszLine, "DMI:") != nullptr )
-                        {
-                            bIsGCEInstanceStatic =
-                                        strstr(pszLine, "Google Compute") != nullptr;
-                            break;
-                        }
-                    }
+                    const char* pszLine = CPLReadLineL(fp);
+                    bIsGCEInstanceStatic = pszLine &&
+                        STARTS_WITH_CI(pszLine, "Google Compute Engine");
                     VSIFCloseL(fp);
                 }
             }

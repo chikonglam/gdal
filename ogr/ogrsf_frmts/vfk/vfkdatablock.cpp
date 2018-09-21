@@ -37,7 +37,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: vfkdatablock.cpp 9da3c678d3d6b0516afe085809843a521b75817f 2018-06-07 11:27:35 +0200 Martin Landa $")
+CPL_CVSID("$Id: vfkdatablock.cpp 3c0cf17244733d709fc698362a7fe2ec16e0f119 2018-07-27 12:46:11 +0200 Martin Landa $")
 
 /*!
   \brief VFK Data Block constructor
@@ -373,6 +373,7 @@ OGRwkbGeometryType IVFKDataBlock::SetGeometryType(bool bSuppressGeometry)
         m_nGeometryType = wkbPoint;
 
     else if (EQUAL (m_pszName, "SBP") ||
+             EQUAL (m_pszName, "SBPG") ||
              EQUAL (m_pszName, "HP") ||
              EQUAL (m_pszName, "DPM") ||
              EQUAL (m_pszName, "ZVB"))
@@ -467,7 +468,8 @@ int IVFKDataBlock::LoadGeometry()
         /* -> wkbPoint */
         nInvalid = LoadGeometryPoint();
     }
-    else if (EQUAL (m_pszName, "SBP")) {
+    else if (EQUAL (m_pszName, "SBP") ||
+             EQUAL (m_pszName, "SBPG")) {
         /* -> wkbLineString */
         nInvalid = LoadGeometryLineStringSBP();
     }
@@ -785,7 +787,7 @@ int VFKDataBlock::LoadGeometryPoint()
 }
 
 /*!
-  \brief Load geometry (linestring SBP layer)
+  \brief Load geometry (linestring SBP/SBPG layer)
 
   \return number of invalid features
 */

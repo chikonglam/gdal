@@ -31,9 +31,10 @@
 #include "gdal_alg_priv.h"
 
 #include <algorithm>
+#include <cassert>
 #include <limits>
 
-CPL_CVSID("$Id: gdalgeopackagerasterband.cpp 024434ab6be72949c565e15462dc553e0e40d0c1 2018-04-05 00:01:50 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalgeopackagerasterband.cpp d3d03495b767cd1ee443e1543c9ebe6b6040a21e 2018-08-11 19:46:03 +0200 Even Rouault $")
 
 #if !defined(DEBUG_VERBOSE) && defined(DEBUG_VERBOSE_GPKG)
 #define DEBUG_VERBOSE
@@ -147,7 +148,7 @@ GDALGPKGMBTilesLikeRasterBand::GDALGPKGMBTilesLikeRasterBand(
     m_bHasNoData(false),
     m_dfNoDataValue(0.0)
 {
-    CPLAssert( m_poTPD != nullptr ); // make GCC 7 -Wnull-dereference happy in -O2
+    assert( m_poTPD != nullptr ); // make GCC 7 -Wnull-dereference happy in -O2
     eDataType = m_poTPD->m_eDT;
     m_nDTSize = m_poTPD->m_nDTSize;
     nBlockXSize = nTileWidth;

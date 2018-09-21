@@ -37,7 +37,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: vfkdatablocksqlite.cpp 61f49c952d01d3971f455fa9aebac65eecee6e82 2018-04-11 13:49:00 +0200 Even Rouault $")
+CPL_CVSID("$Id: vfkdatablocksqlite.cpp 3c0cf17244733d709fc698362a7fe2ec16e0f119 2018-07-27 12:46:11 +0200 Martin Landa $")
 
 /*!
   \brief Load geometry (point layers)
@@ -739,7 +739,7 @@ IVFKFeature *VFKDataBlockSQLite::GetFeature(GIntBig nFID)
     CPLString osSQL;
     osSQL.Printf("SELECT rowid FROM %s WHERE %s = " CPL_FRMT_GIB,
                  m_pszName, FID_COLUMN, nFID);
-    if (EQUAL(m_pszName, "SBP")) {
+    if ( EQUAL(m_pszName, "SBP") || EQUAL(m_pszName, "SBPG") ) {
         osSQL += " AND PORADOVE_CISLO_BODU = 1";
     }
     sqlite3_stmt *hStmt = poReader->PrepareStatement(osSQL.c_str());
@@ -963,7 +963,7 @@ bool VFKDataBlockSQLite::LoadGeometryFromDB()
     /* load geometry from DB */
     osSQL.Printf("SELECT %s,rowid,%s FROM %s ",
                  GEOM_COLUMN, FID_COLUMN, m_pszName);
-    if (EQUAL(m_pszName, "SBP"))
+    if ( EQUAL(m_pszName, "SBP") || EQUAL(m_pszName, "SBPG") )
         osSQL += "WHERE PORADOVE_CISLO_BODU = 1 ";
     osSQL += "ORDER BY ";
     osSQL += FID_COLUMN;
