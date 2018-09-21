@@ -4,6 +4,7 @@ gdal (2.3.2~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Bump Standards-Version to 4.2.1, no changes.
   * Update copyright file.
   * Update watch file for 2.3.2 pre-releases.
+  * Move JNI libraries from usr/lib/ to usr/lib/jni again.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Sep 2018 11:32:24 +0200
 
