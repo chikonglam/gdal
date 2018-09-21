@@ -49,7 +49,7 @@
 extern
 int EPSGGetWGS84Transform( int nGeogCS, std::vector<CPLString>& asTransform );
 
-CPL_CVSID("$Id: ogr_srs_proj4.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr_srs_proj4.cpp 825a6a02f5f7031274c5e717aee82b24ff02d9b8 2018-08-18 18:54:43 +0200 Even Rouault $")
 
 /* -------------------------------------------------------------------- */
 /*      The following list comes from osrs/proj/src/pj_ellps.c.         */
@@ -967,13 +967,13 @@ OGRErr OGRSpatialReference::importFromProj4( const char * pszProj4 )
     {
         SetKrovak( OSR_GDV( papszNV, "lat_0", 0.0 ),
                    OSR_GDV( papszNV, "lon_0", 0.0 ),
-                   OSR_GDV( papszNV, "alpha", 0.0 ),
-                   0.0,  // Pseudo_standard_parallel_1.
+                   30.28813972222222, // Alpha. ignored by PROJ
+                   78.5,  // Pseudo_standard_parallel_1. ignored by PROJ
                    OSR_GDV( papszNV, "k", 1.0 ),
                    OSR_GDV( papszNV, "x_0", 0.0 ),
                    OSR_GDV( papszNV, "y_0", 0.0 ) );
     }
-    else if( EQUAL(pszProj, "iwm_p") )
+    else if( EQUAL(pszProj, "imw_p") )
     {
         SetIWMPolyconic( OSR_GDV( papszNV, "lat_1", 0.0 ),
                          OSR_GDV( papszNV, "lat_2", 0.0 ),
@@ -2164,7 +2164,7 @@ OGRErr OGRSpatialReference::exportToProj4( char ** ppszProj4 ) const
              "+k=%.16g +x_0=%.16g +y_0=%.16g ",
              GetNormProjParm(SRS_PP_LATITUDE_OF_CENTER, 0.0),
              GetNormProjParm(SRS_PP_LONGITUDE_OF_CENTER, 0.0),
-             GetNormProjParm(SRS_PP_AZIMUTH, 0.0),
+             GetNormProjParm(SRS_PP_AZIMUTH, 30.28813972222222), // ignored by PROJ
              GetNormProjParm(SRS_PP_SCALE_FACTOR, 1.0),
              GetNormProjParm(SRS_PP_FALSE_EASTING, 0.0),
              GetNormProjParm(SRS_PP_FALSE_NORTHING, 0.0) );
@@ -2187,7 +2187,7 @@ OGRErr OGRSpatialReference::exportToProj4( char ** ppszProj4 ) const
     {
         CPLsnprintf(
              szProj4 + strlen(szProj4), sizeof(szProj4) - strlen(szProj4),
-             "+proj=iwm_p +lat_1=%.16g +lat_2=%.16g +lon_0=%.16g "
+             "+proj=imw_p +lat_1=%.16g +lat_2=%.16g +lon_0=%.16g "
              "+x_0=%.16g +y_0=%.16g ",
              GetNormProjParm(SRS_PP_LATITUDE_OF_1ST_POINT, 0.0),
              GetNormProjParm(SRS_PP_LATITUDE_OF_2ND_POINT, 0.0),

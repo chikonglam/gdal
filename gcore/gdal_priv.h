@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_priv.h ec7b85e6bb8f9737693a31f0bf7166e31e10992e 2018-04-16 00:08:36 +0200 Even Rouault $
+ * $Id: gdal_priv.h 12e52bca5d2ef4d60eac422db198aefa9577be63 2018-07-14 19:04:33 +0200 Even Rouault $
  *
  * Name:     gdal_priv.h
  * Project:  GDAL Core
@@ -1309,6 +1309,9 @@ class CPL_DLL GDALNoDataMaskBand : public GDALRasterBand
   public:
     explicit GDALNoDataMaskBand( GDALRasterBand * );
     ~GDALNoDataMaskBand() override;
+
+    static bool IsNoDataInRange(double dfNoDataValue,
+                                GDALDataType eDataType);
 };
 
 /* ******************************************************************** */

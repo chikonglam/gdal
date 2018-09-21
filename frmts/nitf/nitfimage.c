@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfimage.c 6a667f515b38236eb8abc543018af5ae78173dbc 2018-04-13 10:58:49 +0200 Even Rouault $
+ * $Id: nitfimage.c 3e70f9025b7466d55b0aac4d9cd20131b5a5c163 2018-07-20 18:47:04 +0200 Even Rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for implementation of most NITFImage
@@ -36,7 +36,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitfimage.c 6a667f515b38236eb8abc543018af5ae78173dbc 2018-04-13 10:58:49 +0200 Even Rouault $")
+CPL_CVSID("$Id: nitfimage.c 3e70f9025b7466d55b0aac4d9cd20131b5a5c163 2018-07-20 18:47:04 +0200 Even Rouault $")
 
 CPL_INLINE static void CPL_IGNORE_RET_VAL_INT(CPL_UNUSED int unused) {}
 
@@ -1392,6 +1392,12 @@ int NITFReadImageBlock( NITFImage *psImage, int nBlockX, int nBlockY,
         {
             CPLError( CE_Failure, CPLE_NotSupported,
                       "File lacks VQ LUTs, unable to decode imagery." );
+            return BLKREAD_FAIL;
+        }
+        if( psImage->nBlockWidth != 256 || psImage->nBlockHeight != 256 )
+        {
+            CPLError( CE_Failure, CPLE_NotSupported,
+                      "Invalid block dimension for VQ compressed data." );
             return BLKREAD_FAIL;
         }
 

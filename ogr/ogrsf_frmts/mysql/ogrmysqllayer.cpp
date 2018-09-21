@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrmysqllayer.cpp d80c4b49b7f6477247bd5afefc0973d6bb7ec05b 2018-04-12 21:49:40 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrmysqllayer.cpp 6e4c87af0ee76324209081d113704c52a5f79955 2018-09-08 11:50:50 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           OGRMySQLLayer()                            */
@@ -354,7 +354,7 @@ OGRSpatialReference *OGRMySQLLayer::GetSpatialRef()
         if( poSRS != nullptr )
             poSRS->Reference();
         else
-            nSRSId = -1;
+            nSRSId = poDS->GetUnknownSRID();
     }
 
     return poSRS;

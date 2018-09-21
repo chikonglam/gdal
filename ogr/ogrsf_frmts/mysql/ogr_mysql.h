@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_mysql.h d80c4b49b7f6477247bd5afefc0973d6bb7ec05b 2018-04-12 21:49:40 +0200 Even Rouault $
+ * $Id: ogr_mysql.h 87dbe4b3af3057548f4d8f2cfa28ffb3555d1463 2018-09-08 13:59:21 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Declarations for MySQL OGR Driver Classes.
@@ -225,6 +225,10 @@ class OGRMySQLDataSource final: public OGRDataSource
 
     OGRMySQLLayer      *poLongResultLayer;
 
+    bool                m_bIsMariaDB = false;
+    int                 m_nMajor = 0;
+    int                 m_nMinor = 0;
+
   public:
                         OGRMySQLDataSource();
                         virtual ~OGRMySQLDataSource();
@@ -264,6 +268,10 @@ class OGRMySQLDataSource final: public OGRDataSource
 
     void                RequestLongResult( OGRMySQLLayer * );
     void                InterruptLongResult();
+
+    bool                IsMariaDB() const { return m_bIsMariaDB; }
+    int                 GetMajorVersion() const { return m_nMajor; }
+    int                 GetUnknownSRID() const;
 };
 
 #endif /* ndef OGR_MYSQL_H_INCLUDED */

@@ -41,7 +41,7 @@
 #include "cpl_vsi.h"
 #include "mitab_priv.h"
 
-CPL_CVSID("$Id: mitab_mapheaderblock.cpp 005da33513859a66dce5bc7a938ecffa93386460 2018-03-17 15:54:12Z Even Rouault $")
+CPL_CVSID("$Id: mitab_mapheaderblock.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*---------------------------------------------------------------------
  * Set various constants used in generating the header block.
@@ -883,7 +883,7 @@ int     TABMAPHeaderBlock::InitNewBlock(VSILFILE *fpSrc, int nBlockSize,
         WriteBytes(HDR_OBJ_LEN_ARRAY_SIZE, gabyObjLenArray);
     }
 
-    if (CPLGetLastErrorNo() != 0)
+    if (CPLGetLastErrorType() == CE_Failure)
         return -1;
 
     return 0;

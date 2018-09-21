@@ -44,7 +44,7 @@
 #include "cpl_vsi.h"
 #include "mitab_priv.h"
 
-CPL_CVSID("$Id: mitab_mapindexblock.cpp 48824454f30c5f69fb6979a460b9d8c509075470 2018-04-15 12:35:23 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_mapindexblock.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABMAPIndexBlock
@@ -162,8 +162,6 @@ int     TABMAPIndexBlock::InitBlockFromData(GByte *pabyBuf,
  **********************************************************************/
 int     TABMAPIndexBlock::CommitToFile()
 {
-    int nStatus = 0;
-
     if ( m_pabyBuf == nullptr )
     {
         CPLError(CE_Failure, CPLE_AssertionFailed,
@@ -194,7 +192,7 @@ int     TABMAPIndexBlock::CommitToFile()
     WriteInt16(TABMAP_INDEX_BLOCK);    // Block type code
     WriteInt16((GInt16)m_numEntries);
 
-    nStatus = CPLGetLastErrorNo();
+    int nStatus = CPLGetLastErrorType() == CE_Failure ? -1 : 0;
 
     /*-----------------------------------------------------------------
      * Loop through all entries, writing each of them, and calling
@@ -262,7 +260,7 @@ int     TABMAPIndexBlock::InitNewBlock(VSILFILE *fpSrc, int nBlockSize,
         WriteInt16(0);                      // num. index entries
     }
 
-    if (CPLGetLastErrorNo() != 0)
+    if (CPLGetLastErrorType() == CE_Failure)
         return -1;
 
     return 0;
@@ -293,7 +291,7 @@ int     TABMAPIndexBlock::ReadNextEntry(TABMAPIndexEntry *psEntry)
     psEntry->YMax = ReadInt32();
     psEntry->nBlockPtr = ReadInt32();
 
-    if (CPLGetLastErrorNo() != 0)
+    if (CPLGetLastErrorType() == CE_Failure)
         return -1;
 
     return 0;
@@ -342,7 +340,7 @@ int     TABMAPIndexBlock::WriteNextEntry(TABMAPIndexEntry *psEntry)
     WriteInt32(psEntry->YMax);
     WriteInt32(psEntry->nBlockPtr);
 
-    if (CPLGetLastErrorNo() != 0)
+    if (CPLGetLastErrorType() == CE_Failure)
         return -1;
 
     return 0;

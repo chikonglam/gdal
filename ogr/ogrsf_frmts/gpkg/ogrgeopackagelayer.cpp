@@ -32,7 +32,7 @@
 #include "ogrsqliteutility.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgeopackagelayer.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrgeopackagelayer.cpp 85cc62e40607cf41aee12b371271ec570fc85c83 2018-07-24 19:46:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                      OGRGeoPackageLayer()                            */
@@ -305,7 +305,7 @@ int OGRGeoPackageLayer::TestCapability ( const char * pszCap )
     if( EQUAL(pszCap,OLCIgnoreFields) )
         return TRUE;
     else if ( EQUAL(pszCap, OLCStringsAsUTF8) )
-        return m_poDS->GetUTF8();
+        return TRUE;
     else
         return FALSE;
 }

@@ -46,7 +46,7 @@
 #include "mitab_priv.h"
 #include "ogr_feature.h"
 
-CPL_CVSID("$Id: mitab_mapfile.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_mapfile.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABMAPFile
@@ -407,7 +407,7 @@ int TABMAPFile::Open(const char *pszFname, TABAccess eAccess,
     /*-----------------------------------------------------------------
      * Make sure all previous calls succeeded.
      *----------------------------------------------------------------*/
-    if (CPLGetLastErrorNo() != 0)
+    if (CPLGetLastErrorType() == CE_Failure)
     {
         // Open Failed... an error has already been reported
         Close();
@@ -1367,7 +1367,7 @@ int TABMAPFile::PrepareNewObj( TABMAPObjHdr *poObjHdr )
      *----------------------------------------------------------------*/
     PrepareCoordBlock(m_nCurObjType, m_poCurObjBlock, &m_poCurCoordBlock);
 
-    if (CPLGetLastErrorNo() != 0 && CPLGetLastErrorType() == CE_Failure)
+    if (CPLGetLastErrorType() == CE_Failure)
         return -1;
 
     m_bUpdated = TRUE;
@@ -2388,7 +2388,7 @@ int TABMAPFile::PrepareCoordBlock(int nObjType,
         // Make sure read/write pointer is at the end of the block
         (*ppoCoordBlock)->SeekEnd();
 
-        if (CPLGetLastErrorNo() != 0 && CPLGetLastErrorType() == CE_Failure)
+        if (CPLGetLastErrorType() == CE_Failure)
             return -1;
     }
 

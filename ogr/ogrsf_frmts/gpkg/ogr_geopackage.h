@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geopackage.h 3b495c65e84e938192dead1d28cc7c6552c3149e 2018-06-14 16:21:05 +0200 Even Rouault $
+ * $Id: ogr_geopackage.h 85cc62e40607cf41aee12b371271ec570fc85c83 2018-07-24 19:46:03 +0200 Even Rouault $
  *
  * Project:  GeoPackage Translator
  * Purpose:  Definition of classes for OGR GeoPackage driver.
@@ -98,7 +98,6 @@ class GDALGeoPackageDataset final : public OGRSQLiteBaseDataSource, public GDALG
     GUInt32             m_nUserVersion;
     OGRGeoPackageTableLayer** m_papoLayers;
     int                 m_nLayers;
-    bool                m_bUtf8;
     void                CheckUnknownExtensions(bool bCheckRasterTable = false);
 #ifdef ENABLE_GPKG_OGR_CONTENTS
     bool                m_bHasGPKGOGRContents;
@@ -273,7 +272,6 @@ class GDALGeoPackageDataset final : public OGRSQLiteBaseDataSource, public GDALG
         int                 GetSrsId( const OGRSpatialReference& oSRS );
         const char*         GetSrsName( const OGRSpatialReference& oSRS );
         OGRSpatialReference* GetSpatialRef( int iSrsId );
-        bool                GetUTF8() { return m_bUtf8; }
         OGRErr              CreateExtensionsTableIfNecessary();
         bool                HasExtensionsTable();
         OGRErr              CreateGDALAspatialExtension();

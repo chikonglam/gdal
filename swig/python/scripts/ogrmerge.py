@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: ogrmerge.py acb00496e69f7896f6b4453e9f49d2f2ce3e7b64 2018-04-27 00:56:06 +0200 Even Rouault $
+# $Id: ogrmerge.py 9df9e5bfd6ead10e2d805d585ed228cb7f28d302 2018-06-28 00:00:10 +0200 Even Rouault $
 #
 # Project:  GDAL/OGR samples
 # Purpose:  Merge the content of several vector datasets into a single one.
@@ -103,8 +103,8 @@ def GetOutputDriversFor(filename):
 
 def GetOutputDriverFor(filename):
     drv_list = GetOutputDriversFor(filename)
+    ext = GetExtension(filename)
     if len(drv_list) == 0:
-        ext = GetExtension(filename)
         if len(ext) == 0:
             return 'ESRI Shapefile'
         else:

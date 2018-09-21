@@ -49,7 +49,7 @@
 #include "gdalwarper.h"
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: vrtwarped.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: vrtwarped.cpp dc22443cc1b555398d9a7a3f5179bfea74571d23 2018-07-22 19:01:43 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                      GDALAutoCreateWarpedVRT()                       */
@@ -129,16 +129,25 @@ GDALAutoCreateWarpedVRT( GDALDatasetH hSrcDS,
     for( int i = 0; i < psWO->nBandCount; i++ )
     {
         GDALRasterBandH rasterBand = GDALGetRasterBand(psWO->hSrcDS, psWO->panSrcBands[i]);
-        
+
         int hasNoDataValue;
         double noDataValue = GDALGetRasterNoDataValue(rasterBand, &hasNoDataValue);
 
         if( hasNoDataValue )
         {
-            GDALWarpInitNoDataReal(psWO, -1e10);
-            
-            psWO->padfSrcNoDataReal[i] = noDataValue;
-            psWO->padfDstNoDataReal[i] = noDataValue;
+            // Check if the nodata value is out of range
+            int bClamped = FALSE;
+            int bRounded = FALSE;
+            CPL_IGNORE_RET_VAL(
+                GDALAdjustValueToDataType(GDALGetRasterDataType(rasterBand),
+                                      noDataValue, &bClamped, &bRounded ));
+            if( !bClamped )
+            {
+                GDALWarpInitNoDataReal(psWO, -1e10);
+
+                psWO->padfSrcNoDataReal[i] = noDataValue;
+                psWO->padfDstNoDataReal[i] = noDataValue;
+            }
         }
     }
 

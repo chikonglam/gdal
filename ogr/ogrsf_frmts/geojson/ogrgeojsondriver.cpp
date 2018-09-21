@@ -46,7 +46,7 @@
 #include "ogrgeojsonutils.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrgeojsondriver.cpp 812a6eea6ef36462531bfa98ff74ca21b361d1b7 2018-03-26 19:21:53 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeojsondriver.cpp 8f13232b6c2445e31b5e813c898af7dbfc4ea759 2018-09-15 14:52:33 +0200 Even Rouault $")
 
 static CPLMutex* ghMutex = nullptr;
 static char* gpszSource = nullptr;
@@ -631,7 +631,7 @@ void RegisterOGRGeoJSON()
     poDriver->SetDescription( "GeoJSON" );
     poDriver->SetMetadataItem( GDAL_DCAP_VECTOR, "YES" );
     poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, "GeoJSON" );
-    poDriver->SetMetadataItem( GDAL_DMD_EXTENSIONS, "json geojson topojson" );
+    poDriver->SetMetadataItem( GDAL_DMD_EXTENSIONS, "json geojson" );
     poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_geojson.html" );
 
     poDriver->SetMetadataItem( GDAL_DMD_OPENOPTIONLIST,

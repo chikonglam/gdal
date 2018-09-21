@@ -40,7 +40,7 @@
 #include "cpl_vsi.h"
 #include "mitab_priv.h"
 
-CPL_CVSID("$Id: mitab_maptoolblock.cpp adb366f07844b2433e9b7e94484940f9e9a32f8e 2018-02-21 17:39:12Z Even Rouault $")
+CPL_CVSID("$Id: mitab_maptoolblock.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABMAPToolBlock
@@ -173,8 +173,6 @@ int     TABMAPToolBlock::InitBlockFromData(GByte *pabyBuf,
  **********************************************************************/
 int     TABMAPToolBlock::CommitToFile()
 {
-    int nStatus = 0;
-
     if ( m_pabyBuf == nullptr )
     {
         CPLError(CE_Failure, CPLE_AssertionFailed,
@@ -198,7 +196,7 @@ int     TABMAPToolBlock::CommitToFile()
     WriteInt16((GInt16)(m_nSizeUsed - MAP_TOOL_HEADER_SIZE)); // num. bytes used
     WriteInt32(m_nNextToolBlock);
 
-    nStatus = CPLGetLastErrorNo();
+    int nStatus = CPLGetLastErrorType() == CE_Failure ? -1 : 0;
 
     /*-----------------------------------------------------------------
      * OK, call the base class to write the block to disk.
@@ -259,7 +257,7 @@ int     TABMAPToolBlock::InitNewBlock(VSILFILE *fpSrc, int nBlockSize,
         WriteInt32(0);                 // Pointer to next tool block
     }
 
-    if (CPLGetLastErrorNo() != 0)
+    if (CPLGetLastErrorType() == CE_Failure)
         return -1;
 
     return 0;

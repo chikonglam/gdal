@@ -38,7 +38,7 @@
 #include "cpl_http.h"
 #include <algorithm>
 
-CPL_CVSID("$Id: cpl_aws.cpp 1d0f559204e90d0e54d4aebe6ea8b65f0851be69 2018-06-20 16:38:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_aws.cpp d3d03495b767cd1ee443e1543c9ebe6b6040a21e 2018-08-11 19:46:03 +0200 Even Rouault $")
 
 // #define DEBUG_VERBOSE 1
 
@@ -356,7 +356,7 @@ CPLString CPLGetAWS_SIGN4_Timestamp()
     struct tm brokenDown;
     CPLUnixTimeToYMDHMS(time(nullptr), &brokenDown);
 
-    char szTimeStamp[4+2+2+1+2+2+2+1+1] = {};
+    char szTimeStamp[80] = {};
     snprintf(szTimeStamp, sizeof(szTimeStamp), "%04d%02d%02dT%02d%02d%02dZ",
             brokenDown.tm_year + 1900,
             brokenDown.tm_mon + 1,
