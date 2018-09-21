@@ -1,10 +1,11 @@
-gdal (2.3.1+dfsg-4) UNRELEASED; urgency=medium
+gdal (2.3.2~rc1+dfsg-1) UNRELEASED; urgency=medium
 
+  * New upstream release candidate.
   * Bump Standards-Version to 4.2.1, no changes.
   * Update copyright file.
   * Update watch file for 2.3.2 pre-releases.
 
- -- Bas Couwenberg <sebastic@debian.org>  Tue, 28 Aug 2018 09:51:48 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Sep 2018 11:32:24 +0200
 
 gdal (2.3.1+dfsg-3) unstable; urgency=medium
 
