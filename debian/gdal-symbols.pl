@@ -1136,16 +1136,28 @@ sub new_architecture_symbols {
 
 					my $data = '';
 
-					my $upstream_version = upstream_version($versions[-1]);
+					my $control = $cfg{debian} .'control';
 
-					(my $abi = $upstream_version) =~ s/\./-/g;
-					$abi =~ s/\~\w+$//;
+					my $abi = '';
+
+					foreach(read_file($control)) {
+						if(/^Provides: (gdal-abi-\d+-\d+-\d+)/) {
+							$abi = $1;
+
+							last;
+						}
+					}
+
+					if(!$abi) {
+						print "Error: Failed to extract ABI dependency from control file: $control\n";
+						exit 1;
+					}
 
 					my $i = 0;
 					foreach(read_file($filt)) {
 						if($i == 0 && /^ /) {
 							$_ = "#include \"${pkg}.symbols.common\"\n" . $_;
-							$_ = "| ${pkg} #MINVER#, gdal-abi-$abi\n" . $_;
+							$_ = "| ${pkg} #MINVER#, $abi\n" . $_;
 
 							$i++;
 						}
