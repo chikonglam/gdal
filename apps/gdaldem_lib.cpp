@@ -116,7 +116,7 @@
 #include "emmintrin.h"
 #endif
 
-CPL_CVSID("$Id: gdaldem_lib.cpp 67fbc5769244cda8363798f3d20529bda8306035 2018-04-08 19:57:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdaldem_lib.cpp 8789a4befee5173c33911dcc9d4a7310515137c6 2018-09-19 13:34:00 +0200 Even Rouault $")
 
 static const double kdfDegreesToRadians = M_PI / 180.0;
 static const double kdfRadiansToDegrees = 180.0 / M_PI;
@@ -3311,7 +3311,7 @@ GDALDatasetH GDALDEMProcessing( const char *pszDest,
         return nullptr;
     }
 
-    if( psOptionsIn->bCombined && eUtilityMode != HILL_SHADE )
+    if( psOptionsIn && psOptionsIn->bCombined && eUtilityMode != HILL_SHADE )
     {
         CPLError(CE_Failure, CPLE_NotSupported,
                     "-combined can only be used with hillshade");
@@ -3321,7 +3321,7 @@ GDALDatasetH GDALDEMProcessing( const char *pszDest,
         return nullptr;
     }
 
-    if( psOptionsIn->bMultiDirectional && eUtilityMode != HILL_SHADE )
+    if( psOptionsIn && psOptionsIn->bMultiDirectional && eUtilityMode != HILL_SHADE )
     {
         CPLError(CE_Failure, CPLE_NotSupported,
                     "-multidirectional can only be used with hillshade");

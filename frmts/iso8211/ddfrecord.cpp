@@ -41,7 +41,7 @@
 #include "cpl_error.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: ddfrecord.cpp e2d0dce71ef096c9c2da1d721459948def3bccff 2018-03-10 21:19:19Z Even Rouault $")
+CPL_CVSID("$Id: ddfrecord.cpp 18fa8695ec708dfe094a8ce864781dba2e5c59f4 2018-08-11 12:21:43 +0200 Even Rouault $")
 
 constexpr int nLeaderSize = 24;
 
@@ -268,6 +268,13 @@ int DDFRecord::ReadHeader()
 
     nReadBytes = static_cast<int>(VSIFReadL(achLeader,1,nLeaderSize,poModule->GetFP()));
     if( nReadBytes == 0 && VSIFEofL( poModule->GetFP() ) )
+    {
+        nFieldOffset = -1;
+        return FALSE;
+    }
+    // The ASRP and USRP specifications mentions that 0x5E / ^ character can be
+    // used as a padding byte so that the file size is a multiple of 8192.
+    else if( achLeader[0] == '^' )
     {
         nFieldOffset = -1;
         return FALSE;

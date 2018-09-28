@@ -47,7 +47,7 @@
 #include "cpl_vsi.h"
 #include "mitab_priv.h"
 
-CPL_CVSID("$Id: mitab_rawbinblock.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_rawbinblock.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABRawBinBlock
@@ -247,8 +247,6 @@ int     TABRawBinBlock::CommitToFile()
  **********************************************************************/
 int     TABRawBinBlock::CommitAsDeleted(GInt32 nNextBlockPtr)
 {
-    int nStatus = 0;
-
     CPLErrorReset();
 
     if ( m_pabyBuf == nullptr )
@@ -265,8 +263,7 @@ int     TABRawBinBlock::CommitAsDeleted(GInt32 nNextBlockPtr)
     WriteInt16(TABMAP_GARB_BLOCK);    // Block type code
     WriteInt32(nNextBlockPtr);
 
-    if( CPLGetLastErrorType() == CE_Failure )
-        nStatus = CPLGetLastErrorNo();
+    int nStatus = CPLGetLastErrorType() == CE_Failure ? -1 : 0;
 
     /*-----------------------------------------------------------------
      * OK, call the base class to write the block to disk.

@@ -30,7 +30,7 @@
 #include "ogrgeojsonreader.h"
 #include <time.h>
 
-CPL_CVSID("$Id: ogrplscenesdatav1dataset.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrplscenesdatav1dataset.cpp 6d8be2a16e54e7d9ce29bd99eb8fdf4b11fb3b06 2018-09-09 19:28:48 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                       OGRPLScenesDataV1Dataset()                     */
@@ -552,7 +552,7 @@ retry:
         CPLString osActivate = json_object_get_string(poActivate);
         poLocation = nullptr;
         json_object_put(poObj);
-        poObj = RunRequest( osActivate, FALSE, "POST", false );
+        poObj = RunRequest( osActivate, FALSE, "GET", false );
         if( poObj != nullptr )
             json_object_put(poObj);
         poObj = nullptr;
@@ -577,7 +577,10 @@ retry:
         CPLFetchBool(poOpenInfo->papszOpenOptions, "RANDOM_ACCESS", true);
     if( bUseVSICURL && !(STARTS_WITH(m_osBaseURL, "/vsimem/")) )
     {
-        CPLString osTmpURL("/vsicurl/use_head=no,max_retry=3,empty_dir=yes,url=" + osRasterURL);
+        char* pszEscapedURL = CPLEscapeString(osRasterURL, -1, CPLES_URL);
+        CPLString osTmpURL("/vsicurl?use_head=no&max_retry=3&empty_dir=yes&url=");
+        osTmpURL += pszEscapedURL;
+        CPLFree(pszEscapedURL);
         CPLDebug("PLSCENES", "URL = %s", osTmpURL.c_str());
 
         VSIStatBufL sStat;

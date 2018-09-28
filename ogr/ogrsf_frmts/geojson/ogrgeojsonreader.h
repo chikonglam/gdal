@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonreader.h 132748ccaf9343a5bc1eb2aa6db99834ba42dc24 2018-06-06 11:50:02 +0200 Even Rouault $
+ * $Id: ogrgeojsonreader.h e4041afa8c4a60ed29ae460fd764b20bf1a5b4a7 2018-09-17 00:07:16 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines GeoJSON reader within OGR OGRGeoJSON Driver.
@@ -259,7 +259,7 @@ private:
     // Translation utilities.
     //
     bool GenerateLayerDefn();
-    bool GenerateFeatureDefn( json_object* poObj );
+    bool ParseField( json_object* poObj );
     bool AddFeature( OGRFeature* poFeature );
 
     OGRGeometry* ReadGeometry( json_object* poObj );

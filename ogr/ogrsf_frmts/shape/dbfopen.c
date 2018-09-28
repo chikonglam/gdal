@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dbfopen.c 6d6ad2a8172966e9a0b1f4c3831db41f640c6296 2018-03-17 15:20:21Z Even Rouault $
+ * $Id: dbfopen.c 4b0c256f5c8c2adddfca94f2c31c861dd739867d 2018-08-16 17:33:07 +0200 Even Rouault $
  *
  * Project:  Shapelib
  * Purpose:  Implementation of .dbf access API documented in dbf_api.html.
@@ -209,7 +209,7 @@
 #define CPLsnprintf snprintf
 #endif
 
-SHP_CVSID("$Id: dbfopen.c 6d6ad2a8172966e9a0b1f4c3831db41f640c6296 2018-03-17 15:20:21Z Even Rouault $")
+SHP_CVSID("$Id: dbfopen.c 4b0c256f5c8c2adddfca94f2c31c861dd739867d 2018-08-16 17:33:07 +0200 Even Rouault $")
 
 #ifndef FALSE
 #  define FALSE		0
@@ -2045,6 +2045,10 @@ DBFDeleteField(DBFHandle psDBF, int iField)
     if( psDBF->bWriteEndOfFileChar )
     {
         char ch = END_OF_FILE_CHARACTER;
+        SAOffset nEOFOffset =
+            psDBF->nRecordLength * (SAOffset)psDBF->nRecords + psDBF->nHeaderLength;
+
+        psDBF->sHooks.FSeek( psDBF->fp, nEOFOffset, 0 );
         psDBF->sHooks.FWrite( &ch, 1, 1, psDBF->fp );
     }
 

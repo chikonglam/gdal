@@ -51,7 +51,7 @@
 #include "ogr_p.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogrspatialreference.cpp 4942e6b19a5f82ab343ec686154644effd0fcbde 2018-04-18 21:13:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrspatialreference.cpp 825a6a02f5f7031274c5e717aee82b24ff02d9b8 2018-08-18 18:54:43 +0200 Even Rouault $")
 
 // The current opinion is that WKT longitudes like central meridian
 // should be relative to Greenwich, not the prime meridian in use.
@@ -5101,6 +5101,11 @@ OGRErr OSRSetIWMPolyconic( OGRSpatialReferenceH hSRS,
 /*                             SetKrovak()                              */
 /************************************************************************/
 
+/** Krovak east-north projection.
+ *
+ * Note that dfAzimuth and dfPseudoStdParallel1 are ignored when exporting
+ * to PROJ and should be respectively set to 30.28813972222222 and 78.5
+ */
 OGRErr OGRSpatialReference::SetKrovak( double dfCenterLat, double dfCenterLong,
                                        double dfAzimuth,
                                        double dfPseudoStdParallel1,

@@ -29,7 +29,7 @@
 #include "ogreditablelayer.h"
 #include "../mem/ogr_mem.h"
 
-CPL_CVSID("$Id: ogreditablelayer.cpp e5a287aeb4a9c8665a45b9877e555e16ed93843d 2018-04-18 19:06:22 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogreditablelayer.cpp a4f767a94b440b14fca51dd762b2f73e777902e7 2018-09-14 21:33:02 +0200 Even Rouault $")
 
 //! @cond Doxygen_Suppress
 
@@ -344,8 +344,6 @@ OGRErr      OGREditableLayer::ISetFeature( OGRFeature *poFeature )
         poFeature->SetFID(nFID);
     }
     delete poMemFeature;
-
-    ResetReading();
 
     return eErr;
 }

@@ -49,7 +49,7 @@ extern "C" void GDALRegister_WMTS();
 
 #define WMTS_WGS84_DEG_PER_METER    (180 / M_PI / SRS_WGS84_SEMIMAJOR)
 
-CPL_CVSID("$Id: wmtsdataset.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: wmtsdataset.cpp 5cba46b1c84bc7b7e89c07f9e127058f2fe002ca 2018-07-09 21:54:46 +0200 Even Rouault $")
 
 typedef enum
 {
@@ -1711,34 +1711,43 @@ GDALDataset* WMTSDataset::Open(GDALOpenInfo* poOpenInfo)
                         break;
                     }
 
-                    OGRCoordinateTransformation* poCT =
-                        OGRCreateCoordinateTransformation(&oSRS, &oTMS.oSRS);
-                    if( poCT != nullptr )
+                    // Otherwise try to reproject the bounding box of the
+                    // layer from its SRS to the TMS SRS. Except in some cases
+                    // where this would result in non-sense. (this could be
+                    // improved !)
+                    if( !(bIsTMerc && oSRS.IsGeographic() &&
+                          fabs(oIter->second.MinX - -180) < 1e-8 &&
+                          fabs(oIter->second.MaxX - 180) < 1e-8) )
                     {
-                        double dfX1 = oIter->second.MinX;
-                        double dfY1 = oIter->second.MinY;
-                        double dfX2 = oIter->second.MaxX;
-                        double dfY2 = oIter->second.MinY;
-                        double dfX3 = oIter->second.MaxX;
-                        double dfY3 = oIter->second.MaxY;
-                        double dfX4 = oIter->second.MinX;
-                        double dfY4 = oIter->second.MaxY;
-                        if( poCT->Transform(1, &dfX1, &dfY1) &&
-                            poCT->Transform(1, &dfX2, &dfY2) &&
-                            poCT->Transform(1, &dfX3, &dfY3) &&
-                            poCT->Transform(1, &dfX4, &dfY4) )
+                        OGRCoordinateTransformation* poCT =
+                            OGRCreateCoordinateTransformation(&oSRS, &oTMS.oSRS);
+                        if( poCT != nullptr )
                         {
-                            sAOI.MinX = std::min(std::min(dfX1, dfX2),
-                                                 std::min(dfX3, dfX4));
-                            sAOI.MinY = std::min(std::min(dfY1, dfY2),
-                                                 std::min(dfY3, dfY4));
-                            sAOI.MaxX = std::max(std::max(dfX1, dfX2),
-                                                 std::max(dfX3, dfX4));
-                            sAOI.MaxY = std::max(std::max(dfY1, dfY2),
-                                                 std::max(dfY3, dfY4));
-                            bHasAOI = TRUE;
+                            double dfX1 = oIter->second.MinX;
+                            double dfY1 = oIter->second.MinY;
+                            double dfX2 = oIter->second.MaxX;
+                            double dfY2 = oIter->second.MinY;
+                            double dfX3 = oIter->second.MaxX;
+                            double dfY3 = oIter->second.MaxY;
+                            double dfX4 = oIter->second.MinX;
+                            double dfY4 = oIter->second.MaxY;
+                            if( poCT->Transform(1, &dfX1, &dfY1) &&
+                                poCT->Transform(1, &dfX2, &dfY2) &&
+                                poCT->Transform(1, &dfX3, &dfY3) &&
+                                poCT->Transform(1, &dfX4, &dfY4) )
+                            {
+                                sAOI.MinX = std::min(std::min(dfX1, dfX2),
+                                                    std::min(dfX3, dfX4));
+                                sAOI.MinY = std::min(std::min(dfY1, dfY2),
+                                                    std::min(dfY3, dfY4));
+                                sAOI.MaxX = std::max(std::max(dfX1, dfX2),
+                                                    std::max(dfX3, dfX4));
+                                sAOI.MaxY = std::max(std::max(dfY1, dfY2),
+                                                    std::max(dfY3, dfY4));
+                                bHasAOI = TRUE;
+                            }
+                            delete poCT;
                         }
-                        delete poCT;
                     }
                     break;
                 }

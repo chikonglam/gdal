@@ -40,7 +40,7 @@
 #include "mitab_priv.h"
 #include "mitab_utils.h"
 
-CPL_CVSID("$Id: mitab_tooldef.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: mitab_tooldef.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABToolDefTable
@@ -214,7 +214,7 @@ int TABToolDefTable::ReadAllToolDefs( TABMAPToolBlock *poBlock )
             nStatus = -1;
         }
 
-        if (CPLGetLastErrorNo() != 0)
+        if (CPLGetLastErrorType() == CE_Failure)
         {
             // An error happened reading this tool definition... stop now.
             nStatus = -1;
@@ -273,7 +273,7 @@ int TABToolDefTable::WriteAllToolDefs( TABMAPToolBlock *poBlock )
         poBlock->WriteByte((GByte)COLOR_G(m_papsPen[i]->rgbColor));
         poBlock->WriteByte((GByte)COLOR_B(m_papsPen[i]->rgbColor));
 
-        if (CPLGetLastErrorNo() != 0)
+        if (CPLGetLastErrorType() == CE_Failure)
         {
             // An error happened reading this tool definition... stop now.
             nStatus = -1;
@@ -299,7 +299,7 @@ int TABToolDefTable::WriteAllToolDefs( TABMAPToolBlock *poBlock )
         poBlock->WriteByte((GByte)COLOR_G(m_papsBrush[i]->rgbBGColor));
         poBlock->WriteByte((GByte)COLOR_B(m_papsBrush[i]->rgbBGColor));
 
-        if (CPLGetLastErrorNo() != 0)
+        if (CPLGetLastErrorType() == CE_Failure)
         {
             // An error happened reading this tool definition... stop now.
             nStatus = -1;
@@ -318,7 +318,7 @@ int TABToolDefTable::WriteAllToolDefs( TABMAPToolBlock *poBlock )
 
         poBlock->WriteBytes(32, (GByte*)m_papsFont[i]->szFontName);
 
-        if (CPLGetLastErrorNo() != 0)
+        if (CPLGetLastErrorType() == CE_Failure)
         {
             // An error happened reading this tool definition... stop now.
             nStatus = -1;
@@ -342,7 +342,7 @@ int TABToolDefTable::WriteAllToolDefs( TABMAPToolBlock *poBlock )
         poBlock->WriteByte((GByte)COLOR_G(m_papsSymbol[i]->rgbColor));
         poBlock->WriteByte((GByte)COLOR_B(m_papsSymbol[i]->rgbColor));
 
-        if (CPLGetLastErrorNo() != 0)
+        if (CPLGetLastErrorType() == CE_Failure)
         {
             // An error happened reading this tool definition... stop now.
             nStatus = -1;

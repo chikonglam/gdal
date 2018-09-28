@@ -39,7 +39,7 @@
 #define E00ReadNextLine     GDALE00GRIDReadNextLine
 #define E00ReadRewind       GDALE00GRIDReadRewind
 
-CPL_CVSID("$Id: e00griddataset.cpp 62dd0e1d86b69d7cdf7c8731ee6411615f82d414 2018-04-22 15:08:53 +0200 Even Rouault $")
+CPL_CVSID("$Id: e00griddataset.cpp f466372a2a145bebc6c1b3c5bc26055e4de26328 2018-09-03 19:46:58 +0200 Even Rouault $")
 
 #undef NULL
 #define NULL nullptr
@@ -850,7 +850,10 @@ void E00GRIDDataset::ReadMetadata()
                 {
                     break;
                 }
-                papszPrj = CSLAddString(papszPrj, pszLine);
+                if (!EQUAL(pszLine, "~") )
+                {
+                    papszPrj = CSLAddString(papszPrj, pszLine);
+                }
             }
 
             OGRSpatialReference oSRS;
