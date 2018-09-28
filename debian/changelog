@@ -1,11 +1,12 @@
-gdal (2.3.2+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.3.2+dfsg-1) unstable; urgency=medium
 
   * New upstream release.
   * Update symbols for 2.3.2~rc1.
   * Fix gdal-abi dependency for ia64 & riscv64 symbols.
   * Update watch file for final releases.
+  * Move from experimental to unstable.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 28 Sep 2018 16:15:12 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 28 Sep 2018 16:15:35 +0200
 
 gdal (2.3.2~rc1+dfsg-1~exp1) experimental; urgency=medium
 
