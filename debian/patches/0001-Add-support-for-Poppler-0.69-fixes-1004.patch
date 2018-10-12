@@ -1,0 +1,278 @@
+Description: Add support for Poppler 0.69 (fixes #1004)
+Author: Even Rouault <even.rouault@spatialys.com>
+Origin: https://github.com/OSGeo/gdal/commit/0c0b9ea5a5d6bbef938de8a77c5b00cb228b902d
+Bug: https://github.com/OSGeo/gdal/issues/1004
+Bug-Debian: https://bugs.debian.org/910872
+
+--- a/GDALmake.opt.in
++++ b/GDALmake.opt.in
+@@ -473,6 +473,7 @@ POPPLER_BASE_STREAM_HAS_TWO_ARGS = @POPP
+ POPPLER_0_20_OR_LATER = @POPPLER_0_20_OR_LATER@
+ POPPLER_0_23_OR_LATER = @POPPLER_0_23_OR_LATER@
+ POPPLER_0_58_OR_LATER = @POPPLER_0_58_OR_LATER@
++POPPLER_0_69_OR_LATER = @POPPLER_0_69_OR_LATER@
+ POPPLER_INC = @POPPLER_INC@
+ POPPLER_PLUGIN_LIB = @POPPLER_PLUGIN_LIB@
+ 
+--- a/configure
++++ b/configure
+@@ -664,6 +664,7 @@ PODOFO_INC
+ HAVE_PODOFO
+ POPPLER_PLUGIN_LIB
+ POPPLER_INC
++POPPLER_0_69_OR_LATER
+ POPPLER_0_58_OR_LATER
+ POPPLER_0_23_OR_LATER
+ POPPLER_0_20_OR_LATER
+@@ -34386,6 +34387,7 @@ POPPLER_BASE_STREAM_HAS_TWO_ARGS=no
+ POPPLER_0_20_OR_LATER=no
+ POPPLER_0_23_OR_LATER=no
+ POPPLER_0_58_OR_LATER=no
++POPPLER_0_69_OR_LATER=no
+ 
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for poppler" >&5
+ $as_echo_n "checking for poppler... " >&6; }
+@@ -34428,24 +34430,51 @@ $as_echo "yes" >&6; }
+ 
+         CHECK_OTHER_POPPLER_VERSION=yes
+ 
+-        # And now we check if we have Poppler >= 0.58.0
+-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking if Object does have new API (>= 0.58.0)" >&5
++        if test "$CHECK_OTHER_POPPLER_VERSION" = "yes"; then
++            { $as_echo "$as_me:${as_lineno-$LINENO}: checking if OptionalContent has API >= 0.69.0" >&5
++$as_echo_n "checking if OptionalContent has API >= 0.69.0... " >&6; }
++            rm -f testpoppler.*
++            echo '#include <poppler/OptionalContent.h>' > testpoppler.cpp
++            echo 'int main(int argc, char** argv) {' >> testpoppler.cpp
++            echo 'OCGs ocg(nullptr, nullptr);' >> testpoppler.cpp
++            echo 'ocg.getOCGs().size();' >> testpoppler.cpp
++            echo 'return 0; }' >> testpoppler.cpp
++            if test -z "`${CXX} ${CXXFLAGS} ${CPPFLAGS} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
++                POPPLER_0_69_OR_LATER=yes
++                POPPLER_0_58_OR_LATER=yes
++                POPPLER_0_23_OR_LATER=yes
++                POPPLER_0_20_OR_LATER=yes
++                POPPLER_BASE_STREAM_HAS_TWO_ARGS=yes
++                POPPLER_HAS_OPTCONTENT=yes
++                CHECK_OTHER_POPPLER_VERSION=no
++                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
++$as_echo "yes" >&6; }
++            else
++                { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++            fi
++        fi
++
++        if test "$CHECK_OTHER_POPPLER_VERSION" = "yes"; then
++            # And now we check if we have Poppler >= 0.58.0
++            { $as_echo "$as_me:${as_lineno-$LINENO}: checking if Object does have new API (>= 0.58.0)" >&5
+ $as_echo_n "checking if Object does have new API (>= 0.58.0)... " >&6; }
+-        rm -f testpoppler.*
+-        echo '#include <poppler/Object.h>' > testpoppler.cpp
+-        echo 'int main(int argc, char** argv) { Object o(objNull); return 0; }' >> testpoppler.cpp
+-        if test -z "`${CXX} ${CXXFLAGS} ${CPPFLAGS} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
+-            POPPLER_0_58_OR_LATER=yes
+-            POPPLER_0_23_OR_LATER=yes
+-            POPPLER_0_20_OR_LATER=yes
+-            POPPLER_BASE_STREAM_HAS_TWO_ARGS=yes
+-            POPPLER_HAS_OPTCONTENT=yes
+-            CHECK_OTHER_POPPLER_VERSION=no
+-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
++            rm -f testpoppler.*
++            echo '#include <poppler/Object.h>' > testpoppler.cpp
++            echo 'int main(int argc, char** argv) { Object o(objNull); return 0; }' >> testpoppler.cpp
++            if test -z "`${CXX} ${CXXFLAGS} ${CPPFLAGS} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
++                POPPLER_0_58_OR_LATER=yes
++                POPPLER_0_23_OR_LATER=yes
++                POPPLER_0_20_OR_LATER=yes
++                POPPLER_BASE_STREAM_HAS_TWO_ARGS=yes
++                POPPLER_HAS_OPTCONTENT=yes
++                CHECK_OTHER_POPPLER_VERSION=no
++                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+ $as_echo "yes" >&6; }
+-        else
+-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++            else
++                { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+ $as_echo "no" >&6; }
++            fi
+         fi
+ 
+         if test "$CHECK_OTHER_POPPLER_VERSION" = "yes"; then
+@@ -34550,6 +34579,8 @@ POPPLER_0_23_OR_LATER=$POPPLER_0_23_OR_L
+ 
+ POPPLER_0_58_OR_LATER=$POPPLER_0_58_OR_LATER
+ 
++POPPLER_0_69_OR_LATER=$POPPLER_0_69_OR_LATER
++
+ POPPLER_INC=$POPPLER_INC
+ 
+ POPPLER_PLUGIN_LIB=$POPPLER_PLUGIN_LIB
+--- a/configure.ac
++++ b/configure.ac
+@@ -4446,6 +4446,7 @@ POPPLER_BASE_STREAM_HAS_TWO_ARGS=no
+ POPPLER_0_20_OR_LATER=no
+ POPPLER_0_23_OR_LATER=no
+ POPPLER_0_58_OR_LATER=no
++POPPLER_0_69_OR_LATER=no
+ 
+ AC_MSG_CHECKING([for poppler])
+ 
+@@ -4486,21 +4487,45 @@ if test "$with_poppler" != "no" -a "$wit
+ 
+         CHECK_OTHER_POPPLER_VERSION=yes
+ 
+-        # And now we check if we have Poppler >= 0.58.0
+-        AC_MSG_CHECKING([if Object does have new API (>= 0.58.0)])
+-        rm -f testpoppler.*
+-        echo '#include <poppler/Object.h>' > testpoppler.cpp
+-        echo 'int main(int argc, char** argv) { Object o(objNull); return 0; }' >> testpoppler.cpp
+-        if test -z "`${CXX} ${CXXFLAGS} ${CPPFLAGS} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
+-            POPPLER_0_58_OR_LATER=yes
+-            POPPLER_0_23_OR_LATER=yes
+-            POPPLER_0_20_OR_LATER=yes
+-            POPPLER_BASE_STREAM_HAS_TWO_ARGS=yes
+-            POPPLER_HAS_OPTCONTENT=yes
+-            CHECK_OTHER_POPPLER_VERSION=no
+-            AC_MSG_RESULT([yes])
+-        else
+-            AC_MSG_RESULT([no])
++        if test "$CHECK_OTHER_POPPLER_VERSION" = "yes"; then
++            AC_MSG_CHECKING([if OptionalContent has API >= 0.69.0])
++            rm -f testpoppler.*
++            echo '#include <poppler/OptionalContent.h>' > testpoppler.cpp
++            echo 'int main(int argc, char** argv) {' >> testpoppler.cpp
++            echo 'OCGs ocg(nullptr, nullptr);' >> testpoppler.cpp
++            echo 'ocg.getOCGs().size();' >> testpoppler.cpp
++            echo 'return 0; }' >> testpoppler.cpp
++            if test -z "`${CXX} ${CXXFLAGS} ${CPPFLAGS} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
++                POPPLER_0_69_OR_LATER=yes
++                POPPLER_0_58_OR_LATER=yes
++                POPPLER_0_23_OR_LATER=yes
++                POPPLER_0_20_OR_LATER=yes
++                POPPLER_BASE_STREAM_HAS_TWO_ARGS=yes
++                POPPLER_HAS_OPTCONTENT=yes
++                CHECK_OTHER_POPPLER_VERSION=no
++                AC_MSG_RESULT([yes])
++            else
++                AC_MSG_RESULT([no])
++            fi
++        fi
++
++        if test "$CHECK_OTHER_POPPLER_VERSION" = "yes"; then
++            # And now we check if we have Poppler >= 0.58.0
++            AC_MSG_CHECKING([if Object does have new API (>= 0.58.0)])
++            rm -f testpoppler.*
++            echo '#include <poppler/Object.h>' > testpoppler.cpp
++            echo 'int main(int argc, char** argv) { Object o(objNull); return 0; }' >> testpoppler.cpp
++            if test -z "`${CXX} ${CXXFLAGS} ${CPPFLAGS} testpoppler.cpp -c ${POPPLER_INC} 2>&1`" ; then
++                POPPLER_0_58_OR_LATER=yes
++                POPPLER_0_23_OR_LATER=yes
++                POPPLER_0_20_OR_LATER=yes
++                POPPLER_BASE_STREAM_HAS_TWO_ARGS=yes
++                POPPLER_HAS_OPTCONTENT=yes
++                CHECK_OTHER_POPPLER_VERSION=no
++                AC_MSG_RESULT([yes])
++            else
++                AC_MSG_RESULT([no])
++            fi
+         fi
+ 
+         if test "$CHECK_OTHER_POPPLER_VERSION" = "yes"; then
+@@ -4585,6 +4610,7 @@ AC_SUBST(POPPLER_BASE_STREAM_HAS_TWO_ARG
+ AC_SUBST(POPPLER_0_20_OR_LATER, $POPPLER_0_20_OR_LATER)
+ AC_SUBST(POPPLER_0_23_OR_LATER, $POPPLER_0_23_OR_LATER)
+ AC_SUBST(POPPLER_0_58_OR_LATER, $POPPLER_0_58_OR_LATER)
++AC_SUBST(POPPLER_0_69_OR_LATER, $POPPLER_0_69_OR_LATER)
+ AC_SUBST(POPPLER_INC, $POPPLER_INC)
+ AC_SUBST(POPPLER_PLUGIN_LIB, $POPPLER_PLUGIN_LIB)
+ 
+--- a/frmts/pdf/GNUmakefile
++++ b/frmts/pdf/GNUmakefile
+@@ -35,6 +35,10 @@ ifeq ($(POPPLER_0_58_OR_LATER),yes)
+ CPPFLAGS +=  -DPOPPLER_0_58_OR_LATER
+ endif
+ 
++ifeq ($(POPPLER_0_69_OR_LATER),yes)
++CPPFLAGS +=  -DPOPPLER_0_69_OR_LATER
++endif
++
+ ifeq ($(HAVE_PODOFO),yes)
+ CPPFLAGS +=  -DHAVE_PODOFO
+ endif
+--- a/frmts/pdf/makefile.vc
++++ b/frmts/pdf/makefile.vc
+@@ -14,7 +14,7 @@ OBJ = $(OBJ) ..\..\ogr\ogrsf_frmts\mem\o
+ EXTRAFLAGS =  -I..\vrt -I..\mem -I..\..\ogr\ogrsf_frmts\mem $(POPPLER_EXTRAFLAGS) $(PODOFO_EXTRAFLAGS) $(PDFIUM_EXTRAFLAGS)
+ 
+ !IFDEF POPPLER_ENABLED
+-POPPLER_EXTRAFLAGS = $(POPPLER_CFLAGS) $(POPPLER_HAS_OPTCONTENT_FLAGS) $(POPPLER_BASE_STREAM_HAS_TWO_ARGS_FLAGS) $(POPPLER_0_20_OR_LATER_FLAGS) $(POPPLER_0_23_OR_LATER_FLAGS) $(POPPLER_0_58_OR_LATER_FLAGS) -DHAVE_POPPLER
++POPPLER_EXTRAFLAGS = $(POPPLER_CFLAGS) $(POPPLER_HAS_OPTCONTENT_FLAGS) $(POPPLER_BASE_STREAM_HAS_TWO_ARGS_FLAGS) $(POPPLER_0_20_OR_LATER_FLAGS) $(POPPLER_0_23_OR_LATER_FLAGS) $(POPPLER_0_58_OR_LATER_FLAGS) $(POPPLER_0_69_OR_LATER_FLAGS) -DHAVE_POPPLER
+ 
+ !IFDEF POPPLER_HAS_OPTCONTENT
+ POPPLER_HAS_OPTCONTENT_FLAGS = -DPOPPLER_HAS_OPTCONTENT
+@@ -36,6 +36,10 @@ POPPLER_0_23_OR_LATER_FLAGS = -DPOPPLER_
+ POPPLER_0_58_OR_LATER_FLAGS = -DPOPPLER_0_58_OR_LATER
+ !ENDIF
+ 
++!IFDEF POPPLER_0_69_OR_LATER
++POPPLER_0_69_OR_LATER_FLAGS = -DPOPPLER_0_69_OR_LATER
++!ENDIF
++
+ !ENDIF
+ 
+ !IFDEF PODOFO_ENABLED
+--- a/frmts/pdf/pdfdataset.cpp
++++ b/frmts/pdf/pdfdataset.cpp
+@@ -3440,10 +3440,16 @@ void PDFDataset::FindLayersPoppler()
+     }
+     else
+     {
++#ifdef POPPLER_0_69_OR_LATER
++        for( const auto& refOCGPair: optContentConfig->getOCGs() )
++        {
++            auto ocg = refOCGPair.second.get();
++#else
+         GooList* ocgList = optContentConfig->getOCGs();
+         for(int i=0;i<ocgList->getLength();i++)
+         {
+             OptionalContentGroup* ocg = (OptionalContentGroup*) ocgList->get(i);
++#endif
+             if( ocg != nullptr && ocg->getName() != nullptr )
+             {
+                 const char* pszLayerName = (const char*)ocg->getName()->getCString();
+@@ -3472,10 +3478,16 @@ void PDFDataset::TurnLayersOnOffPoppler(
+     {
+         int i;
+         int bAll = EQUAL(pszLayers, "ALL");
++#ifdef POPPLER_0_69_OR_LATER
++        for( const auto& refOCGPair: optContentConfig->getOCGs() )
++        {
++            auto ocg = refOCGPair.second.get();
++#else
+         GooList* ocgList = optContentConfig->getOCGs();
+         for(i=0;i<ocgList->getLength();i++)
+         {
+             OptionalContentGroup* ocg = (OptionalContentGroup*) ocgList->get(i);
++#endif
+             ocg->setState( (bAll) ? OptionalContentGroup::On : OptionalContentGroup::Off );
+         }
+ 
+--- a/nmake.opt
++++ b/nmake.opt
+@@ -632,6 +632,7 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\inclu
+ # Uncomment POPPLER_0_20_OR_LATER = YES for Poppler >= 0.20.0
+ # Uncomment POPPLER_0_23_OR_LATER = YES for Poppler >= 0.23.0
+ # Uncomment POPPLER_0_58_OR_LATER = YES for Poppler >= 0.58.0
++# Uncomment POPPLER_0_69_OR_LATER = YES for Poppler >= 0.69.0
+ #POPPLER_ENABLED = YES
+ #POPPLER_CFLAGS = -Ie:/kde/include -Ie:/kde/include/poppler
+ #POPPLER_HAS_OPTCONTENT = YES
+@@ -639,6 +640,7 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\inclu
+ #POPPLER_0_20_OR_LATER = YES
+ #POPPLER_0_23_OR_LATER = YES
+ #POPPLER_0_58_OR_LATER = YES
++#POPPLER_0_69_OR_LATER = YES
+ #POPPLER_LIBS = e:/kde/lib/poppler.lib e:/kde/lib/freetype.lib e:/kde/lib/liblcms-1.lib advapi32.lib gdi32.lib
+ 
+ # Uncomment for PDF support
