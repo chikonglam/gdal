@@ -1157,6 +1157,7 @@ sub new_architecture_symbols {
 					foreach(read_file($filt)) {
 						if($i == 0 && /^ /) {
 							$_ = "#include \"${pkg}.symbols.common\"\n" . $_;
+							$_ = "* Build-Depends-Package: libgdal-dev\n" . $_;
 							$_ = "| ${pkg} #MINVER#, $abi\n" . $_;
 
 							$i++;

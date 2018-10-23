@@ -1,3 +1,9 @@
+gdal (2.3.2+dfsg-3) UNRELEASED; urgency=medium
+
+  * Add Add Build-Depends-Package field to symbols file.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 23 Oct 2018 11:42:15 +0200
+
 gdal (2.3.2+dfsg-2) unstable; urgency=medium
 
   * Add upstream patch to fix FTBFS with Poppler 0.69.0.
