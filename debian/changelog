@@ -2,6 +2,7 @@ gdal (2.3.2+dfsg-3) UNRELEASED; urgency=medium
 
   * Add Add Build-Depends-Package field to symbols file.
   * Update symbols for 2.3.2.
+  * Strip pre-releases from symbols version.
 
  -- Bas Couwenberg <sebastic@debian.org>  Tue, 23 Oct 2018 11:42:15 +0200
 
