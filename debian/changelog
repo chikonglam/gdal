@@ -1,3 +1,10 @@
+gdal (2.3.2+dfsg-4) UNRELEASED; urgency=medium
+
+  * Add upstream patch for Poppler 0.71.0 support.
+    (closes: #915722)
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 06 Dec 2018 13:32:24 +0100
+
 gdal (2.3.2+dfsg-3) unstable; urgency=medium
 
   * Add Build-Depends-Package field to symbols file.
