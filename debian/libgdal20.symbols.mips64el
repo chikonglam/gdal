@@ -3725,7 +3725,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<CADHandle, std::allocator<CADHandle> >::~vector()@Base" 2.2.0 1
  (c++)"void std::vector<CADVector, std::allocator<CADVector> >::_M_realloc_insert<CADVector const&>(__gnu_cxx::__normal_iterator<CADVector*, std::vector<CADVector, std::allocator<CADVector> > >, CADVector const&)@Base" 2.3.0 1
  (c++)"std::vector<CADVector, std::allocator<CADVector> >::reserve(unsigned long)@Base" 2.3.0 1
- (c++)"std::vector<CADVector, std::allocator<CADVector> >::push_back(CADVector const&)@Base" 2.3.0 1
  (c++)"void std::vector<CPLString, std::allocator<CPLString> >::emplace_back<CPLString>(CPLString&&)@Base" 2.1.1 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::_M_insert_rval(__gnu_cxx::__normal_iterator<CPLString const*, std::vector<CPLString, std::allocator<CPLString> > >, CPLString&&)@Base" 2.2.2 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::_M_default_append(unsigned long)@Base" 2.1.1 1

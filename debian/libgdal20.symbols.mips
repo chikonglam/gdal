@@ -3680,6 +3680,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_destroy()@Base" 2.2.0 1
  (c++)"std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()@Base" 2.2.0 1
  (c++)"__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > > std::_V2::__rotate<__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > > >(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, __gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, __gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, std::random_access_iterator_tag)@Base" 2.3.0 1
+ (c++)"std::map<CPLString, OGREnvelope, std::less<CPLString>, std::allocator<std::pair<CPLString const, OGREnvelope> > >::operator[](CPLString const&)@Base" 2.3.2 1
  (c++)"std::map<CPLString, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int), std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> > >::~map()@Base" 1.9.0 1
  (c++)"std::map<CPLString, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int), std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> > >::~map()@Base" 1.9.0 1
  (c++)"std::map<CPLString, CPLString, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::~map()@Base" 2.2.0 1
