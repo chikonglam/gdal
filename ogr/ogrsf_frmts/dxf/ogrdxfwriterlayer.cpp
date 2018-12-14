@@ -35,7 +35,7 @@
 
 #include <cstdlib>
 
-CPL_CVSID("$Id: ogrdxfwriterlayer.cpp 98dfb4b4012c5ae4621e246e8eb393b3c05a3f48 2018-04-02 22:09:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrdxfwriterlayer.cpp 8506be5ef6fc0a87e4446efc45cae79e01c9ee5c 2018-11-26 13:08:08 +0100 Even Rouault $")
 
 /************************************************************************/
 /*                         OGRDXFWriterLayer()                          */
@@ -1307,7 +1307,10 @@ OGRErr OGRDXFWriterLayer::ICreateFeature( OGRFeature *poFeature )
             OGRErr eErr = CreateFeature( poFeature );
 
             if( eErr != OGRERR_NONE )
+            {
+                delete poGC;
                 return eErr;
+            }
         }
 
         poFeature->SetGeometryDirectly( poGC );

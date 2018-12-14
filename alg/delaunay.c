@@ -49,7 +49,7 @@
 #include <ctype.h>
 #include <math.h>
 
-CPL_CVSID("$Id: delaunay.c 4053978373139ca4eaa4f15e2ae66477516ae4af 2018-06-28 22:56:21 +0200 Even Rouault $")
+CPL_CVSID("$Id: delaunay.c 818830b37601c33fb53567f86949c8edc1157592 2018-10-06 19:02:19 +0200 Even Rouault $")
 
 #if defined(INTERNAL_QHULL) || defined(EXTERNAL_QHULL)
 #define HAVE_INTERNAL_OR_EXTERNAL_QHULL 1
@@ -327,7 +327,7 @@ int  GDALTriangulationComputeBarycentricCoefficients(GDALTriangulation* psDT,
         double dfY3 = padfY[psFacet->anVertexIdx[2]];
         /* See https://en.wikipedia.org/wiki/Barycentric_coordinate_system */
         double dfDenom = (dfY2 - dfY3) * (dfX1 - dfX3) + (dfX3 - dfX2) * (dfY1 - dfY3);
-        if( dfDenom == 0.0 )
+        if( fabs(dfDenom) < 1e-5 )
         {
             // Degenerate triangle
             psCoeffs->dfMul1X = 0.0;
@@ -441,7 +441,8 @@ int GDALTriangulationFindFacetBruteForce(const GDALTriangulation* psDT,
         double l1, l2, l3;
         const GDALTriBarycentricCoefficients* psCoeffs =
                                     &(psDT->pasFacetCoefficients[nFacetIdx]);
-        if( psCoeffs->dfMul1X == 0.0 )
+        if( psCoeffs->dfMul1X == 0.0 && psCoeffs->dfMul2X == 0.0 &&
+            psCoeffs->dfMul1Y == 0.0 && psCoeffs->dfMul2Y == 0.0 )
         {
             // Degenerate triangle
             continue;
@@ -541,7 +542,8 @@ int GDALTriangulationFindFacetDirected(const GDALTriangulation* psDT,
         const GDALTriFacet* psFacet = &(psDT->pasFacets[nFacetIdx]);
         const GDALTriBarycentricCoefficients* psCoeffs =
                                 &(psDT->pasFacetCoefficients[nFacetIdx]);
-        if( psCoeffs->dfMul1X == 0.0 )
+        if( psCoeffs->dfMul1X == 0.0 && psCoeffs->dfMul2X == 0.0 &&
+            psCoeffs->dfMul1Y == 0.0 && psCoeffs->dfMul2Y == 0.0 )
         {
             // Degenerate triangle
             break;

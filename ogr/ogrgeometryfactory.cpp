@@ -64,7 +64,7 @@
 #define UNUSED_IF_NO_GEOS
 #endif
 
-CPL_CVSID("$Id: ogrgeometryfactory.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeometryfactory.cpp 3c003cb4f06a8fed9df234ecabc35b81d0cd5ac2 2018-11-01 19:37:07 +0100 Even Rouault $")
 
 /************************************************************************/
 /*                           createFromWkb()                            */
@@ -2788,8 +2788,10 @@ static void CutGeometryOnDateLineAndAddToMulti( OGRGeometryCollection* poMulti,
             const double dfDiffSpace = 360 - dfDateLineOffset;
 
             const double dfXOffset = (bAroundMinus180) ? 360.0 : 0.0;
-            if( oEnvelope.MinX + dfXOffset > dfLeftBorderX &&
-                oEnvelope.MaxX + dfXOffset > 180 )
+            if( oEnvelope.MinX < -180 ||
+                oEnvelope.MaxX > 180 ||
+                (oEnvelope.MinX + dfXOffset > dfLeftBorderX &&
+                 oEnvelope.MaxX + dfXOffset > 180) )
             {
 #ifndef HAVE_GEOS
                 CPLError( CE_Failure, CPLE_NotSupported,
@@ -2856,8 +2858,8 @@ static void CutGeometryOnDateLineAndAddToMulti( OGRGeometryCollection* poMulti,
                 OGRGeometry* poRectangle1 = nullptr;
                 OGRGeometry* poRectangle2 = nullptr;
                 const char* pszWKT1 = !bAroundMinus180 ?
-                    "POLYGON((0 90,180 90,180 -90,0 -90,0 90))" :
-                    "POLYGON((0 90,-180 90,-180 -90,0 -90,0 90))";
+                    "POLYGON((-180 90,180 90,180 -90,-180 -90,-180 90))" :
+                    "POLYGON((180 90,-180 90,-180 -90,180 -90,180 90))";
                 const char* pszWKT2 = !bAroundMinus180 ?
                     "POLYGON((180 90,360 90,360 -90,180 -90,180 90))" :
                     "POLYGON((-180 90,-360 90,-360 -90,-180 -90,-180 90))";

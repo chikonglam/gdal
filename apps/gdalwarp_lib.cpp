@@ -59,7 +59,7 @@
 #include "ogr_srs_api.h"
 #include "vrtdataset.h"
 
-CPL_CVSID("$Id: gdalwarp_lib.cpp bf6dc2add0064d9c76bbdd9a319641747c5311e3 2018-04-26 20:17:00 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalwarp_lib.cpp 2aa952a9cabf062c92db8713976cd41385306b65 2018-09-22 15:57:07 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                        GDALWarpAppOptions                            */
@@ -1448,6 +1448,24 @@ GDALDatasetH GDALWarp( const char *pszDest, GDALDatasetH hDstDS, int nSrcCount,
             psWO->nBandCount = GDALGetRasterCount(hWrkSrcDS) - 1;
         else
             psWO->nBandCount = GDALGetRasterCount(hWrkSrcDS);
+
+        const int nNeededDstBands =
+            psWO->nBandCount + ( bEnableDstAlpha ? 1 : 0 );
+        if( nNeededDstBands > GDALGetRasterCount(hDstDS) )
+        {
+            CPLError(CE_Failure, CPLE_AppDefined,
+                     "Destination dataset has %d bands, but at least %d "
+                     "are needed",
+                     GDALGetRasterCount(hDstDS),
+                     nNeededDstBands);
+            GDALDestroyTransformer( hTransformArg );
+            GDALDestroyWarpOptions( psWO );
+            GDALWarpAppOptionsFree(psOptions);
+            OGR_G_DestroyGeometry( hCutline );
+            GDALReleaseDataset(hWrkSrcDS);
+            GDALReleaseDataset(hDstDS);
+            return nullptr;
+        }
 
         psWO->panSrcBands =
             static_cast<int *>(CPLMalloc(psWO->nBandCount*sizeof(int)));

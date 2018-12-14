@@ -33,7 +33,7 @@
 #include <string.h>
 #include <fitsio.h>
 
-CPL_CVSID("$Id: fitsdataset.cpp 0d6109d879b05d9ae5451eb646ce96765b912246 2018-04-08 19:12:46 +0200 Even Rouault $")
+CPL_CVSID("$Id: fitsdataset.cpp 6eaea8fcfa9a9d8184a4f0ab9f143bcb620d51da 2018-10-24 20:23:42 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -129,8 +129,8 @@ CPLErr FITSRasterBand::IReadBlock(CPL_UNUSED int nBlockXOff, int nBlockYOff,
 
   // Calculate offsets and read in the data. Note that FITS array offsets
   // start at 1...
-  long offset = (nBand - 1) * nRasterXSize * nRasterYSize +
-    nBlockYOff * nRasterXSize + 1;
+  LONGLONG offset = static_cast<LONGLONG>(nBand - 1) * nRasterXSize * nRasterYSize +
+    static_cast<LONGLONG>(nBlockYOff) * nRasterXSize + 1;
   long nElements = nRasterXSize;
 
   // If we haven't written this block to the file yet, then attempting
@@ -171,8 +171,8 @@ CPLErr FITSRasterBand::IWriteBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff,
 
   // Calculate offsets and read in the data. Note that FITS array offsets
   // start at 1...
-  long offset = (nBand - 1) * nRasterXSize * nRasterYSize +
-    nBlockYOff * nRasterXSize + 1;
+  LONGLONG offset = static_cast<LONGLONG>(nBand - 1) * nRasterXSize * nRasterYSize +
+    static_cast<LONGLONG>(nBlockYOff) * nRasterXSize + 1;
   long nElements = nRasterXSize;
   fits_write_img(hFITS, dataset->fitsDataType, offset, nElements,
                  pImage, &status);

@@ -37,7 +37,7 @@
 #include <algorithm>
 #include <sstream>
 
-CPL_CVSID("$Id: irisdataset.cpp 7f5962115e9eb760c33415d5b5381f5858806d29 2018-05-22 10:08:25 +0200 Even Rouault $")
+CPL_CVSID("$Id: irisdataset.cpp 06f19ec3f62ff59e09e592d12dd9112a5216e464 2018-11-17 22:33:22 +0100 Even Rouault $")
 
 static double DEG2RAD = M_PI / 180.0;
 static double RAD2DEG = 180.0 / M_PI;
@@ -508,6 +508,7 @@ void IRISDataset::LoadProjection()
             "degree", 0.0174532925199433);
 
         oSRSOut.SetMercator(fProjRefLat, fProjRefLon, 1.0, 0.0, 0.0);
+        oSRSOut.SetLinearUnits("Metre", 1.0);
         oSRSOut.exportToWkt(&pszSRS_WKT);
 
         // The center coordinates are given in LatLon on the defined

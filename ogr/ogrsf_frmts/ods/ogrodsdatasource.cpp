@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <set>
 
-CPL_CVSID("$Id: ogrodsdatasource.cpp 59e5ede2cac0762afe7bc68ca19855a5ea42c004 2018-04-21 16:34:01 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrodsdatasource.cpp 5d373e2a8b60c8e8b9c2ef5d9d7f765c1867a515 2018-11-19 23:28:06 +0100 Even Rouault $")
 
 namespace OGRODS {
 
@@ -1072,6 +1072,7 @@ void OGRODSDataSource::endElementRow( CPL_UNUSED /*in non-DEBUG*/ const char * p
                             OGRFieldDefn oNewFieldDefn(
                                 poCurLayer->GetLayerDefn()->GetFieldDefn(
                                     static_cast<int>(i)));
+                            oNewFieldDefn.SetSubType(OFSTNone);
                             if( ( eFieldType == OFTDate ||
                                   eFieldType == OFTTime) &&
                                 eValType == OFTDateTime )

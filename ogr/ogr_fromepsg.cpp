@@ -53,7 +53,7 @@
 #include "ogr_p.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ogr_fromepsg.cpp a5d470bdd8e89e3146e962ff5909fa30e2cb6cdf 2018-04-18 22:09:11 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr_fromepsg.cpp a7e53cdbe5aa932d36a25c760cd22e928382344b 2018-10-09 19:10:11 +0200 Even Rouault $")
 
 extern void OGRsnPrintDouble( char * pszStrBuf, size_t size, double dfValue );
 
@@ -3420,24 +3420,29 @@ OGRSpatialReferenceH* OGRSpatialReference::FindMatches(
     if( ppanMatchConfidence )
         *ppanMatchConfidence = nullptr;
 
-    OGRSpatialReference oSRSClone(*this);
-    if( oSRSClone.AutoIdentifyEPSG() == OGRERR_NONE )
     {
-        const char* pszCode = oSRSClone.GetAuthorityCode(nullptr);
-        if( pszCode )
-            oSRSClone.importFromEPSG(atoi(pszCode));
-        OGRSpatialReferenceH* pahRet =
-            static_cast<OGRSpatialReferenceH*>(
-                    CPLCalloc(sizeof(OGRSpatialReferenceH), 2));
-        pahRet[0] = reinterpret_cast<OGRSpatialReferenceH>(oSRSClone.Clone());
-        if( pnEntries )
-            *pnEntries = 1;
-        if( ppanMatchConfidence )
+        OGRSpatialReference oSRSClone(*this);
+        if( oSRSClone.AutoIdentifyEPSG() == OGRERR_NONE )
         {
-            *ppanMatchConfidence = static_cast<int*>(CPLMalloc(sizeof(int)));
-            (*ppanMatchConfidence)[0] = 100;
+            const char* pszCode = oSRSClone.GetAuthorityCode(nullptr);
+            if( pszCode )
+                oSRSClone.importFromEPSG(atoi(pszCode));
+            if( IsSame( &oSRSClone ) )
+            {
+                OGRSpatialReferenceH* pahRet =
+                    static_cast<OGRSpatialReferenceH*>(
+                            CPLCalloc(sizeof(OGRSpatialReferenceH), 2));
+                pahRet[0] = reinterpret_cast<OGRSpatialReferenceH>(oSRSClone.Clone());
+                if( pnEntries )
+                    *pnEntries = 1;
+                if( ppanMatchConfidence )
+                {
+                    *ppanMatchConfidence = static_cast<int*>(CPLMalloc(sizeof(int)));
+                    (*ppanMatchConfidence)[0] = 100;
+                }
+                return pahRet;
+            }
         }
-        return pahRet;
     }
 
     const char* pszSRSType = "";

@@ -34,7 +34,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrxlsxdatasource.cpp 098114356bc7dc6a5303d62e63b079a950ff2f66 2018-05-14 11:29:01 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrxlsxdatasource.cpp 5d373e2a8b60c8e8b9c2ef5d9d7f765c1867a515 2018-11-19 23:28:06 +0100 Even Rouault $")
 
 namespace OGRXLSX {
 
@@ -1002,6 +1002,7 @@ void OGRXLSXDataSource::endElementRow(CPL_UNUSED const char *pszNameIn)
                         else if (eFieldType != OFTString && eValType != eFieldType)
                         {
                             OGRFieldDefn oNewFieldDefn(poFieldDefn);
+                            oNewFieldDefn.SetSubType(OFSTNone);
                             if ((eFieldType == OFTDate || eFieldType == OFTTime) &&
                                    eValType == OFTDateTime)
                                 oNewFieldDefn.SetType(OFTDateTime);

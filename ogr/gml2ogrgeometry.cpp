@@ -57,7 +57,7 @@
 #include "ogr_srs_api.h"
 #include "ogr_geo_utils.h"
 
-CPL_CVSID("$Id: gml2ogrgeometry.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: gml2ogrgeometry.cpp 00ad17c886f16a24a3490241197487699113c92e 2018-10-14 15:23:30 +0200 Even Rouault $")
 
 constexpr double kdfD2R = M_PI / 180.0;
 constexpr double kdf2PI = 2.0 * M_PI;
@@ -2582,6 +2582,32 @@ OGRGeometry *GML2OGRGeometry_XMLNode_Internal(
                     }
 
                     poGC->addGeometryDirectly( poGeom );
+                }
+            }
+            else if( psChild->eType == CXT_Element
+                     && EQUAL(BareGMLElement(psChild->pszValue), "geometryMembers") )
+            {
+                for( const CPLXMLNode *psChild2 = psChild->psChild;
+                     psChild2 != nullptr;
+                     psChild2 = psChild2->psNext )
+                {
+                    if( psChild2->eType == CXT_Element )
+                    {
+                        OGRGeometry* poGeom = GML2OGRGeometry_XMLNode_Internal(
+                            psChild2, nPseudoBoolGetSecondaryGeometryOption,
+                            nRecLevel + 1, nSRSDimension, pszSRSName );
+                        if( poGeom == nullptr )
+                        {
+                            CPLError( CE_Failure, CPLE_AppDefined,
+                                    "GeometryCollection: Failed to get geometry "
+                                    "in geometryMember" );
+                            delete poGeom;
+                            delete poGC;
+                            return nullptr;
+                        }
+
+                        poGC->addGeometryDirectly( poGeom );
+                    }
                 }
             }
         }

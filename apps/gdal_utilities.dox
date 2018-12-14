@@ -1,5 +1,5 @@
 #ifndef DOXYGEN_SKIP
-/* $Id: gdal_utilities.dox 27dcde5e2f5ea66eec45b077a27e0de6f20eb402 2018-05-02 19:12:22 +0200 Even Rouault $ */
+/* $Id: gdal_utilities.dox 8c90a5569ea2cf01d1bd9f92e4231b8807c44580 2018-09-22 14:42:09 +0200 Even Rouault $ */
 #endif /* DOXYGEN_SKIP */
 
 /*!
@@ -176,7 +176,7 @@ and exit.
 
 \htmlonly
 <p>
-$Id: gdal_utilities.dox 27dcde5e2f5ea66eec45b077a27e0de6f20eb402 2018-05-02 19:12:22 +0200 Even Rouault $
+$Id: gdal_utilities.dox 8c90a5569ea2cf01d1bd9f92e4231b8807c44580 2018-09-22 14:42:09 +0200 Even Rouault $
 </p>
 \endhtmlonly
 */
@@ -1667,6 +1667,7 @@ Generates directory with TMS tiles, KMLs and simple web viewers.
 gdal2tiles.py [-p profile] [-r resampling] [-s srs] [-z zoom]
               [-e] [-a nodata] [-v] [-q] [-h] [-k] [-n] [-u url]
               [-w webviewer] [-t title] [-c copyright]
+              [--processes=NB_PROCESSES]
               [-g googlekey] [-b bingkey] input_file [output_dir]
 \endverbatim
 
@@ -1702,6 +1703,8 @@ can publish a picture without proper georeferencing too.
   <dd>Generate verbose output of tile generation.</dd>
 <dt> <b>-q, --quiet</b></dt>
   <dd>Disable messages and status to stdout (GDAL &gt;= 2.1).</dd>
+<dt> <b>--processes=</b><i>NB_PROCESSES</i></dt>
+  <dd>Number of processes to use for tiling (GDAL &gt;= 2.3).</dd>
 <dt> <b>-h, --help</b></dt>
   <dd>Show help message and exit.</dd>
 <dt> <b>\-\-version</b></dt>
