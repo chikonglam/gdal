@@ -2,6 +2,7 @@ gdal (2.3.3~rc1+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release candidate.
   * Update watch file for 2.3.3 pre-releases.
+  * Drop Poppler patches, included upstream. Refresh remaining patches.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 14 Dec 2018 15:35:29 +0100
 

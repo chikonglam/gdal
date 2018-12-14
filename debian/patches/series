@@ -9,5 +9,3 @@ perl-vendor
 privacy-breach-logo.patch
 privacy-breach-generic.patch
 perl-doxyfile
-0001-Add-support-for-Poppler-0.69-fixes-1004.patch
-0001-Add-support-for-Poppler-0.71.0-fixes-1121.patch
