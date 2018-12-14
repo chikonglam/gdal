@@ -54,7 +54,7 @@
 #include "ogr_srs_api.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: gdal_grid_lib.cpp 7d078e0357d2998edfa713422e607cbadf77f9ff 2018-04-08 22:11:28 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdal_grid_lib.cpp 59e6a908f2fc92acde477446d99e8d694025e35a 2018-12-07 11:58:04 +0100 Even Rouault $")
 
 /************************************************************************/
 /*                          GDALGridOptions                             */
@@ -625,7 +625,8 @@ static OGRGeometryCollection* LoadGeometry( const char* pszDS,
                                             const char* pszLyr,
                                             const char* pszWhere )
 {
-    GDALDataset *poDS = static_cast<GDALDataset*>(GDALOpen(pszDS, GA_ReadOnly));
+    GDALDataset *poDS = static_cast<GDALDataset*>(
+        GDALOpenEx(pszDS, GDAL_OF_VECTOR, nullptr, nullptr, nullptr));
     if ( poDS == nullptr )
         return nullptr;
 

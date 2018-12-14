@@ -47,7 +47,7 @@
 #include <vector>
 #include <set>
 
-CPL_CVSID("$Id: ogrmvtdataset.cpp 29b9fa89802cb284474cc3e04fae5e77da680f86 2018-06-08 16:58:27 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrmvtdataset.cpp 4fa2f6dc000f46d65f0015525154db59e8655916 2018-09-26 23:47:31 +0200 Even Rouault $")
 
 const char* SRS_EPSG_3857 = "PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"X\",EAST],AXIS[\"Y\",NORTH],EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs\"],AUTHORITY[\"EPSG\",\"3857\"]]";
 
@@ -2263,16 +2263,25 @@ static int OGRMVTDriverIdentify( GDALOpenInfo* poOpenInfo )
                 }
                 pabyData += nValueLength;
             }
+            else if( GET_FIELDNUMBER(nKey) == knLAYER_EXTENT &&
+                     GET_WIRETYPE(nKey) != WT_VARINT )
+            {
+                CPLDebug("MVT", "Invalid wire type for extent field");
+                return FALSE;
+            }
+#if 0
+            // The check on extent is too fragile. Values of 65536 can be found
             else if( nKey == MAKE_KEY(knLAYER_EXTENT, WT_VARINT) )
             {
                 unsigned int nExtent = 0;
                 READ_VARUINT32(pabyData, pabyLayerEnd, nExtent);
-                if( nExtent < 128 || nExtent > 16384 )
+                if( nExtent < 128 || nExtent > 16834 )
                 {
                     CPLDebug("MVT", "Invalid extent: %u", nExtent);
                     return FALSE;
                 }
             }
+#endif
             else if( nKey == MAKE_KEY(knLAYER_VERSION, WT_VARINT) )
             {
                 unsigned int nVersion = 0;

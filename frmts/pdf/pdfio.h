@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdfio.h 8f9eb9836e91ff82b8c085c881e978befbbd1f52 2017-09-08 11:23:00Z Even Rouault $
+ * $Id: pdfio.h 4cc0215b8f2cef3582265cdfaf16589390697706 2018-11-28 11:59:15 +0100 Even Rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
@@ -56,6 +56,15 @@
 #define makeSubStream_object_type Object&&
 #else
 #define makeSubStream_object_type Object*
+#endif
+
+// Detect Poppler 0.71 that no longer defines GBool
+#ifdef POPPLER_0_69_OR_LATER
+#ifndef initObj
+#define POPPLER_0_71_OR_LATER
+#define GBool bool
+#define gFalse false
+#endif
 #endif
 
 class VSIPDFFileStream: public BaseStream

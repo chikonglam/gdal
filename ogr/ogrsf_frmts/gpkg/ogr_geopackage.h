@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geopackage.h 85cc62e40607cf41aee12b371271ec570fc85c83 2018-07-24 19:46:03 +0200 Even Rouault $
+ * $Id: ogr_geopackage.h 05a25fb391048ccd916ab41b4c0c1e3084a44753 2018-10-04 13:47:44 +0200 Andrea Giudiceandrea $
  *
  * Project:  GeoPackage Translator
  * Purpose:  Definition of classes for OGR GeoPackage driver.
@@ -191,6 +191,7 @@ class GDALGeoPackageDataset final : public OGRSQLiteBaseDataSource, public GDALG
 
         int                     FindLayerIndex(const char* pszLayerName);
 
+        bool                    HasGriddedCoverageAncillaryTable();
         bool                    CreateTileGriddedTable(char** papszOptions);
 
         void                    CreateOGREmptyTableIfNeeded();

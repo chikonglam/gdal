@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_priv.h 12e52bca5d2ef4d60eac422db198aefa9577be63 2018-07-14 19:04:33 +0200 Even Rouault $
+ * $Id: gdal_priv.h 35bffe8063631f82da77398a37900c784b2b414f 2018-11-02 22:54:20 +0100 Even Rouault $
  *
  * Name:     gdal_priv.h
  * Project:  GDAL Core
@@ -1810,6 +1810,8 @@ template<class T> inline bool ARE_REAL_EQUAL(T fVal1, T fVal2, int ulp = 2)
     return fVal1 == fVal2 || /* Should cover infinity */
            std::abs(fVal1 - fVal2) < std::numeric_limits<float>::epsilon() * std::abs(fVal1+fVal2) * ulp;
 }
+
+double GDALAdjustNoDataCloseToFloatMax(double dfVal);
 
 #define DIV_ROUND_UP(a, b) ( ((a) % (b)) == 0 ? ((a) / (b)) : (((a) / (b)) + 1) )
 

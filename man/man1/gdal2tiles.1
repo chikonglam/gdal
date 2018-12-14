@@ -1,4 +1,4 @@
-.TH "gdal2tiles" 1 "Fri Sep 21 2018" "GDAL" \" -*- nroff -*-
+.TH "gdal2tiles" 1 "Fri Dec 14 2018" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -10,6 +10,7 @@ gdal2tiles \- Generates directory with TMS tiles, KMLs and simple web viewers\&.
 gdal2tiles.py [-p profile] [-r resampling] [-s srs] [-z zoom]
               [-e] [-a nodata] [-v] [-q] [-h] [-k] [-n] [-u url]
               [-w webviewer] [-t title] [-c copyright]
+              [--processes=NB_PROCESSES]
               [-g googlekey] [-b bingkey] input_file [output_dir]
 .fi
 .PP
@@ -37,6 +38,8 @@ NODATA transparency value to assign to the input data\&.
 Generate verbose output of tile generation\&. 
 .IP "\fB\fB-q, --quiet\fP \fP" 1c
 Disable messages and status to stdout (GDAL >= 2\&.1)\&. 
+.IP "\fB\fB--processes=\fP\fINB_PROCESSES\fP \fP" 1c
+Number of processes to use for tiling (GDAL >= 2\&.3)\&. 
 .IP "\fB\fB-h, --help\fP \fP" 1c
 Show help message and exit\&. 
 .IP "\fB\fB--version\fP \fP" 1c

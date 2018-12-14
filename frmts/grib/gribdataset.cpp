@@ -70,7 +70,7 @@ CPL_C_END
 #include "gdal_priv.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gribdataset.cpp 01037e400d90e8bc4a74f8d886ea5a27ecce02c5 2018-01-12 23:49:31Z Kurt Schwehr $")
+CPL_CVSID("$Id: gribdataset.cpp 4e2373cedbaf3e6ec46721a7e642ae2048b8bba6 2018-11-17 22:33:18 +0100 Even Rouault $")
 
 static CPLMutex *hGRIBMutex = nullptr;
 
@@ -519,22 +519,39 @@ void GRIBRasterBand::FindNoDataGrib2(bool bSeekToStart)
                 const int nMiss = pabyBody[23-1];
                 if( nMiss == 1 || nMiss == 2 )
                 {
-                    float fTemp;
-                    memcpy(&fTemp, &pabyBody[24-1], 4);
-                    CPL_MSBPTR32(&fTemp);
-                    m_dfNoData = fTemp;
-                    m_bHasNoData = true;
-
-                    if( nMiss == 2 )
+                    const int original_field_type = pabyBody[21-1];
+                    if ( original_field_type == 0 ) // Floating Point
                     {
-                        memcpy(&fTemp, &pabyBody[28-1], 4);
+                        float fTemp;
+                        memcpy(&fTemp, &pabyBody[24-1], 4);
                         CPL_MSBPTR32(&fTemp);
-                        double dfSecondaryNoData = fTemp;
-
-                        // What TODO?
-                        CPLDebug("GRIB",
-                                 "Secondary missing value also set for band %d : %f",
-                                 nBand, dfSecondaryNoData);
+                        m_dfNoData = fTemp;
+                        m_bHasNoData = true;
+                        if( nMiss == 2 )
+                        {
+                            memcpy(&fTemp, &pabyBody[28-1], 4);
+                            CPL_MSBPTR32(&fTemp);
+                            CPLDebug("GRIB","Secondary missing value also set for band %d : %f", nBand, fTemp);
+                        }
+                    }
+                    else if ( original_field_type == 1 ) // Integer
+                    {
+                        int iTemp;
+                        memcpy(&iTemp, &pabyBody[24-1], 4);
+                        CPL_MSBPTR32(&iTemp);
+                        m_dfNoData = iTemp;
+                        m_bHasNoData = true;
+                        if( nMiss == 2 )
+                        {
+                            memcpy(&iTemp, &pabyBody[28-1], 4);
+                            CPL_MSBPTR32(&iTemp);
+                            CPLDebug("GRIB","Secondary missing value also set for band %d : %d", nBand, iTemp);
+                        }
+                    }
+                    else
+                    {
+                        // FIXME What to do? Blindly convert to float?
+                        CPLDebug("GRIB","Complex Packing - Type of Original Field Values for band %d:  %u", nBand, original_field_type);
                     }
                 }
             }
@@ -1183,6 +1200,11 @@ void GRIBDataset::SetGribMetaData(grib_MetaData *meta)
         break;
     case GS3_AZIMUTH_RANGE:
         break;
+    }
+
+    if( oSRS.IsProjected() )
+    {
+        oSRS.SetLinearUnits("Metre", 1.0);
     }
 
     const bool bHaveEarthModel =

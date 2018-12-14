@@ -58,7 +58,7 @@
 #include "ogr_spatialref.h"
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: gdal_misc.cpp ec7b85e6bb8f9737693a31f0bf7166e31e10992e 2018-04-16 00:08:36 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdal_misc.cpp 35bffe8063631f82da77398a37900c784b2b414f 2018-11-02 22:54:20 +0100 Even Rouault $")
 
 static int GetMinBitsForPair(
     const bool pabSigned[], const bool pabFloating[], const int panBits[])
@@ -4018,4 +4018,18 @@ int GDALCanFileAcceptSidecarFile(const char* pszFilename)
     if( strncmp(pszFilename, "/vsisubfile/", strlen("/vsisubfile/")) == 0 )
         return FALSE;
     return TRUE;
+}
+
+/************************************************************************/
+/*                    GDALAdjustNoDataCloseToFloatMax()                 */
+/************************************************************************/
+
+double GDALAdjustNoDataCloseToFloatMax(double dfVal)
+{
+    const auto kMaxFloat = std::numeric_limits<float>::max();
+    if( std::fabs(dfVal - -kMaxFloat) < 1e-10 * kMaxFloat )
+        return -kMaxFloat;
+    if( std::fabs(dfVal - kMaxFloat) < 1e-10 * kMaxFloat )
+        return kMaxFloat;
+    return dfVal;
 }

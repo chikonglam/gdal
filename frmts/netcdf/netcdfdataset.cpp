@@ -62,7 +62,7 @@
 #include "ogr_core.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: netcdfdataset.cpp defc09b43d77fd7f9751b4a3b41a7f5ce379be1e 2018-08-30 18:34:21 +0200 Even Rouault $")
+CPL_CVSID("$Id: netcdfdataset.cpp dac0a2ff7759890fe1fe5c3ab60cfd407db51e2d 2018-11-25 21:44:07 +0100 Markus Metz $")
 
 // Internal function declarations.
 
@@ -3117,6 +3117,33 @@ void netCDFDataset::SetProjectionFromVar( int nVarId, bool bReadSRSOnly )
         }
         else
         {
+            bool nWestIsLeft = (pdfXCoord[0] < pdfXCoord[xdim - 1]);
+
+            // fix longitudes if longitudes should increase from 
+            // west to east, but west > east
+            if (!nWestIsLeft)
+            {
+                size_t ndecreases = 0;
+
+                // there is lon wrap if longitudes increase 
+                // with one single decrease 
+                for( size_t i = 1; i < xdim; i++ )
+                {
+                    if (pdfXCoord[i] < pdfXCoord[i - 1])
+                        ndecreases++;
+                }
+
+                if (ndecreases == 1)
+                {
+                    CPLDebug("GDAL_netCDF", "longitude wrap detected");
+                    for( size_t i = 0; i < xdim; i++ )
+                    {
+                        if (pdfXCoord[i] > pdfXCoord[xdim - 1])
+                            pdfXCoord[i] -= 360;
+                    }
+                }
+            }
+
             nSpacingBegin = static_cast<int>(
                 poDS->rint((pdfXCoord[1] - pdfXCoord[0]) * 1000));
 

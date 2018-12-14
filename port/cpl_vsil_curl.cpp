@@ -48,7 +48,7 @@
 #include "cpl_vsi_virtual.h"
 #include "cpl_http.h"
 
-CPL_CVSID("$Id: cpl_vsil_curl.cpp d21e89ae0ae22b5725e629a951fc762e1fc12c6e 2018-05-19 20:23:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_vsil_curl.cpp 6b4c1c31467142203e48b9c2c2d60e78400b5a9b 2018-10-18 09:14:40 +0200 Even Rouault $")
 
 #ifndef HAVE_CURL
 
@@ -3367,7 +3367,13 @@ char** VSICurlFilesystemHandler::ParseHTMLFileList( const char* pszFilename,
 
     CPLString osURL(VSICurlGetURLFromFilename(pszFilename, nullptr, nullptr, nullptr,
                                               nullptr, nullptr, nullptr));
-    const char* pszDir = strchr(osURL.c_str(), '/');
+    const char* pszDir = nullptr;
+    if( STARTS_WITH_CI(osURL, "http://") )
+        pszDir = strchr(osURL.c_str() + strlen("http://"), '/');
+    else if( STARTS_WITH_CI(osURL, "https://") )
+        pszDir = strchr(osURL.c_str() + strlen("https://"), '/');
+    else if( STARTS_WITH_CI(osURL, "ftp://") )
+        pszDir = strchr(osURL.c_str() + strlen("ftp://"), '/');
     if( pszDir == nullptr )
         pszDir = "";
 
@@ -5892,9 +5898,11 @@ const char* VSIS3FSHandler::GetOptions()
         "description='Whether to disable signing of requests' default='NO'/>"
     "  <Option name='AWS_DEFAULT_REGION' type='string' "
         "description='AWS S3 default region' default='us-east-1'/>"
+    "  <Option name='CPL_AWS_AUTODETECT_EC2' type='boolean' "
+        "description='Whether to check Hypervisor & DMI identifiers to "
+        "determine if current host is an AWS EC2 instance' default='YES'/>"
     "  <Option name='CPL_AWS_CHECK_HYPERVISOR_UUID' type='boolean' "
-        "description='Whether to check /sys/hypervisor/uuid to determine "
-        "if current machine is a AWS EC2 instance' default='YES'/>"
+        "description='Legacy equivalent of CPL_AWS_AUTODETECT_EC2' default='YES'/>"
     "  <Option name='AWS_DEFAULT_PROFILE' type='string' "
         "description='Name of the profile to use for IAM credentials "
         "retrieval on EC2 instances' default='default'/>"
@@ -6047,6 +6055,10 @@ int IVSIS3LikeFSHandler::Stat( const char *pszFilename, VSIStatBufL *pStatBuf,
                           int nFlags )
 {
     if( !STARTS_WITH_CI(pszFilename, GetFSPrefix()) )
+        return -1;
+
+    memset(pStatBuf, 0, sizeof(VSIStatBufL));
+    if( !IsAllowedFilename( pszFilename ) )
         return -1;
 
     CPLString osFilename(pszFilename);

@@ -51,7 +51,7 @@
 #include "ogrsf_frmts.h"
 #include "swq.h"
 
-CPL_CVSID("$Id: ogropenfilegdbdatasource.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogropenfilegdbdatasource.cpp f8e953156027f2de1b4f4be10a4c7ee7442ada95 2018-11-10 09:49:04 +0100 Even Rouault $")
 
 /************************************************************************/
 /*                      OGROpenFileGDBDataSource()                      */
@@ -183,6 +183,7 @@ int OGROpenFileGDBDataSource::Open( const char* pszFilename )
     }
 
     if( !(oTable.GetFieldCount() >= 2 &&
+          oTable.GetTotalRecordCount() < 100000 &&
           oTable.GetField(0)->GetName() == "Name" &&
           oTable.GetField(0)->GetType() == FGFT_STRING &&
           oTable.GetField(1)->GetName() == "FileFormat" &&
@@ -197,39 +198,46 @@ int OGROpenFileGDBDataSource::Open( const char* pszFilename )
     int iGDBObjectClasses = -1; /* V9.X */
 
     std::vector<std::string> aosTableNames;
-    for( int i=0;i<oTable.GetTotalRecordCount();i++)
+    try
     {
-        if( !oTable.SelectRow(i) )
+        for( int i=0;i<oTable.GetTotalRecordCount();i++)
         {
-            if( oTable.HasGotError() )
-                break;
-            aosTableNames.push_back("");
-            continue;
-        }
+            if( !oTable.SelectRow(i) )
+            {
+                if( oTable.HasGotError() )
+                    break;
+                aosTableNames.push_back("");
+                continue;
+            }
 
-        const OGRField* psField = oTable.GetFieldValue(0);
-        if( psField != nullptr )
-        {
-            aosTableNames.push_back(psField->String);
+            const OGRField* psField = oTable.GetFieldValue(0);
+            if( psField != nullptr )
+            {
+                aosTableNames.push_back(psField->String);
 
-            if( strcmp(psField->String, "GDB_Items") == 0 )
-            {
-                iGDBItems = i;
+                if( strcmp(psField->String, "GDB_Items") == 0 )
+                {
+                    iGDBItems = i;
+                }
+                else if( strcmp(psField->String, "GDB_FeatureClasses") == 0 )
+                {
+                    iGDBFeatureClasses = i;
+                }
+                else if( strcmp(psField->String, "GDB_ObjectClasses") == 0 )
+                {
+                    iGDBObjectClasses = i;
+                }
+                m_osMapNameToIdx[psField->String] = 1 + i;
             }
-            else if( strcmp(psField->String, "GDB_FeatureClasses") == 0 )
+            else
             {
-                iGDBFeatureClasses = i;
+                aosTableNames.push_back("");
             }
-            else if( strcmp(psField->String, "GDB_ObjectClasses") == 0 )
-            {
-                iGDBObjectClasses = i;
-            }
-            m_osMapNameToIdx[psField->String] = 1 + i;
         }
-        else
-        {
-            aosTableNames.push_back("");
-        }
+    }
+    catch( const std::exception& )
+    {
+        return FALSE;
     }
 
     oTable.Close();

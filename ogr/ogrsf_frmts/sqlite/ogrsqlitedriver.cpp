@@ -49,7 +49,7 @@
 #include "ogr_core.h"
 #include "sqlite3.h"
 
-CPL_CVSID("$Id: ogrsqlitedriver.cpp 722bc4c4c4f6ec3494bb2e4ee96b8742d72ac4c5 2018-02-14 22:51:15Z Kurt Schwehr $")
+CPL_CVSID("$Id: ogrsqlitedriver.cpp 2559c3e67f5f66f559bede6be8f843e0f2843bc2 2018-09-22 15:56:48 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                     OGRSQLiteDriverIdentify()                        */
@@ -222,12 +222,20 @@ static GDALDataset *OGRSQLiteDriverOpen( GDALOpenInfo* poOpenInfo )
 /************************************************************************/
 
 static GDALDataset *OGRSQLiteDriverCreate( const char * pszName,
-                                           CPL_UNUSED int nBands,
+                                           int nBands,
                                            CPL_UNUSED int nXSize,
                                            CPL_UNUSED int nYSize,
                                            CPL_UNUSED GDALDataType eDT,
                                            char **papszOptions )
 {
+    if( nBands != 0 )
+    {
+        CPLError(CE_Failure, CPLE_NotSupported,
+                 "Raster creation through Create() interface is not supported. "
+                 "Only CreateCopy() is supported");
+        return nullptr;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      First, ensure there isn't any such file yet.                    */
 /* -------------------------------------------------------------------- */

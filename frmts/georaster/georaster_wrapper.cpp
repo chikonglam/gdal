@@ -34,7 +34,7 @@
 #include "cpl_string.h"
 #include "cpl_minixml.h"
 
-CPL_CVSID("$Id: georaster_wrapper.cpp e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $")
+CPL_CVSID("$Id: georaster_wrapper.cpp 79c519fae99c9d29d132402579a7e3723b457ee0 2018-10-19 11:35:28 -0700 Fengting Chen $")
 
 //  ---------------------------------------------------------------------------
 //                                                           GeoRasterWrapper()
@@ -526,7 +526,7 @@ GeoRasterWrapper* GeoRasterWrapper::Open( const char* pszStringId, bool bUpdate 
     //  Clean up
     //  -------------------------------------------------------------------
 
-    OCIDescriptorFree( phLocator, OCI_DTYPE_LOB );
+    poStmt->FreeLob(phLocator);
     CPLFree( pszXML );
     delete poStmt;
 
@@ -966,7 +966,7 @@ bool GeoRasterWrapper::Create( char* pszDescription,
         sDataTable = szBindRDT;
         nRasterId  = nBindRID;
 
-        OCIDescriptorFree( phLocator, OCI_DTYPE_LOB );
+        poStmt->FreeLob(phLocator);
 
         delete poStmt;
 
@@ -3185,13 +3185,13 @@ bool GeoRasterWrapper::SetNoData( int nLayer, const char* pszValue )
 
     if( ! poStmt->Execute() )
     {
-        OCIDescriptorFree( phLocatorR, OCI_DTYPE_LOB );
-        OCIDescriptorFree( phLocatorW, OCI_DTYPE_LOB );
+        poStmt->FreeLob(phLocatorR);
+        poStmt->FreeLob(phLocatorW);
         delete poStmt;
         return false;
     }
 
-    OCIDescriptorFree( phLocatorW, OCI_DTYPE_LOB );
+    poStmt->FreeLob(phLocatorW);
 
     // ------------------------------------------------------------
     //  Read the XML metadata from db to memory with nodata updates
@@ -3206,7 +3206,7 @@ bool GeoRasterWrapper::SetNoData( int nLayer, const char* pszValue )
         CPLFree( pszXML );
     }
 
-    OCIDescriptorFree( phLocatorR, OCI_DTYPE_LOB );
+    poStmt->FreeLob(phLocatorR);
 
     bFlushMetadata = true;
     delete poStmt;
@@ -3596,12 +3596,12 @@ bool GeoRasterWrapper::FlushMetadata()
 
     if( ! poStmt->Execute() )
     {
-        OCIDescriptorFree( phLocator, OCI_DTYPE_LOB );
+        poStmt->FreeLob(phLocator);
         delete poStmt;
         return false;
     }
 
-    OCIDescriptorFree( phLocator, OCI_DTYPE_LOB );
+    poStmt->FreeLob(phLocator);
 
     delete poStmt;
 
