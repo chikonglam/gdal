@@ -1,3 +1,9 @@
+gdal (2.3.2+dfsg-5) UNRELEASED; urgency=medium
+
+  * Update watch file for 2.3.3 pre-releases.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 14 Dec 2018 15:32:30 +0100
+
 gdal (2.3.2+dfsg-4) unstable; urgency=medium
 
   * Add upstream patch for Poppler 0.71.0 support.
