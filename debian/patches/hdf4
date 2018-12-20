@@ -5,7 +5,7 @@ Forwarded: not-needed
 
 --- a/configure
 +++ b/configure
-@@ -25801,7 +25801,7 @@ fi
+@@ -26188,7 +26188,7 @@ fi
  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDreaddata" >&5
  $as_echo "$ac_cv_lib_mfhdf_SDreaddata" >&6; }
  if test "x$ac_cv_lib_mfhdf_SDreaddata" = xyes; then :
@@ -14,7 +14,7 @@ Forwarded: not-needed
  else
    HDF_LIB_NAME=missing
  fi
-@@ -25861,7 +25861,7 @@ if ${ac_cv_lib_mfhdf_SDreaddata+:} false
+@@ -26248,7 +26248,7 @@ if ${ac_cv_lib_mfhdf_SDreaddata+:} false
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
@@ -23,7 +23,7 @@ Forwarded: not-needed
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -25892,7 +25892,7 @@ fi
+@@ -26279,7 +26279,7 @@ fi
  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDreaddata" >&5
  $as_echo "$ac_cv_lib_mfhdf_SDreaddata" >&6; }
  if test "x$ac_cv_lib_mfhdf_SDreaddata" = xyes; then :
@@ -32,7 +32,7 @@ Forwarded: not-needed
  else
    HDF_LIB_NAME=missing
  fi
-@@ -25907,7 +25907,7 @@ if ${ac_cv_lib_mfhdf_SDreaddata+:} false
+@@ -26294,7 +26294,7 @@ if ${ac_cv_lib_mfhdf_SDreaddata+:} false
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
@@ -41,7 +41,7 @@ Forwarded: not-needed
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -25938,7 +25938,7 @@ fi
+@@ -26325,7 +26325,7 @@ fi
  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDreaddata" >&5
  $as_echo "$ac_cv_lib_mfhdf_SDreaddata" >&6; }
  if test "x$ac_cv_lib_mfhdf_SDreaddata" = xyes; then :
