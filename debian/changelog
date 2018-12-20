@@ -1,10 +1,11 @@
-gdal (2.3.3+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.3.3+dfsg-1) unstable; urgency=medium
 
   * New upstream release.
   * Update watch file for final releases.
   * Update symbols for 2.3.3.
+  * Move from experimental to unstable.
 
- -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Dec 2018 13:37:04 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Dec 2018 13:42:28 +0100
 
 gdal (2.3.3~rc2+dfsg-1~exp1) experimental; urgency=medium
 
