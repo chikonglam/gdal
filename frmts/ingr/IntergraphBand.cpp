@@ -42,7 +42,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: IntergraphBand.cpp e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $")
+CPL_CVSID("$Id: IntergraphBand.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 using std::fill;
 
@@ -109,7 +109,7 @@ IntergraphRasterBand::IntergraphRasterBand( IntergraphDataset *poDSIn,
     nDataOffset = nBandOffset + 2 + ( 2 * ( hHeaderOne.WordsToFollow + 1 ) );
 
     // --------------------------------------------------------------------
-    // Get Color Tabel from Color Table Type (CTV)
+    // Get Color Table from Color Table Type (CTV)
     // --------------------------------------------------------------------
     uint32 nEntries = hHeaderTwo.NumberOfCTEntries;
 

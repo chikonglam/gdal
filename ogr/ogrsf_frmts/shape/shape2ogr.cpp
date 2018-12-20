@@ -49,7 +49,7 @@
 #include "ogrshape.h"
 #include "shapefil.h"
 
-CPL_CVSID("$Id: shape2ogr.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: shape2ogr.cpp 804fe53ab818b8fe2fdb0be7484a7a5df2be2f73 2018-08-16 17:32:41 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                        RingStartEnd                                  */
@@ -1369,20 +1369,6 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
                            bool bRewind )
 
 {
-#if DEBUG_VERBOSE
-/* -------------------------------------------------------------------- */
-/*      Don't write objects with missing geometry.                      */
-/* -------------------------------------------------------------------- */
-    if( poFeature->GetGeometryRef() == NULL && hSHP != NULL )
-    {
-        CPLError( CE_Failure, CPLE_AppDefined,
-                  "Attempt to write feature without geometry not supported "
-                  "for shapefile driver." );
-
-        return OGRERR_UNSUPPORTED_GEOMETRY_TYPE;
-    }
-#endif
-
 /* -------------------------------------------------------------------- */
 /*      Write the geometry.                                             */
 /* -------------------------------------------------------------------- */

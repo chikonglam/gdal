@@ -1,5 +1,5 @@
 /*
- * $Id: keaoverview.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: keaoverview.h 1dd8a744bbfec8b849371abec5cd44f729eecb03 2018-05-06 21:11:29 +0200 Even Rouault $
  *  keaoverview.h
  *
  *  Created by Pete Bunting on 01/08/2012.
@@ -36,7 +36,7 @@
 
 // overview class. Derives from our band class
 // and just overrides the read/write block functions
-class KEAOverview : public KEARasterBand
+class KEAOverview final: public KEARasterBand
 {
     int         m_nOverviewIndex; // the index of this overview
 public:

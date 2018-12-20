@@ -34,7 +34,7 @@
 
 //! @cond Doxygen_Suppress
 
-CPL_CVSID("$Id: cpl_azure.cpp b56a97cb83fcf0e00902f528e2178352f81e7f34 2018-10-01 14:47:17 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_azure.cpp 509f13f8ec796f713d5d29479cbbb6e203878746 2018-11-09 16:18:50 +0100 Even Rouault $")
 
 #ifdef HAVE_CURL
 
@@ -200,9 +200,9 @@ CPLString AzureCSGetParameter(const CPLString& osStr, const char* pszKey,
     {
         const char* pszMsg = CPLSPrintf(
             "%s missing in AZURE_STORAGE_CONNECTION_STRING", pszKey);
-        CPLDebug("AZURE", "%s", pszMsg);
         if( bErrorIfMissing )
         {
+            CPLDebug("AZURE", "%s", pszMsg);
             VSIError(VSIE_AWSInvalidCredentials, "%s", pszMsg);
         }
         return CPLString();

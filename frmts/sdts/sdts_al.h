@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sdts_al.h 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $
+ * $Id: sdts_al.h 2ace03ec48c36dae8ba74089d85617c095643428 2018-11-02 18:02:33 +0100 Even Rouault $
  *
  * Project:  SDTS Translator
  * Purpose:  Include file for entire SDTS Abstraction Layer functions.
@@ -149,6 +149,7 @@ class SDTS_CATD
     const char * GetEntryTypeDesc(int) const;
     const char * GetEntryFilePath(int) const;
     SDTSLayerType GetEntryType(int) const;
+    void          SetEntryTypeUnknown(int);
 };
 
 /************************************************************************/

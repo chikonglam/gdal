@@ -47,7 +47,7 @@
 #include <vector>
 #include <set>
 
-CPL_CVSID("$Id: ogrmvtdataset.cpp 4fa2f6dc000f46d65f0015525154db59e8655916 2018-09-26 23:47:31 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrmvtdataset.cpp 29ce66da1a40eae07b3343f9788092b571a7e22a 2018-11-16 00:26:20 +0100 Even Rouault $")
 
 const char* SRS_EPSG_3857 = "PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"X\",EAST],AXIS[\"Y\",NORTH],EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs\"],AUTHORITY[\"EPSG\",\"3857\"]]";
 
@@ -1324,9 +1324,6 @@ OGRFeature* OGRMVTLayer::GetNextRawFeature()
                         ParseGeometry(nGeomType, pabyDataGeometryEnd);
                     if( poGeom )
                     {
-                        poGeom->assignSpatialReference(GetSpatialRef());
-                        poFeature->SetGeometryDirectly(poGeom);
-
                         // Clip geometry to tile extent if requested
                         if( m_poDS->m_bClip && OGRGeometryFactory::haveGEOS() )
                         {
@@ -1359,6 +1356,8 @@ OGRFeature* OGRMVTLayer::GetNextRawFeature()
                                         poClipped->assignSpatialReference(
                                             GetSpatialRef());
                                         poFeature->SetGeometryDirectly(poClipped);
+                                        delete poGeom;
+                                        poGeom = nullptr;
                                     }
                                 }
                             }
@@ -1366,6 +1365,12 @@ OGRFeature* OGRMVTLayer::GetNextRawFeature()
                             {
                                 bOK = false;
                             }
+                        }
+
+                        if( poGeom )
+                        {
+                            poGeom->assignSpatialReference(GetSpatialRef());
+                            poFeature->SetGeometryDirectly(poGeom);
                         }
                     }
 
@@ -1995,6 +2000,11 @@ static int OGRMVTDriverIdentify( GDALOpenInfo* poOpenInfo )
     if( poOpenInfo->pabyHeader[0] == 0x1F &&
         poOpenInfo->pabyHeader[1] == 0x8B )
     {
+        // Prevent recursion
+        if( STARTS_WITH(poOpenInfo->pszFilename, "/vsigzip/") )
+        {
+            return FALSE;
+        }
         CPLConfigOptionSetter oSetter(
             "CPL_VSIL_GZIP_WRITE_PROPERTIES", "NO", false);
         GDALOpenInfo oOpenInfo( (CPLString("/vsigzip/") +
@@ -2042,8 +2052,14 @@ static int OGRMVTDriverIdentify( GDALOpenInfo* poOpenInfo )
         while( pabyData < pabyLayerEnd )
         {
             READ_VARUINT32(pabyData, pabyLayerEnd, nKey);
-            if( nKey == MAKE_KEY(knLAYER_NAME, WT_DATA) )
+            auto nFieldNumber = GET_FIELDNUMBER(nKey);
+            auto nWireType = GET_WIRETYPE(nKey);
+            if( nFieldNumber == knLAYER_NAME )
             {
+                if( nWireType != WT_DATA )
+                {
+                    CPLDebug("MVT", "Invalid wire type for layer_name field");
+                }
                 char* pszLayerName = nullptr;
                 unsigned int nTextSize = 0;
                 READ_TEXT_WITH_SIZE(pabyData, pabyLayerEnd, pszLayerName,
@@ -2058,8 +2074,12 @@ static int OGRMVTDriverIdentify( GDALOpenInfo* poOpenInfo )
                 CPLFree(pszLayerName);
                 bLayerNameFound = true;
             }
-            else if( nKey == MAKE_KEY(knLAYER_FEATURES, WT_DATA) )
+            else if( nFieldNumber == knLAYER_FEATURES )
             {
+                if( nWireType != WT_DATA )
+                {
+                    CPLDebug("MVT", "Invalid wire type for layer_features field");
+                }
                 unsigned int nFeatureLength = 0;
                 unsigned int nGeomType = 0;
                 READ_VARUINT32(pabyData, pabyLayerEnd, nFeatureLength);
@@ -2077,8 +2097,15 @@ static int OGRMVTDriverIdentify( GDALOpenInfo* poOpenInfo )
                 while( pabyData < pabyDataFeatureEnd )
                 {
                     READ_VARUINT32(pabyData, pabyDataFeatureEnd, nKey);
-                    if( nKey == MAKE_KEY(knFEATURE_TYPE, WT_VARINT) )
+                    nFieldNumber = GET_FIELDNUMBER(nKey);
+                    nWireType = GET_WIRETYPE(nKey);
+                    if( nFieldNumber == knFEATURE_TYPE)
                     {
+                        if( nWireType != WT_VARINT )
+                        {
+                            CPLDebug("MVT", "Invalid wire type for feature_type field");
+                            return FALSE;
+                        }
                         READ_VARUINT32(pabyData, pabyDataFeatureEnd, nGeomType);
                         if( nGeomType > knGEOM_TYPE_POLYGON )
                         {
@@ -2086,8 +2113,13 @@ static int OGRMVTDriverIdentify( GDALOpenInfo* poOpenInfo )
                             return FALSE;
                         }
                     }
-                    else if( nKey == MAKE_KEY(knFEATURE_TAGS, WT_DATA) )
+                    else if( nFieldNumber == knFEATURE_TAGS )
                     {
+                        if( nWireType != WT_DATA )
+                        {
+                            CPLDebug("MVT", "Invalid wire type for feature_tags field");
+                            return FALSE;
+                        }
                         unsigned int nTagsSize = 0;
                         READ_VARUINT32(pabyData, pabyDataFeatureEnd, nTagsSize);
                         if( nTagsSize == 0 || nTagsSize >
@@ -2113,6 +2145,11 @@ static int OGRMVTDriverIdentify( GDALOpenInfo* poOpenInfo )
                                 return FALSE;
                             }
                         }
+                    }
+                    else if( nFieldNumber == knFEATURE_GEOMETRY && nWireType != WT_DATA )
+                    {
+                        CPLDebug("MVT", "Invalid wire type for feature_geometry field");
+                        return FALSE;
                     }
                     else if( nKey == MAKE_KEY(knFEATURE_GEOMETRY, WT_DATA) &&
                             nGeomType >= 1 && nGeomType <= 3 )
@@ -2237,8 +2274,13 @@ static int OGRMVTDriverIdentify( GDALOpenInfo* poOpenInfo )
 
                 pabyData = pabyDataFeatureEnd;
             }
-            else if( nKey == MAKE_KEY(knLAYER_KEYS, WT_DATA) )
+            else if( nFieldNumber == knLAYER_KEYS )
             {
+                if( nWireType != WT_DATA )
+                {
+                    CPLDebug("MVT", "Invalid wire type for keys field");
+                    return FALSE;
+                }
                 char* pszKey = nullptr;
                 unsigned int nTextSize = 0;
                 READ_TEXT_WITH_SIZE(pabyData, pabyLayerEnd, pszKey, nTextSize);
@@ -2251,8 +2293,13 @@ static int OGRMVTDriverIdentify( GDALOpenInfo* poOpenInfo )
                 CPLFree(pszKey);
                 bKeyFound = true;
             }
-            else if( nKey == MAKE_KEY(knLAYER_VALUES, WT_DATA) )
+            else if( nFieldNumber == knLAYER_VALUES )
             {
+                if( nWireType != WT_DATA )
+                {
+                    CPLDebug("MVT", "Invalid wire type for values field");
+                    return FALSE;
+                }
                 unsigned int nValueLength = 0;
                 READ_VARUINT32(pabyData, pabyLayerEnd, nValueLength);
                 if( nValueLength == 0 ||
@@ -2282,8 +2329,13 @@ static int OGRMVTDriverIdentify( GDALOpenInfo* poOpenInfo )
                 }
             }
 #endif
-            else if( nKey == MAKE_KEY(knLAYER_VERSION, WT_VARINT) )
+            else if( nFieldNumber == knLAYER_VERSION )
             {
+                if( nWireType != WT_VARINT )
+                {
+                    CPLDebug("MVT", "Invalid wire type for version field");
+                    return FALSE;
+                }
                 unsigned int nVersion = 0;
                 READ_VARUINT32(pabyData, pabyLayerEnd, nVersion);
                 if( nVersion != 1 && nVersion != 2 )
@@ -5864,7 +5916,7 @@ OGRLayer* OGRMVTWriterDataset::ICreateLayer( const char* pszLayerName,
         m_oMapLayerNameToDesc[poLayer->m_osTargetName] = osDescription;
 
     m_apoLayers.push_back( std::unique_ptr<OGRMVTWriterLayer>(poLayer) );
-    return poLayer;
+    return m_apoLayers.back().get();
 }
 
 /************************************************************************/
@@ -5930,18 +5982,23 @@ GDALDataset* OGRMVTWriterDataset::Create( const char * pszFilename,
     poDS->m_pMyVFS = OGRSQLiteCreateVFS(nullptr, poDS);
     sqlite3_vfs_register(poDS->m_pMyVFS, 0);
 
+    CPLString osTempDBDefault = CPLString(pszFilename) + ".temp.db";
+    if( STARTS_WITH(osTempDBDefault, "/vsizip/") )
+    {
+        osTempDBDefault = CPLString(pszFilename + strlen("/vsizip/")) + ".temp.db";
+    }
     CPLString osTempDB =
         CSLFetchNameValueDef(papszOptions, "TEMPORARY_DB",
-            (CPLString(pszFilename) + ".temp.db").c_str());
+                             osTempDBDefault.c_str());
     if( !bReuseTempFile )
         VSIUnlink(osTempDB);
 
     sqlite3* hDB = nullptr;
-    sqlite3_open_v2(osTempDB, &hDB,
+    CPL_IGNORE_RET_VAL(sqlite3_open_v2(osTempDB, &hDB,
                     SQLITE_OPEN_READWRITE |
                     (bReuseTempFile ? 0 : SQLITE_OPEN_CREATE) |
                     SQLITE_OPEN_NOMUTEX,
-                    poDS->m_pMyVFS->zName);
+                    poDS->m_pMyVFS->zName));
     if( hDB == nullptr )
     {
         CPLError(CE_Failure, CPLE_FileIO, "Cannot create %s",
@@ -6075,10 +6132,10 @@ GDALDataset* OGRMVTWriterDataset::Create( const char * pszFilename,
 
     if( bMBTILES )
     {
-        sqlite3_open_v2(pszFilename, &poDS->m_hDBMBTILES,
+        CPL_IGNORE_RET_VAL(sqlite3_open_v2(pszFilename, &poDS->m_hDBMBTILES,
                         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE |
                         SQLITE_OPEN_NOMUTEX,
-                        poDS->m_pMyVFS->zName);
+                        poDS->m_pMyVFS->zName));
         if( poDS->m_hDBMBTILES == nullptr )
         {
             CPLError(CE_Failure, CPLE_FileIO, "Cannot create %s",

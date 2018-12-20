@@ -54,12 +54,12 @@
 #include "ogr_spatialref.h"
 #include "vrtdataset.h"
 
-CPL_CVSID("$Id: gdal_translate_lib.cpp 12bce81eec6ad37298b2719364d1191894cb1b40 2018-08-02 23:09:39 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdal_translate_lib.cpp 2519a7eb0e1649dbf8625ae8ffc7bb7c3ef9514b 2018-07-10 12:05:23 +0100 Robert Coup $")
 
 static int ArgIsNumeric( const char * );
 static void AttachMetadata( GDALDatasetH, char ** );
 static void CopyBandInfo( GDALRasterBand * poSrcBand, GDALRasterBand * poDstBand,
-                            int bCanCopyStatsMetadata, int bCopyScale, int bCopyNoData );
+                            int bCanCopyStatsMetadata, int bCopyScale, int bCopyNoData, bool bCopyRAT );
 
 typedef enum
 {
@@ -1728,7 +1728,8 @@ GDALDatasetH GDALTranslate( const char *pszDest, GDALDatasetH hSrcDataset,
                           !psOptions->bStats && !bFilterOutStatsMetadata,
                           !psOptions->bUnscale && !psOptions->bSetScale &&
                             !psOptions->bSetOffset,
-                          !psOptions->bSetNoData && !psOptions->bUnsetNoData );
+                          !psOptions->bSetNoData && !psOptions->bUnsetNoData,
+                          !psOptions->bNoRAT );
             if( psOptions->nScaleRepeat == 0 &&
                 psOptions->nExponentRepeat == 0 &&
                 EQUAL(psOptions->pszFormat, "GRIB") )
@@ -1828,18 +1829,6 @@ GDALDatasetH GDALTranslate( const char *pszDest, GDALDatasetH hSrcDataset,
                                         psOptions->adfSrcWin[2], psOptions->adfSrcWin[3],
                                         adfDstWin[0], adfDstWin[1],
                                         adfDstWin[2], adfDstWin[3] );
-            }
-        }
-
-        // Only copy RAT if it is of reasonable size to fit in memory
-        if( !psOptions->bNoRAT )
-        {
-            GDALRasterAttributeTable* poRAT = poSrcBand->GetDefaultRAT();
-            if( poRAT != nullptr &&
-                static_cast<GIntBig>(poRAT->GetColumnCount()) *
-                    poRAT->GetRowCount() < 1024 * 1024 )
-            {
-                poVRTBand->SetDefaultRAT(poRAT);
             }
         }
     }
@@ -1953,13 +1942,17 @@ static void AttachMetadata( GDALDatasetH hDS, char **papszMetadataOptions )
 /* more and more custom behaviour in the context of gdal_translate ... */
 
 static void CopyBandInfo( GDALRasterBand * poSrcBand, GDALRasterBand * poDstBand,
-                          int bCanCopyStatsMetadata, int bCopyScale, int bCopyNoData )
+                          int bCanCopyStatsMetadata, int bCopyScale, int bCopyNoData, bool bCopyRAT )
 
 {
 
     if (bCanCopyStatsMetadata)
     {
         poDstBand->SetMetadata( poSrcBand->GetMetadata() );
+        if (bCopyRAT)
+        {
+            poDstBand->SetDefaultRAT( poSrcBand->GetDefaultRAT() );
+        }
     }
     else
     {
@@ -1972,6 +1965,21 @@ static void CopyBandInfo( GDALRasterBand * poSrcBand, GDALRasterBand * poDstBand
         }
         poDstBand->SetMetadata( papszMetadataNew );
         CSLDestroy(papszMetadataNew);
+
+        // we need to strip histogram data from the source RAT
+        if (poSrcBand->GetDefaultRAT() && bCopyRAT)
+        {
+            GDALRasterAttributeTable *poNewRAT = poSrcBand->GetDefaultRAT()->Clone();
+
+            // strip histogram data (as definied by the source RAT)
+            poNewRAT->RemoveStatistics();
+            if( poNewRAT->GetColumnCount() )
+            {
+                poDstBand->SetDefaultRAT( poNewRAT );
+            }
+            // since SetDefaultRAT copies the RAT data we need to delete our original
+            delete poNewRAT;
+        }
     }
 
     poDstBand->SetColorTable( poSrcBand->GetColorTable() );

@@ -50,7 +50,7 @@
 
 /*! @cond Doxygen_Suppress */
 
-CPL_CVSID("$Id: vrtrasterband.cpp 35bffe8063631f82da77398a37900c784b2b414f 2018-11-02 22:54:20 +0100 Even Rouault $")
+CPL_CVSID("$Id: vrtrasterband.cpp e5e7b313540f0ff913fadfe6a273fb7c356a22cb 2018-11-02 22:54:20 +0100 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */

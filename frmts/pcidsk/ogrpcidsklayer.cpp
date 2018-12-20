@@ -31,7 +31,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrpcidsklayer.cpp 98dfb4b4012c5ae4621e246e8eb393b3c05a3f48 2018-04-02 22:09:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrpcidsklayer.cpp c26e96305fcdf9718cc61dde9c0e5ef16e40532d 2018-05-19 13:21:28 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           OGRPCIDSKLayer()                           */
@@ -113,7 +113,11 @@ OGRPCIDSKLayer::OGRPCIDSKLayer( PCIDSK::PCIDSKSegment *poSegIn,
                 && iField == poVecSeg->GetFieldCount()-1 )
                 iRingStartField = iField;
             else
+            {
                 poFeatureDefn->AddFieldDefn( &oField );
+                m_oMapFieldNameToIdx[oField.GetNameRef()] =
+                    poFeatureDefn->GetFieldCount() - 1;
+            }
         }
 
 /* -------------------------------------------------------------------- */
@@ -641,8 +645,13 @@ OGRErr OGRPCIDSKLayer::ISetFeature( OGRFeature *poFeature )
 
         for( int iPCI = 0; iPCI < poVecSeg->GetFieldCount(); iPCI++ )
         {
-            int iOGR = poFeatureDefn->GetFieldIndex(
-                poVecSeg->GetFieldName(iPCI).c_str() );
+            int iOGR = -1;
+            const auto osFieldName(poVecSeg->GetFieldName(iPCI));
+            auto oIter = m_oMapFieldNameToIdx.find(osFieldName);
+            if( oIter != m_oMapFieldNameToIdx.end() )
+            {
+                iOGR = oIter->second;
+            }
 
             if( iOGR == -1 )
                 continue;
@@ -825,6 +834,9 @@ OGRErr OGRPCIDSKLayer::CreateField( OGRFieldDefn *poFieldDefn,
                   "Non-PCIDSK exception trapped." );
         return OGRERR_FAILURE;
     }
+
+    m_oMapFieldNameToIdx[ poFieldDefn->GetNameRef() ] =
+        poFeatureDefn->GetFieldCount() - 1;
 
     return OGRERR_NONE;
 }

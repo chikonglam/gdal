@@ -30,7 +30,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: sdtstransfer.cpp e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $")
+CPL_CVSID("$Id: sdtstransfer.cpp 2ace03ec48c36dae8ba74089d85617c095643428 2018-11-02 18:02:33 +0100 Even Rouault $")
 
 /************************************************************************/
 /*                            SDTSTransfer()                            */
@@ -238,7 +238,7 @@ SDTSLineReader *SDTSTransfer::GetLayerLineReader( int iEntry )
     if( !poLineReader->Open(
                         oCATD.GetEntryFilePath( panLayerCATDEntry[iEntry] ) ) )
     {
-        panLayerCATDEntry[iEntry] = SLTUnknown; // to prevent further attempt
+        oCATD.SetEntryTypeUnknown(iEntry) ; // to prevent further attempt
         delete poLineReader;
         return nullptr;
     }
@@ -265,7 +265,7 @@ SDTSPointReader *SDTSTransfer::GetLayerPointReader( int iEntry )
     if( !poPointReader->Open(
                         oCATD.GetEntryFilePath( panLayerCATDEntry[iEntry] ) ) )
     {
-        panLayerCATDEntry[iEntry] = SLTUnknown; // to prevent further attempt
+        oCATD.SetEntryTypeUnknown(iEntry) ; // to prevent further attempt
         delete poPointReader;
         return nullptr;
     }
@@ -292,7 +292,7 @@ SDTSPolygonReader *SDTSTransfer::GetLayerPolygonReader( int iEntry )
     if( !poPolyReader->Open(
                         oCATD.GetEntryFilePath( panLayerCATDEntry[iEntry] ) ) )
     {
-        panLayerCATDEntry[iEntry] = SLTUnknown; // to prevent further attempt
+        oCATD.SetEntryTypeUnknown(iEntry) ; // to prevent further attempt
         delete poPolyReader;
         return nullptr;
     }
@@ -319,7 +319,7 @@ SDTSAttrReader *SDTSTransfer::GetLayerAttrReader( int iEntry )
     if( !poAttrReader->Open(
                         oCATD.GetEntryFilePath( panLayerCATDEntry[iEntry] ) ) )
     {
-        panLayerCATDEntry[iEntry] = SLTUnknown; // to prevent further attempt
+        oCATD.SetEntryTypeUnknown(iEntry) ; // to prevent further attempt
         delete poAttrReader;
         return nullptr;
     }
@@ -361,7 +361,7 @@ SDTSRasterReader *SDTSTransfer::GetLayerRasterReader( int iEntry )
     if( !poRasterReader->Open( &oCATD, &oIREF,
                          oCATD.GetEntryModule(panLayerCATDEntry[iEntry] ) ) )
     {
-        panLayerCATDEntry[iEntry] = SLTUnknown; // to prevent further attempt
+        oCATD.SetEntryTypeUnknown(iEntry) ; // to prevent further attempt
         delete poRasterReader;
         return nullptr;
     }
@@ -386,7 +386,7 @@ DDFModule *SDTSTransfer::GetLayerModuleReader( int iEntry )
     if( !poModuleReader->Open(
                         oCATD.GetEntryFilePath( panLayerCATDEntry[iEntry] ) ) )
     {
-        panLayerCATDEntry[iEntry] = SLTUnknown; // to prevent further attempt
+        oCATD.SetEntryTypeUnknown(iEntry) ; // to prevent further attempt
         delete poModuleReader;
         return nullptr;
     }

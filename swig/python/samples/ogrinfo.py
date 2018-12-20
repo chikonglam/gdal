@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # *****************************************************************************
-# $Id: ogrinfo.py d7e898f6034a9c6c0f83cfbff921434dfc2082be 2018-04-18 23:07:52 +1000 Ben Elliston $
+# $Id: ogrinfo.py 8e263710cb425c4a8b76b1f363b98be41ea0a983 2018-04-30 19:40:20 +1000 Ben Elliston $
 #
 # Project:  OpenGIS Simple Features Reference Implementation
 # Purpose:  Python port of a simple client for viewing OGR driver data.
@@ -377,7 +377,7 @@ def ReportOnLayer(poLayer, pszWHERE, pszGeomField, poSpatialFilter, options):
                 pszWKT = poLayer.GetSpatialRef().ExportToPrettyWkt()
             print("Layer SRS WKT:\n%s" % pszWKT)
 
-        if len(poLayer.GetFIDColumn()) > 0:
+        if poLayer.GetFIDColumn():
             print("FID Column = %s" % poLayer.GetFIDColumn())
 
         if nGeomFieldCount > 1:
@@ -385,7 +385,7 @@ def ReportOnLayer(poLayer, pszWHERE, pszGeomField, poSpatialFilter, options):
                 poGFldDefn = poLayer.GetLayerDefn().GetGeomFieldDefn(iGeom)
                 print("Geometry Column %d = %s" % (iGeom + 1, poGFldDefn.GetNameRef()))
         else:
-            if len(poLayer.GetGeometryColumn()) > 0:
+            if poLayer.GetGeometryColumn():
                 print("Geometry Column = %s" % poLayer.GetGeometryColumn())
 
         for iAttr in range(poDefn.GetFieldCount()):
@@ -459,13 +459,11 @@ def DumpReadableFeature(poFeature, options=None):
                 poGeometry = poFeature.GetGeomFieldRef(iField)
                 if poGeometry is not None:
                     sys.stdout.write("  ")
-                    if len(poGFldDefn.GetNameRef()) > 0 and nGeomFieldCount > 1:
+                    if poGFldDefn.GetNameRef() and nGeomFieldCount > 1:
                         sys.stdout.write("%s = " % poGFldDefn.GetNameRef())
                     DumpReadableGeometry(poGeometry, "", options)
 
     print('')
-
-    return
 
 
 def DumpReadableGeometry(poGeometry, pszPrefix, options):
@@ -523,8 +521,6 @@ def DumpReadableGeometry(poGeometry, pszPrefix, options):
             or EQUAL(options['DISPLAY_GEOMETRY'], 'WKT'):
 
         print("%s%s" % (pszPrefix, poGeometry.ExportToWkt()))
-
-    return
 
 
 if __name__ == '__main__':

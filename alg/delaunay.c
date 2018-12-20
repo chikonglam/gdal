@@ -49,7 +49,7 @@
 #include <ctype.h>
 #include <math.h>
 
-CPL_CVSID("$Id: delaunay.c 818830b37601c33fb53567f86949c8edc1157592 2018-10-06 19:02:19 +0200 Even Rouault $")
+CPL_CVSID("$Id: delaunay.c d38086d97f76b283f7c6ba57abd60da9e279cbde 2018-10-06 19:02:19 +0200 Even Rouault $")
 
 #if defined(INTERNAL_QHULL) || defined(EXTERNAL_QHULL)
 #define HAVE_INTERNAL_OR_EXTERNAL_QHULL 1
@@ -524,6 +524,9 @@ int GDALTriangulationFindFacetDirected(const GDALTriangulation* psDT,
                                        double dfY,
                                        int* panOutputFacetIdx)
 {
+#ifdef DEBUG_VERBOSE
+    const int nFacetIdxInitial = nFacetIdx;
+#endif
     int k, nIterMax;
     *panOutputFacetIdx = -1;
     if( psDT->pasFacetCoefficients == NULL )
@@ -554,6 +557,10 @@ int GDALTriangulationFindFacetDirected(const GDALTriangulation* psDT,
             int neighbor = psFacet->anNeighborIdx[0];
             if( neighbor < 0 )
             {
+#ifdef DEBUG_VERBOSE
+                CPLDebug("GDAL", "Outside %d in %d iters (initial = %d)",
+                         nFacetIdx, k, nFacetIdxInitial);
+#endif
                 *panOutputFacetIdx = nFacetIdx;
                 return FALSE;
             }
@@ -569,6 +576,10 @@ int GDALTriangulationFindFacetDirected(const GDALTriangulation* psDT,
             int neighbor = psFacet->anNeighborIdx[1];
             if( neighbor < 0 )
             {
+#ifdef DEBUG_VERBOSE
+                CPLDebug("GDAL", "Outside %d in %d iters (initial = %d)",
+                         nFacetIdx, k, nFacetIdxInitial);
+#endif
                 *panOutputFacetIdx = nFacetIdx;
                 return FALSE;
             }
@@ -584,6 +595,10 @@ int GDALTriangulationFindFacetDirected(const GDALTriangulation* psDT,
             int neighbor = psFacet->anNeighborIdx[2];
             if( neighbor < 0 )
             {
+#ifdef DEBUG_VERBOSE
+                CPLDebug("GDAL", "Outside %d in %d iters (initial = %d)",
+                         nFacetIdx, k, nFacetIdxInitial);
+#endif
                 *panOutputFacetIdx = nFacetIdx;
                 return FALSE;
             }
@@ -595,6 +610,10 @@ int GDALTriangulationFindFacetDirected(const GDALTriangulation* psDT,
 
         if( bMatch )
         {
+#ifdef DEBUG_VERBOSE
+            CPLDebug("GDAL", "Inside %d in %d iters (initial = %d)",
+                     nFacetIdx, k, nFacetIdxInitial);
+#endif
             *panOutputFacetIdx = nFacetIdx;
             return TRUE;
         }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_mem.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: ogr_mem.h a8d30b37682544123e5e24d69cb33041d544c465 2018-05-06 01:37:21 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions within the OGR Memory driver.
@@ -44,6 +44,8 @@ class IOGRMemLayerFeatureIterator;
 
 class OGRMemLayer : public OGRLayer
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRMemLayer)
+
     typedef std::map<GIntBig, OGRFeature*>           FeatureMap;
     typedef std::map<GIntBig, OGRFeature*>::iterator FeatureIterator;
 
@@ -119,6 +121,8 @@ class OGRMemLayer : public OGRLayer
 
 class OGRMemDataSource : public OGRDataSource
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRMemDataSource)
+
     OGRMemLayer       **papoLayers;
     int                 nLayers;
 

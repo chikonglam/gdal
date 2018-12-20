@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_dwg.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: ogr_dwg.h db7b8a03d90637c2f6ba5cbdb087e2819d8ec8dd 2018-05-12 22:34:30 +0200 Even Rouault $
  *
  * Project:  DWG Translator
  * Purpose:  Definition of classes for OGR .dwg driver.
@@ -63,7 +63,7 @@ public:
 /*                         OGRDWGBlocksLayer()                          */
 /************************************************************************/
 
-class OGRDWGBlocksLayer : public OGRLayer
+class OGRDWGBlocksLayer final: public OGRLayer
 {
     OGRDWGDataSource   *poDS;
 
@@ -91,7 +91,7 @@ class OGRDWGBlocksLayer : public OGRLayer
 /************************************************************************/
 /*                             OGRDWGLayer                              */
 /************************************************************************/
-class OGRDWGLayer : public OGRLayer
+class OGRDWGLayer final: public OGRLayer
 {
     OGRDWGDataSource   *poDS;
 
@@ -154,7 +154,7 @@ class OGRDWGLayer : public OGRLayer
 /*                           OGRDWGDataSource                           */
 /************************************************************************/
 
-class OGRDWGDataSource : public OGRDataSource
+class OGRDWGDataSource final: public OGRDataSource
 {
     VSILFILE           *fp;
 
@@ -237,7 +237,7 @@ protected:
 /*                             OGRDWGDriver                             */
 /************************************************************************/
 
-class OGRDWGDriver : public OGRSFDriver
+class OGRDWGDriver final: public OGRSFDriver
 {
     OGRDWGServices *poServices;
 

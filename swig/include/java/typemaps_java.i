@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_java.i 854e0d9172da1ebadcbca95c4eaa05cfa610100b 2017-02-12 19:40:53Z Even Rouault $
+ * $Id: typemaps_java.i 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $
  *
  * Name:     typemaps_java.i
  * Project:  GDAL SWIG Interface
@@ -1737,7 +1737,7 @@ DEFINE_REGULAR_ARRAY_IN(double, jdouble, GetDoubleArrayElements, ReleaseDoubleAr
   }
 
 /***************************************************
- * Typemaps for Gemetry.GetPoints()
+ * Typemaps for Geometry.GetPoints()
  ***************************************************/
 
 %typemap(in,numinputs=0) (int* pnCount, double** ppadfXY, double** ppadfZ) ( int nPoints = 0, double* padfXY = NULL, double* padfZ = NULL)

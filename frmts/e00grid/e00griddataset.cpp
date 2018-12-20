@@ -39,7 +39,7 @@
 #define E00ReadNextLine     GDALE00GRIDReadNextLine
 #define E00ReadRewind       GDALE00GRIDReadRewind
 
-CPL_CVSID("$Id: e00griddataset.cpp f466372a2a145bebc6c1b3c5bc26055e4de26328 2018-09-03 19:46:58 +0200 Even Rouault $")
+CPL_CVSID("$Id: e00griddataset.cpp dc782e589a0abebc628dcb9a931d2424d1ec7d17 2018-09-03 19:46:58 +0200 Even Rouault $")
 
 #undef NULL
 #define NULL nullptr

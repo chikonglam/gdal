@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ******************************************************************************
-#  $Id: gdalcopyproj.py d7e898f6034a9c6c0f83cfbff921434dfc2082be 2018-04-18 23:07:52 +1000 Ben Elliston $
+#  $Id: gdalcopyproj.py 47147093f2ff537d35e2e3aa966bf931ca00cc08 2018-05-08 21:52:58 +1000 Ben Elliston $
 #
 #  Name:     gdalcopyproj.py
 #  Project:  GDAL Python Interface
@@ -41,10 +41,10 @@ if len(sys.argv) < 3:
     print("Usage: gdalcopyproj.py source_file dest_file")
     sys.exit(1)
 
-input = sys.argv[1]
-dataset = gdal.Open(input)
+inp = sys.argv[1]
+dataset = gdal.Open(inp)
 if dataset is None:
-    print('Unable to open', input, 'for reading')
+    print('Unable to open', inp, 'for reading')
     sys.exit(1)
 
 projection = dataset.GetProjection()

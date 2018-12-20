@@ -53,7 +53,7 @@
 #include "gdal.h"
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: gdalmediancut.cpp 83369b4a8075b0cc331eeb3eb8430d49a4f665a6 2018-04-28 11:07:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalmediancut.cpp 9fcb3fe3c338c0e2941812b4b690b04f10bd0bae 2018-04-28 11:07:43 +0200 Even Rouault $")
 
 template<typename T> static T* HISTOGRAM( T *h, int n, int r, int g, int b )
 {

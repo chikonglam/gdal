@@ -50,7 +50,7 @@
 #include "ogr_p.h"
 #include "parsexsd.h"
 
-CPL_CVSID("$Id: ogrgmldatasource.cpp bd3d66cd4a7be3bca3c3d6458d8a528e59b7dbc0 2018-03-04 16:06:48Z Even Rouault $")
+CPL_CVSID("$Id: ogrgmldatasource.cpp 7063b8664855306154d97a05b35c968c8d8b81d0 2018-05-09 21:24:13 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                   ReplaceSpaceByPct20IfNeeded()                      */
@@ -1499,7 +1499,8 @@ OGRGMLLayer *OGRGMLDataSource::TranslateGMLSchema( GMLFeatureClass *poClass )
     else
     {
         pszSRSName = GetGlobalSRSName();
-        if (pszSRSName)
+
+        if (pszSRSName && GML_IsLegitSRSName(pszSRSName) )
         {
             poSRS = new OGRSpatialReference();
             if (poSRS->SetFromUserInput(pszSRSName) != OGRERR_NONE)

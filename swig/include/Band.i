@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: Band.i 97ddfe1f4daf2fa4fc965117a66e147ab18f1f9b 2017-12-21 13:14:49Z Even Rouault $
+ * $Id: Band.i a0dcfc73f224c07544489d26adfcd900179f0525 2018-04-29 16:30:06 +1000 Ben Elliston $
  *
  * Name:     Band.i
  * Project:  GDAL Python Interface
@@ -209,12 +209,12 @@ public:
   // Preferred name to match C++ API
   /* Interface method added for GDAL 1.7.0 */
   GDALColorInterp GetColorInterpretation() {
-    return GDALGetRasterColorInterpretation( self );
+    return GDALGetRasterColorInterpretation(self);
   }
 
   // Deprecated name
   GDALColorInterp GetRasterColorInterpretation() {
-    return GDALGetRasterColorInterpretation( self );
+    return GDALGetRasterColorInterpretation(self);
   }
 
   // Preferred name to match C++ API
@@ -237,12 +237,12 @@ public:
   }
 
   CPLErr DeleteNoDataValue() {
-    return GDALDeleteRasterNoDataValue( self );
+    return GDALDeleteRasterNoDataValue(self);
   }
 
   /* Interface method added for GDAL 1.7.0 */
   const char* GetUnitType() {
-      return GDALGetRasterUnitType( self );
+      return GDALGetRasterUnitType(self);
   }
 
   /* Interface method added for GDAL 1.8.0 */
@@ -252,7 +252,7 @@ public:
 
   %apply (char **options) { (char **) };
   char** GetRasterCategoryNames( ) {
-    return GDALGetRasterCategoryNames( self );
+    return GDALGetRasterCategoryNames(self);
   }
   %clear (char **);
 
@@ -315,7 +315,7 @@ public:
   }
 
   int GetOverviewCount() {
-    return GDALGetOverviewCount( self );
+    return GDALGetOverviewCount(self);
   }
 
   GDALRasterBandShadow *GetOverview(int i) {

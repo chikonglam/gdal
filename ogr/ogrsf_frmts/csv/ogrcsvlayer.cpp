@@ -59,7 +59,7 @@
 
 #define DIGIT_ZERO '0'
 
-CPL_CVSID("$Id: ogrcsvlayer.cpp 44883aedf6565b4d86cf522cf97c76c7f60fa912 2018-05-31 04:25:10 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrcsvlayer.cpp 981af424642a34de2baf939f0515beeba38593a5 2018-07-10 13:45:02 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            CSVSplitLine()                            */
@@ -371,9 +371,9 @@ void OGRCSVLayer::BuildFeatureDefn( const char *pszNfdcGeomField,
         if( pszLine != nullptr )
         {
             // Detect and remove UTF-8 BOM marker if found (#4623).
-          if( reinterpret_cast<const unsigned char *>(pszLine)[0] == 0xEF &&
-              reinterpret_cast<const unsigned char *>(pszLine)[1] == 0xBB &&
-              reinterpret_cast<const unsigned char *>(pszLine)[2] == 0xBF )
+            if( reinterpret_cast<const unsigned char *>(pszLine)[0] == 0xEF &&
+                reinterpret_cast<const unsigned char *>(pszLine)[1] == 0xBB &&
+                reinterpret_cast<const unsigned char *>(pszLine)[2] == 0xBF )
             {
                 pszLine += 3;
             }
@@ -1830,10 +1830,11 @@ int OGRCSVLayer::TestCapability( const char *pszCap )
 
 OGRCSVCreateFieldAction
 OGRCSVLayer::PreCreateField( OGRFeatureDefn *poFeatureDefn,
+                             const std::set<CPLString>& oSetFields,
                              OGRFieldDefn *poNewField, int bApproxOK )
 {
     // Does this duplicate an existing field?
-    if( poFeatureDefn->GetFieldIndex(poNewField->GetNameRef()) >= 0 )
+    if( oSetFields.find(CPLString(poNewField->GetNameRef()).toupper()) != oSetFields.end() )
     {
         if( poFeatureDefn->GetGeomFieldIndex(poNewField->GetNameRef()) >= 0 ||
             poFeatureDefn->GetGeomFieldIndex(
@@ -1904,8 +1905,24 @@ OGRErr OGRCSVLayer::CreateField( OGRFieldDefn *poNewField, int bApproxOK )
         return OGRERR_FAILURE;
     }
 
+    if( nCSVFieldCount >= 10000 )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                 "Limiting to 10000 fields");
+        return OGRERR_FAILURE;
+    }
+
+    if( m_oSetFields.empty() )
+    {
+        for( int i = 0; i < poFeatureDefn->GetFieldCount(); i++ )
+        {
+            m_oSetFields.insert(CPLString(
+                poFeatureDefn->GetFieldDefn(i)->GetNameRef()).toupper());
+        }
+    }
+
     const OGRCSVCreateFieldAction eAction =
-        PreCreateField(poFeatureDefn, poNewField, bApproxOK);
+        PreCreateField(poFeatureDefn, m_oSetFields, poNewField, bApproxOK);
     if( eAction == CREATE_FIELD_DO_NOTHING )
         return OGRERR_NONE;
     if( eAction == CREATE_FIELD_ERROR )
@@ -1914,6 +1931,7 @@ OGRErr OGRCSVLayer::CreateField( OGRFieldDefn *poNewField, int bApproxOK )
     // Seems ok, add to field list.
     poFeatureDefn->AddFieldDefn(poNewField);
     nCSVFieldCount++;
+    m_oSetFields.insert(CPLString(poNewField->GetNameRef()).toupper());
 
     panGeomFieldIndex = static_cast<int *>(CPLRealloc(
         panGeomFieldIndex, sizeof(int) * poFeatureDefn->GetFieldCount()));

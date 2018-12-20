@@ -912,6 +912,7 @@ package Geo::OGR;
 *OFSTBoolean = *Geo::OGRc::OFSTBoolean;
 *OFSTInt16 = *Geo::OGRc::OFSTInt16;
 *OFSTFloat32 = *Geo::OGRc::OFSTFloat32;
+*OFSTJSON = *Geo::OGRc::OFSTJSON;
 *OJUndefined = *Geo::OGRc::OJUndefined;
 *OJLeft = *Geo::OGRc::OJLeft;
 *OJRight = *Geo::OGRc::OJRight;
@@ -963,7 +964,7 @@ package Geo::OGR;
 
 
 package Geo::OGR;
-our $VERSION = '2.0303'; # this needs to be the same as that in gdal_perl.i
+our $VERSION = '2.0400'; # this needs to be the same as that in gdal_perl.i
 
 Geo::GDAL->import(qw(:INTERNAL));
 

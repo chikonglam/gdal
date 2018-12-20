@@ -55,7 +55,7 @@
 #include "ogr_spatialref.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: envidataset.cpp 74385c8cc244684d8cff57e1b66ec50a255057c1 2018-06-21 20:46:53 +0200 Even Rouault $")
+CPL_CVSID("$Id: envidataset.cpp 38bc22bec5ab42c444f912c9719327512ba52b19 2018-06-21 20:46:53 +0200 Even Rouault $")
 
 // TODO(schwehr): This really should be defined in port/somewhere.h.
 constexpr double kdfDegToRad = M_PI / 180.0;
@@ -268,7 +268,7 @@ ENVIDataset::ENVIDataset() :
 ENVIDataset::~ENVIDataset()
 
 {
-    FlushCache();
+    ENVIDataset::FlushCache();
     if( fpImage )
     {
         // Make sure the binary file has the expected size
@@ -2279,7 +2279,7 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo *poOpenInfo, bool bFileSizeCheck )
         }
         nLineOffset = nDataSize * nSamples;
         nPixelOffset = nDataSize;
-        nBandOffset = (vsi_l_offset)nLineOffset * nLines;
+        nBandOffset = static_cast<vsi_l_offset>(nLineOffset) * nLines;
     }
 
     const char* pszMajorFrameOffset = poDS->m_aosHeader["major_frame_offsets"];
@@ -2330,7 +2330,7 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo *poOpenInfo, bool bFileSizeCheck )
                       new ENVIRasterBand(poDS, i + 1, poDS->fpImage,
                                          nHeaderSize + nBandOffset * i,
                                          nPixelOffset, nLineOffset, eType,
-                                         bNativeOrder, TRUE));
+                                         bNativeOrder));
         if( CPLGetLastErrorType() != CE_None )
         {
             delete poDS;
@@ -2661,14 +2661,12 @@ GDALDataset *ENVIDataset::Create( const char *pszFilename,
 /************************************************************************/
 
 ENVIRasterBand::ENVIRasterBand( GDALDataset *poDSIn, int nBandIn,
-                                void *fpRawIn,
+                                VSILFILE *fpRawIn,
                                 vsi_l_offset nImgOffsetIn, int nPixelOffsetIn,
                                 int nLineOffsetIn,
-                                GDALDataType eDataTypeIn, int bNativeOrderIn,
-                                int bIsVSILIn, int bOwnsFPIn ) :
+                                GDALDataType eDataTypeIn, int bNativeOrderIn) :
     RawRasterBand(poDSIn, nBandIn, fpRawIn, nImgOffsetIn, nPixelOffsetIn,
-                  nLineOffsetIn, eDataTypeIn, bNativeOrderIn, bIsVSILIn,
-                  bOwnsFPIn)
+                  nLineOffsetIn, eDataTypeIn, bNativeOrderIn, RawRasterBand::OwnFP::NO)
 {}
 
 /************************************************************************/

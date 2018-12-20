@@ -50,7 +50,7 @@
 #include "ogr_geometry.h"
 #include "ogrpgeogeometry.h"
 
-CPL_CVSID("$Id: filegdbtable.cpp e08d0f115ed232a63b74071f53f4e200f61a8d93 2018-04-09 17:09:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: filegdbtable.cpp 548b2b8091d2949afde65c25356515c5dae596c2 2018-07-09 11:24:41 -0700 Kurt Schwehr $")
 
 #define TEST_BIT(ar, bit)                       (ar[(bit) / 8] & (1 << ((bit) % 8)))
 #define BIT_ARRAY_SIZE_IN_BYTES(bitsize)        (((bitsize)+7)/8)
@@ -1373,7 +1373,8 @@ int FileGDBDoubleDateToOGRDate(double dfVal, OGRField* psField)
 {
     // 25569: Number of days between 1899/12/30 00:00:00 and 1970/01/01 00:00:00
     double dfSeconds = (dfVal - 25569.0) * 3600.0 * 24.0;
-    if( dfSeconds < static_cast<double>(std::numeric_limits<GIntBig>::min())+1000 ||
+    if( CPLIsNan(dfSeconds) ||
+        dfSeconds < static_cast<double>(std::numeric_limits<GIntBig>::min())+1000 ||
         dfSeconds > static_cast<double>(std::numeric_limits<GIntBig>::max())-1000 )
     {
         CPLError(CE_Failure, CPLE_NotSupported,

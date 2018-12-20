@@ -32,7 +32,7 @@
 
 #include "mitab_ogr_driver.h"
 
-CPL_CVSID("$Id: mitab_ogr_driver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: mitab_ogr_driver.cpp 43b6061a355c4bce2283b787b28d5f3ae6b9e2af 2018-05-06 14:19:59 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                  OGRTABDriverIdentify()                              */
@@ -57,7 +57,7 @@ static int OGRTABDriverIdentify( GDALOpenInfo *poOpenInfo )
     {
         for( int i = 0; i < poOpenInfo->nHeaderBytes; i++)
         {
-            const char *pszLine = (const char *)poOpenInfo->pabyHeader + i;
+            const char *pszLine = reinterpret_cast<const char *>(poOpenInfo->pabyHeader) + i;
             if (STARTS_WITH_CI(pszLine, "Fields"))
                 return TRUE;
             else if (STARTS_WITH_CI(pszLine, "create view"))

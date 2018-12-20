@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlutils.h 01bef679e9a9127167b60c6603fae595b99b48fa 2016-11-08 13:53:11Z Even Rouault $
+ * $Id: gmlutils.h 7063b8664855306154d97a05b35c968c8d8b81d0 2018-05-09 21:24:13 +0200 Even Rouault $
  *
  * Project:  GML Utils
  * Purpose:  GML reader
@@ -55,6 +55,7 @@ const char* GML_ExtractSrsNameFromGeometry(const CPLXMLNode* const * papsGeometr
                                      bool bConsiderEPSGAsURN);
 
 bool GML_IsSRSLatLongOrder(const char* pszSRSName);
+bool GML_IsLegitSRSName(const char* pszSRSName);
 
 void* GML_BuildOGRGeometryFromList_CreateCache();
 void GML_BuildOGRGeometryFromList_DestroyCache(void* hCacheSRS);

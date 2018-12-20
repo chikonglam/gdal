@@ -57,7 +57,7 @@
 #include "ogr_srs_api.h"
 #include "ogr_geo_utils.h"
 
-CPL_CVSID("$Id: gml2ogrgeometry.cpp 00ad17c886f16a24a3490241197487699113c92e 2018-10-14 15:23:30 +0200 Even Rouault $")
+CPL_CVSID("$Id: gml2ogrgeometry.cpp 482c13a093672635cf0a3d07b2cd7aac945c3cbb 2018-10-14 15:23:30 +0200 Even Rouault $")
 
 constexpr double kdfD2R = M_PI / 180.0;
 constexpr double kdf2PI = 2.0 * M_PI;
@@ -632,7 +632,7 @@ static bool ParseGMLCoordinates( const CPLXMLNode *psGeomNode,
 /************************************************************************/
 /*                         GML2FaceExtRing()                            */
 /*                                                                      */
-/*      Identifies the "good" Polygon whithin the collection returned   */
+/*      Identifies the "good" Polygon within the collection returned    */
 /*      by GEOSPolygonize()                                             */
 /*      short rationale: GEOSPolygonize() will possibly return a        */
 /*      collection of many Polygons; only one is the "good" one,        */

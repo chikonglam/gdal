@@ -40,7 +40,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: usgsdem_create.cpp 2149b7955fc5a5b2fc685688bf95ade0c6219295 2018-06-20 10:51:08 +0200 Even Rouault $")
+CPL_CVSID("$Id: usgsdem_create.cpp 8aba0dfa638c813a61515e7c7a6b96c7fa80cb2b 2018-06-20 10:51:08 +0200 Even Rouault $")
 
 /* used by usgsdemdataset.cpp */
 GDALDataset *USGSDEMCreateCopy( const char *, GDALDataset *, int, char **,
@@ -552,7 +552,7 @@ static int USGSDEMWriteARecord( USGSDEMWriteInfo *psWInfo )
     TextFillR( achARec + 786, 24, "0.0" );
 
 /* -------------------------------------------------------------------- */
-/*      Accurancy code for elevations. 0 means there will be no C       */
+/*      Accuracy code for elevations. 0 means there will be no C        */
 /*      record.                                                         */
 /* -------------------------------------------------------------------- */
     TextFillR( achARec + 810, 6, "0" );
@@ -649,7 +649,7 @@ static int USGSDEMWriteARecord( USGSDEMWriteInfo *psWInfo )
         TextFillR( achARec + 888, 2, "1" );
 
 /* -------------------------------------------------------------------- */
-/*      Horizonal Datum                                                 */
+/*      Horizontal Datum                                                */
 /*      1 = NAD27                                                       */
 /*      2 = WGS72                                                       */
 /*      3 = WGS84                                                       */

@@ -29,6 +29,7 @@
 #include "gpb.h"
 #include "ogr_osm.h"
 
+#include <cassert>
 #include <cerrno>
 #include <climits>
 #include <cmath>
@@ -174,7 +175,7 @@ size_t GetMaxTotalAllocs();
 static void WriteVarInt64(GUIntBig nSVal, GByte** ppabyData);
 static void WriteVarSInt64(GIntBig nSVal, GByte** ppabyData);
 
-CPL_CVSID("$Id: ogrosmdatasource.cpp 3498b6abaa295028c06aff321c224bec8503745a 2018-08-14 09:04:46 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrosmdatasource.cpp 5e0679e815c088f3dae50f701da355e74a96f0a1 2018-08-14 09:04:46 +0200 Even Rouault $")
 
 class DSToBeOpened
 {
@@ -1323,14 +1324,20 @@ void OGROSMDataSource::LookupNodesCustomNonCompressedCase()
         /* If we stay in the same bucket, we can reuse the previously */
         /* computed offset, instead of starting from bucket start */
         for( ; k < nBitmapIndex; k++ )
+        {
+            assert(psBucket->u.pabyBitmap);
             // psBucket->u.pabyBitmap cannot be NULL
             // coverity[var_deref_op]
             nSectorBase += abyBitsCount[psBucket->u.pabyBitmap[k]];
+        }
         int nSector = nSectorBase;
         if( nBitmapRemainer )
+        {
+            assert(psBucket->u.pabyBitmap);
             nSector +=
                 abyBitsCount[psBucket->u.pabyBitmap[nBitmapIndex] &
                              ((1 << nBitmapRemainer) - 1)];
+        }
 
         const GIntBig nNewOffset = psBucket->nOff + nSector * SECTOR_SIZE;
         if( nNewOffset - nOldOffset >= knDISK_SECTOR_SIZE )

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreader.h 1398568b34b36256a98108fcbdc32bae6d73d84f 2018-03-13 10:22:19Z Even Rouault $
+ * $Id: gmlreader.h 6c215be4458b32ab4278c9f64ed7e31099a5021c 2018-06-23 13:09:29 +0200 Even Rouault $
  *
  * Project:  GML Reader
  * Purpose:  Public Declarations for OGR free GML Reader code.
@@ -154,6 +154,7 @@ class CPL_DLL GMLFeatureClass
     int         m_nPropertyCount;
     GMLPropertyDefn **m_papoProperty;
     std::map<CPLString, int> m_oMapPropertyNameToIndex;
+    std::map<CPLString, int> m_oMapPropertySrcElementToIndex;
 
     int         m_nGeometryPropertyCount;
     GMLGeometryPropertyDefn **m_papoGeometryProperty;

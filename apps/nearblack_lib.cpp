@@ -32,6 +32,7 @@
 #include "gdal_utils_priv.h"
 #include "commonutils.h"
 
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
 
@@ -45,7 +46,7 @@
 #include "cpl_string.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: nearblack_lib.cpp 5da1c4d1b6c7e38f7f5917fff3ddbc8ad42af7aa 2018-03-30 21:59:13 +0200 Even Rouault $")
+CPL_CVSID("$Id: nearblack_lib.cpp 88eda08930b6dafb9ea1374ba19e0b1cf5ded3d3 2018-08-11 20:16:37 +0200 Even Rouault $")
 
 typedef std::vector<int> Color;
 typedef std::vector< Color > Colors;
@@ -280,6 +281,7 @@ GDALDatasetH CPL_DLL GDALNearblack( const char *pszDest, GDALDatasetH hDstDS,
 
         /***** add the color to the colors *****/
         oColors.push_back(oColor);
+        assert( !oColors.empty() );
     }
 
     /***** does the number of bands match the number of color values? *****/

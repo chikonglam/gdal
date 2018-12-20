@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_dods.h 103562a4b99e01eef1f5cb350b2dccaa6fe01e81 2017-12-14 19:39:15Z Even Rouault $
+ * $Id: ogr_dods.h 29dcefd34892121afac0b7b978757ee6daad614a 2018-05-03 15:55:54 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/DODS driver.
@@ -246,6 +246,8 @@ class OGRDODSGridLayer : public OGRDODSLayer
                                            int iArrayIndex,
                                            OGRFeature *poFeature, int iField );
 
+    CPL_DISALLOW_COPY_ASSIGN(OGRDODSGridLayer)
+
 protected:
     virtual bool        ProvideDataDDS() override;
 
@@ -272,6 +274,8 @@ class OGRDODSDataSource : public OGRDataSource
     char               *pszName;
 
     void                AddLayer( OGRDODSLayer * );
+
+    CPL_DISALLOW_COPY_ASSIGN(OGRDODSDataSource)
 
   public: // Just intended for read access by layer classes.
     AISConnect         *poConnection;

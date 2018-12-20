@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfdataset.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
+ * $Id: nitfdataset.h b8a9fd2ed7b5f9dee95ea55c43c13a8d94792081 2018-06-20 12:03:00 +0200 Even Rouault $
  *
  * Project:  NITF Read/Write Translator
  * Purpose:  GDALDataset/GDALRasterBand declarations.
@@ -100,7 +100,7 @@ class NITFDataset final: public GDALPamDataset
     GByte       *pabyJPEGBlock;
     int          nQLevel;
 
-    int          ScanJPEGQLevel( GUIntBig *pnDataStart );
+    int          ScanJPEGQLevel( GUIntBig *pnDataStart, bool *pbError );
     CPLErr       ScanJPEGBlocks();
     CPLErr       ReadJPEGBlock( int, int );
     void         CheckGeoSDEInfo();

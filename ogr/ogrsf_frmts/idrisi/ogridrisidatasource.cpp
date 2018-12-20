@@ -31,7 +31,7 @@
 #include "idrisi.h"
 #include "ogr_idrisi.h"
 
-CPL_CVSID("$Id: ogridrisidatasource.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogridrisidatasource.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 /************************************************************************/
 /*                        OGRIdrisiDataSource()                         */
@@ -156,7 +156,7 @@ int OGRIdrisiDataSource::Open( const char * pszFilename )
         eType = wkbPolygon;
     else
     {
-        CPLError( CE_Failure, CPLE_AppDefined, "Unsupport geometry type : %d",
+        CPLError( CE_Failure, CPLE_AppDefined, "Unsupported geometry type : %d",
                   static_cast<int>(chType) );
         VSIFCloseL(fpVCT);
         CSLDestroy( papszVDC );

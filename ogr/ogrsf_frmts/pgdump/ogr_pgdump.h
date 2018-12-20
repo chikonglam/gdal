@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pgdump.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: ogr_pgdump.h 1439dfd01ac6dfcbb4f4f0c267c8db2b15c98461 2018-09-09 15:02:14 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/PostgreSQL dump driver.
@@ -112,6 +112,7 @@ class OGRPGDumpLayer : public OGRLayer
     int                 nForcedSRSId;
     int                 nForcedGeometryTypeFlags;
     bool                bCreateSpatialIndexFlag;
+    CPLString           osSpatialIndexType;
     int                 nPostGISMajor;
     int                 nPostGISMinor;
 
@@ -175,8 +176,9 @@ class OGRPGDumpLayer : public OGRLayer
                                 { nForcedSRSId = nForcedSRSIdIn; }
     void                SetForcedGeometryTypeFlags( int GeometryTypeFlagsIn )
                                 { nForcedGeometryTypeFlags = GeometryTypeFlagsIn; }
-    void                SetCreateSpatialIndexFlag( bool bFlag )
-                                { bCreateSpatialIndexFlag = bFlag; }
+    void                SetCreateSpatialIndex( bool bFlag, const char* pszSpatialIndexType )
+                                { bCreateSpatialIndexFlag = bFlag;
+                                  osSpatialIndexType = pszSpatialIndexType; }
     void                SetPostGISVersion(int nPostGISMajorIn, int nPostGISMinorIn)
                                 { nPostGISMajor = nPostGISMajorIn; nPostGISMinor = nPostGISMinorIn; }
     void                SetGeometryFieldName( const char* pszGeomFieldName )

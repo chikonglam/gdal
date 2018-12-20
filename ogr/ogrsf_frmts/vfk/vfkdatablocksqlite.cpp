@@ -37,7 +37,16 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: vfkdatablocksqlite.cpp 3c0cf17244733d709fc698362a7fe2ec16e0f119 2018-07-27 12:46:11 +0200 Martin Landa $")
+CPL_CVSID("$Id: vfkdatablocksqlite.cpp 737b2508f8ca043a5048431d9769ab8b4e4c2ddf 2018-06-25 12:00:34 +0200 Martin Landa $")
+
+/*!
+  \brief VFKDataBlockSQLite constructor
+*/
+VFKDataBlockSQLite::VFKDataBlockSQLite(const char *pszName, const IVFKReader *poReader) :
+   IVFKDataBlock(pszName, poReader),
+   m_hStmt(nullptr)
+{
+}
 
 /*!
   \brief Load geometry (point layers)
@@ -1147,6 +1156,51 @@ OGRErr VFKDataBlockSQLite::AddGeometryColumn() const
         osSQL.Printf("ALTER TABLE %s ADD COLUMN %s blob",
                      m_pszName, GEOM_COLUMN);
         return poReader->ExecuteSQL(osSQL.c_str());
+    }
+
+    return OGRERR_NONE;
+}
+
+/*!
+  \brief Load feature properties
+
+  Used for sequential access, see OGRVFKLayer:GetNextFeature().
+
+  \return OGRERR_NONE on success otherwise OGRERR_FAILURE
+*/
+OGRErr VFKDataBlockSQLite::LoadProperties()
+{
+    CPLString osSQL;
+
+    if ( m_hStmt )
+        sqlite3_finalize(m_hStmt);
+
+    osSQL.Printf("SELECT * FROM %s", // TODO: where
+                m_pszName);
+    if ( EQUAL(m_pszName, "SBP") || EQUAL(m_pszName, "SBPG") )
+        osSQL += " WHERE PORADOVE_CISLO_BODU = 1";
+
+    m_hStmt = ((VFKReaderSQLite*) m_poReader)->PrepareStatement(osSQL.c_str());
+
+    if ( m_hStmt == nullptr )
+        return OGRERR_FAILURE;
+
+    return OGRERR_NONE;
+}
+
+/*
+  \brief Clean feature properties for a next run
+
+  \return OGRERR_NONE on success otherwise OGRERR_FAILURE
+*/
+OGRErr VFKDataBlockSQLite::CleanProperties()
+{
+    if ( m_hStmt ) {
+        if ( sqlite3_finalize(m_hStmt) != SQLITE_OK ) {
+            m_hStmt = nullptr;
+            return OGRERR_FAILURE;
+        }
+        m_hStmt = nullptr;
     }
 
     return OGRERR_NONE;

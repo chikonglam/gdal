@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: ogrdb2cli.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrdb2cli.cpp d14a537a4324399712f4b822656d374341773cd3 2018-07-29 23:14:54 +0200 Even Rouault $")
 
 #ifndef SQLColumns_TABLE_CAT
 #define SQLColumns_TABLE_CAT 1
@@ -69,10 +69,6 @@ OGRDB2Session::OGRDB2Session()
 {
     DB2_DEBUG_ENTER("OGRDB2Session::OGRDB2Session");
     m_szLastError[0] = '\0';
-    m_hEnv = nullptr;
-    m_hDBC = nullptr;
-    m_bInTransaction = FALSE;
-    m_bAutoCommit = TRUE;
 }
 
 /************************************************************************/

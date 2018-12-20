@@ -31,7 +31,7 @@
 #include "nasreaderp.h"
 #include "ogr_nas.h"
 
-CPL_CVSID("$Id: ogrnasdriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrnasdriver.cpp 7c7e86d4dde07b3041902d7e8e3c65d433c03146 2018-07-27 17:17:52 +0200 Juergen E. Fischer $")
 
 /************************************************************************/
 /*                     OGRNASDriverIdentify()                           */

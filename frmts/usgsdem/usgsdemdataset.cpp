@@ -36,7 +36,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: usgsdemdataset.cpp 90484c20576bc6b25ffb8bfa471b358412ac9d8f 2018-05-11 11:51:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: usgsdemdataset.cpp abc2956dd293bcf0e008cca3b4d1571cfbbc2f1e 2018-09-19 12:54:42 +0200 Even Rouault $")
 
 typedef struct {
     double      x;
@@ -362,13 +362,10 @@ CPLErr USGSDEMRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
 /* -------------------------------------------------------------------- */
 /*      Initialize image buffer to nodata value.                        */
 /* -------------------------------------------------------------------- */
-    for( int k = GetXSize() * GetYSize() - 1; k >= 0; k-- )
-    {
-        if( GetRasterDataType() == GDT_Int16 )
-            reinterpret_cast<GInt16 *>( pImage )[k] = USGSDEM_NODATA;
-        else
-            reinterpret_cast<float *>( pImage )[k] = USGSDEM_NODATA;
-    }
+    GDALCopyWords(&USGSDEM_NODATA, GDT_Int32, 0,
+                  pImage, GetRasterDataType(),
+                  GDALGetDataTypeSizeBytes(GetRasterDataType()),
+                  GetXSize() * GetYSize());
 
 /* -------------------------------------------------------------------- */
 /*      Seek to data.                                                   */
@@ -452,6 +449,11 @@ CPLErr USGSDEMRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
             continue;
         if( lygap > INT_MAX - nCPoints )
             lygap = INT_MAX - nCPoints;
+        if( lygap < 0 && GetYSize() > INT_MAX + lygap )
+        {
+            CPLFree(sBuffer.buffer);
+            return CE_Failure;
+        }
 
         for (int j=lygap; j < (nCPoints + lygap); j++)
         {

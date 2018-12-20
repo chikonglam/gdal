@@ -36,7 +36,7 @@
 #include "FGdbUtils.h"
 #include "cpl_minixml.h" // the only way right now to extract schema information
 
-CPL_CVSID("$Id: FGdbLayer.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: FGdbLayer.cpp 365a72f2b5a94946e92323060b68f9963cd2dbd5 2018-05-06 22:14:36 +0200 Even Rouault $")
 
 using std::string;
 using std::wstring;
@@ -930,7 +930,7 @@ void FGdbLayer::WorkAroundExtentProblem()
     m_bLayerJustCreated = FALSE;
 
     OGREnvelope sEnvelope;
-    if (GetExtent(&sEnvelope, TRUE) != OGRERR_NONE)
+    if (FGdbLayer::GetExtent(&sEnvelope, TRUE) != OGRERR_NONE)
         return;
 
     /* The characteristic of the bug is that the reported extent */

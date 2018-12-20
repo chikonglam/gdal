@@ -2708,6 +2708,7 @@ SWIGINTERN int OGRFeatureDefnShadow_IsSame(OGRFeatureDefnShadow *self,OGRFeature
             case OFSTBoolean:
             case OFSTInt16:
             case OFSTFloat32:
+            case OFSTJSON:
                 return TRUE;
             default:
                 CPLError(CE_Failure, CPLE_IllegalArg, "Illegal field subtype value");
@@ -25279,6 +25280,11 @@ XS(SWIG_init) {
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFSTFloat32", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OFSTJSON", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(4)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {

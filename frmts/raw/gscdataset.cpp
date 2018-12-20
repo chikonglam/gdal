@@ -31,7 +31,7 @@
 #include "gdal_frmts.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: gscdataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: gscdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -39,11 +39,13 @@ CPL_CVSID("$Id: gscdataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-
 /* ==================================================================== */
 /************************************************************************/
 
-class GSCDataset : public RawDataset
+class GSCDataset final: public RawDataset
 {
     VSILFILE    *fpImage;  // image data file.
 
     double      adfGeoTransform[6];
+
+    CPL_DISALLOW_COPY_ASSIGN(GSCDataset)
 
   public:
                 GSCDataset();
@@ -189,7 +191,8 @@ GDALDataset *GSCDataset::Open( GDALOpenInfo * poOpenInfo )
     RawRasterBand *poBand = new RawRasterBand( poDS, 1, poDS->fpImage,
                                                nRecordLen * 2 + 4,
                                                sizeof(float), nRecordLen,
-                                               GDT_Float32, bNative, TRUE );
+                                               GDT_Float32, bNative,
+                                               RawRasterBand::OwnFP::NO );
     poDS->SetBand( 1, poBand );
 
     poBand->SetNoDataValue( -1.0000000150474662199e+30 );

@@ -45,7 +45,7 @@
 #include "gt_wkt_srs_priv.h"
 #include "ogr_core.h"
 
-CPL_CVSID("$Id: gt_citation.cpp 81a008b84e9f8d2594e30aa06f9fd08cc1c6e624 2018-05-23 17:44:17 +0200 Even Rouault $")
+CPL_CVSID("$Id: gt_citation.cpp 028edae15c93a64d26d691b7c3b45bf141baee2f 2018-05-23 17:44:17 +0200 Even Rouault $")
 
 static const char * const apszUnitMap[] = {
     "meters", "1.0",
@@ -719,7 +719,7 @@ OGRBoolean CheckCitationKeyForStatePlaneUTM( GTIF* hGTIF, GTIFDefn* psDefn,
                      strstr(szCTString, "NAD = 27") )
                 strcpy(nad, "NAD27");
             if( poSRS->ImportFromESRIStatePlaneWKT(
-                    statePlaneZone, (const char*)nad, (const char*)units,
+                    statePlaneZone, nad, units,
                     psDefn->PCS) == OGRERR_NONE )
                 return TRUE;
         }
@@ -733,7 +733,7 @@ OGRBoolean CheckCitationKeyForStatePlaneUTM( GTIF* hGTIF, GTIFDefn* psDefn,
     // Check state plane again to see if a pe string is available.
     if( psDefn->PCS != KvUserDefined )
     {
-        if( poSRS->ImportFromESRIStatePlaneWKT( 0, nullptr, (const char*)units,
+        if( poSRS->ImportFromESRIStatePlaneWKT( 0, nullptr, units,
                                                 psDefn->PCS) == OGRERR_NONE )
             return TRUE;
     }

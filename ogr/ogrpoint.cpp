@@ -41,7 +41,7 @@
 #include "ogr_p.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ogrpoint.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 2018-04-10 15:04:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrpoint.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                              OGRPoint()                              */
@@ -130,20 +130,13 @@ OGRPoint::OGRPoint( double xIn, double yIn, double zIn, double mIn ) :
  * @since GDAL 2.1
  */
 
-OGRPoint::OGRPoint( const OGRPoint& other ) :
-    OGRGeometry( other ),
-    x( other.x ),
-    y( other.y ),
-    z( other.z ),
-    m( other.m )
-{
-}
+OGRPoint::OGRPoint( const OGRPoint& ) = default;
 
 /************************************************************************/
 /*                             ~OGRPoint()                              */
 /************************************************************************/
 
-OGRPoint::~OGRPoint() {}
+OGRPoint::~OGRPoint() = default;
 
 /************************************************************************/
 /*                       operator=( const OGRPoint& )                   */

@@ -36,7 +36,7 @@
 #include "ogrgeojsonreader.h"
 #include <limits>
 
-CPL_CVSID("$Id: argdataset.cpp 6574497e5ddfd7c08c094a76756a0ef477cef6a1 2018-04-04 22:15:20 +0200 Even Rouault $")
+CPL_CVSID("$Id: argdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -44,7 +44,7 @@ CPL_CVSID("$Id: argdataset.cpp 6574497e5ddfd7c08c094a76756a0ef477cef6a1 2018-04-
 /* ==================================================================== */
 /************************************************************************/
 
-class ARGDataset : public RawDataset
+class ARGDataset final: public RawDataset
 {
     VSILFILE *fpImage;  // image data file.
     double adfGeoTransform[6];
@@ -526,7 +526,7 @@ GDALDataset *ARGDataset::Open( GDALOpenInfo *poOpenInfo )
     RawRasterBand *poBand
         = new RawRasterBand( poDS, 1, poDS->fpImage,
                              0, nPixelOffset, nPixelOffset * nCols,
-                             eType, bNative, TRUE );
+                             eType, bNative, RawRasterBand::OwnFP::NO );
     poDS->SetBand( 1, poBand );
 
     poBand->SetNoDataValue( dfNoDataValue );
@@ -725,7 +725,8 @@ GDALDataset *ARGDataset::CreateCopy( const char *pszFilename,
     RawRasterBand *poDstBand = new RawRasterBand( fpImage, 0, nPixelOffset,
                                                   nPixelOffset * nXSize, eType,
                                                   bNative,
-                                                  nXSize, nYSize, TRUE, FALSE);
+                                                  nXSize, nYSize,
+                                                  RawRasterBand::OwnFP::NO);
 
     int nXBlockSize, nYBlockSize;
     poSrcBand->GetBlockSize(&nXBlockSize, &nYBlockSize);

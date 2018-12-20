@@ -49,7 +49,7 @@
 #include "gdal_priv.h"
 #include "gdal_rat.h"
 
-CPL_CVSID("$Id: gdalpamrasterband.cpp ec7b85e6bb8f9737693a31f0bf7166e31e10992e 2018-04-16 00:08:36 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalpamrasterband.cpp 24638830292ceae1017dbd9fef207111ca34fab4 2018-10-05 16:39:37 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                         GDALPamRasterBand()                          */
@@ -58,7 +58,6 @@ CPL_CVSID("$Id: gdalpamrasterband.cpp ec7b85e6bb8f9737693a31f0bf7166e31e10992e 2
 GDALPamRasterBand::GDALPamRasterBand()
 
 {
-    psPam = nullptr;
     SetMOFlags( GetMOFlags() | GMO_PAM_CLASS );
 }
 
@@ -70,7 +69,6 @@ GDALPamRasterBand::GDALPamRasterBand()
 GDALPamRasterBand::GDALPamRasterBand( int bForceCachedIOIn ) :
     GDALRasterBand(bForceCachedIOIn)
 {
-    psPam = nullptr;
     SetMOFlags( GetMOFlags() | GMO_PAM_CLASS );
 }
 //! @endcond
@@ -664,7 +662,8 @@ CPLErr GDALPamRasterBand::CloneInfo( GDALRasterBand *poSrcBand,
     {
         const GDALRasterAttributeTable *poRAT = poSrcBand->GetDefaultRAT();
 
-        if( poRAT != nullptr )
+        if( poRAT != nullptr &&
+            (poRAT->GetRowCount() != 0 || poRAT->GetColumnCount() != 0) )
         {
             if( !bOnlyIfMissing || GetDefaultRAT() == nullptr )
             {

@@ -32,7 +32,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: eirdataset.cpp c0a1e4f5188da2426ccf0533ecc45aa0c9c468b1 2018-03-10 22:01:02Z Even Rouault $")
+CPL_CVSID("$Id: eirdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -40,7 +40,7 @@ CPL_CVSID("$Id: eirdataset.cpp c0a1e4f5188da2426ccf0533ecc45aa0c9c468b1 2018-03-
 /* ==================================================================== */
 /************************************************************************/
 
-class EIRDataset : public RawDataset
+class EIRDataset final: public RawDataset
 {
     friend class RawRasterBand;
 
@@ -55,6 +55,8 @@ class EIRDataset : public RawDataset
 #ifdef unused
     const char *GetKeyValue( const char *pszKey, const char *pszDefault = "" );
 #endif
+
+    CPL_DISALLOW_COPY_ASSIGN(EIRDataset)
 
   public:
     EIRDataset();
@@ -227,7 +229,7 @@ int EIRDataset::Identify( GDALOpenInfo * poOpenInfo )
     if( poOpenInfo->nHeaderBytes < 100 )
         return FALSE;
 
-    if( strstr((const char *) poOpenInfo->pabyHeader,
+    if( strstr(reinterpret_cast<const char *>(poOpenInfo->pabyHeader),
                "IMAGINE_RAW_FILE" ) == nullptr )
         return FALSE;
 
@@ -392,6 +394,7 @@ GDALDataset *EIRDataset::Open( GDALOpenInfo * poOpenInfo )
 
         CSLDestroy( papszTokens );
     }
+    CPL_IGNORE_RET_VAL(nBits);
 
 /* -------------------------------------------------------------------- */
 /*      Did we get the required keywords?  If not we return with        */
@@ -512,7 +515,7 @@ GDALDataset *EIRDataset::Open( GDALOpenInfo * poOpenInfo )
 #else
                                 chByteOrder == 'M',
 #endif
-                                nBits);
+                                RawRasterBand::OwnFP::NO );
 
         poDS->SetBand( i+1, poBand );
     }

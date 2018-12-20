@@ -38,7 +38,7 @@
 
 //! @cond Doxygen_Suppress
 
-CPL_CVSID("$Id: ogr_gensql.cpp e5a287aeb4a9c8665a45b9877e555e16ed93843d 2018-04-18 19:06:22 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr_gensql.cpp 10e54d45fee8229428eb8ab22949aa46eb9da150 2018-05-06 11:07:25 +0200 Even Rouault $")
 
 class OGRGenSQLGeomFieldDefn final: public OGRGeomFieldDefn
 {
@@ -105,7 +105,8 @@ OGRGenSQLResultsLayer::OGRGenSQLResultsLayer( GDALDataset *poSrcDSIn,
     iFIDFieldIndex(),
     nExtraDSCount(0),
     papoExtraDS(nullptr),
-    nIteratedFeatures(-1)
+    nIteratedFeatures(-1),
+    m_oDistinctList{}
 {
     swq_select *psSelectInfo = static_cast<swq_select*>(pSelectInfoIn);
 

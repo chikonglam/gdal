@@ -33,7 +33,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrcouchdbtablelayer.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrcouchdbtablelayer.cpp db7b8a03d90637c2f6ba5cbdb087e2819d8ec8dd 2018-05-12 22:34:30 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                       OGRCouchDBTableLayer()                         */
@@ -82,7 +82,12 @@ OGRCouchDBTableLayer::~OGRCouchDBTableLayer()
 {
     if( bMustWriteMetadata )
     {
-        OGRCouchDBTableLayer::GetLayerDefn();
+        if (poFeatureDefn == nullptr)
+        {
+            OGRCouchDBTableLayer::LoadMetadata();
+            if( poFeatureDefn == nullptr )
+                BuildLayerDefn();
+        }
         OGRCouchDBTableLayer::WriteMetadata();
     }
 
@@ -858,42 +863,51 @@ OGRFeature * OGRCouchDBTableLayer::GetFeature( const char* pszId )
 
 OGRFeatureDefn * OGRCouchDBTableLayer::GetLayerDefn()
 {
-    if (poFeatureDefn == nullptr)
-        LoadMetadata();
+    if (poFeatureDefn != nullptr)
+        return poFeatureDefn;
 
-    if (poFeatureDefn == nullptr)
+    LoadMetadata();
+    if( poFeatureDefn == nullptr)
+        BuildLayerDefn();
+    return poFeatureDefn;
+}
+
+/************************************************************************/
+/*                           BuildLayerDefn()                           */
+/************************************************************************/
+
+void OGRCouchDBTableLayer::BuildLayerDefn()
+{
+    CPLAssert(poFeatureDefn == nullptr);
+
+    poFeatureDefn = new OGRFeatureDefn( osName );
+    poFeatureDefn->Reference();
+
+    poFeatureDefn->SetGeomType(eGeomType);
+
+    OGRFieldDefn oFieldId("_id", OFTString);
+    poFeatureDefn->AddFieldDefn(&oFieldId);
+
+    OGRFieldDefn oFieldRev("_rev", OFTString);
+    poFeatureDefn->AddFieldDefn(&oFieldRev);
+
+    if (nNextFIDForCreate == 0)
     {
-        poFeatureDefn = new OGRFeatureDefn( osName );
-        poFeatureDefn->Reference();
-
-        poFeatureDefn->SetGeomType(eGeomType);
-
-        OGRFieldDefn oFieldId("_id", OFTString);
-        poFeatureDefn->AddFieldDefn(&oFieldId);
-
-        OGRFieldDefn oFieldRev("_rev", OFTString);
-        poFeatureDefn->AddFieldDefn(&oFieldRev);
-
-        if (nNextFIDForCreate == 0)
-        {
-            return poFeatureDefn;
-        }
-
-        CPLString osURI("/");
-        osURI += osEscapedName;
-        osURI += "/_all_docs?limit=10&include_docs=true";
-        json_object* poAnswerObj = poDS->GET(osURI);
-        if (poAnswerObj == nullptr)
-            return poFeatureDefn;
-
-        BuildFeatureDefnFromRows(poAnswerObj);
-
-        eGeomType = poFeatureDefn->GetGeomType();
-
-        json_object_put(poAnswerObj);
+        return;
     }
 
-    return poFeatureDefn;
+    CPLString osURI("/");
+    osURI += osEscapedName;
+    osURI += "/_all_docs?limit=10&include_docs=true";
+    json_object* poAnswerObj = poDS->GET(osURI);
+    if (poAnswerObj == nullptr)
+        return;
+
+    BuildFeatureDefnFromRows(poAnswerObj);
+
+    eGeomType = poFeatureDefn->GetGeomType();
+
+    json_object_put(poAnswerObj);
 }
 
 /************************************************************************/

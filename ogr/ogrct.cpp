@@ -65,7 +65,7 @@ constexpr double DEG_TO_RAD = 0.0174532925199432958;
 #endif
 #endif
 
-CPL_CVSID("$Id: ogrct.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrct.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 #if PROJ_VERSION == 4
 /* ==================================================================== */
@@ -150,6 +150,8 @@ void OCTCleanupProjMutex()
 
 class OGRProj4CT : public OGRCoordinateTransformation
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRProj4CT)
+
     OGRSpatialReference *poSRSSource = nullptr;
     bool        bSourceLatLong = false;
     double      dfSourceToRadians = 0.0;
@@ -201,17 +203,17 @@ public:
     int         Initialize( OGRSpatialReference *poSource,
                             OGRSpatialReference *poTarget );
 
-    virtual OGRSpatialReference *GetSourceCS() override;
-    virtual OGRSpatialReference *GetTargetCS() override;
-    virtual int Transform( int nCount,
+    OGRSpatialReference *GetSourceCS() override;
+    OGRSpatialReference *GetTargetCS() override;
+    int Transform( int nCount,
                            double *x, double *y, double *z = nullptr ) override;
-    virtual int TransformEx( int nCount,
+    int TransformEx( int nCount,
                              double *x, double *y, double *z = nullptr,
                              int *panSuccess = nullptr ) override;
 
     // TODO(schwehr): Make GetEmitErrors const.
-    virtual bool GetEmitErrors() override { return m_bEmitErrors; }
-    virtual void SetEmitErrors( bool bEmitErrors ) override
+    bool GetEmitErrors() override { return m_bEmitErrors; }
+    void SetEmitErrors( bool bEmitErrors ) override
         { m_bEmitErrors = bEmitErrors; }
 };
 

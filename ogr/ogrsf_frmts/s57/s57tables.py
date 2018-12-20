@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ******************************************************************************
-#  $Id: s57tables.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
+#  $Id: s57tables.py a1094f6d2898cd840a8a296ab7e1734c641a0dac 2018-05-07 10:02:54 +1000 Ben Elliston $
 #
 #  Project:  S-57 OGR Translator
 #  Purpose:  Script to translate s57 .csv files into C code "data" statements.
@@ -29,7 +29,6 @@
 # ******************************************************************************
 
 import os
-import string
 import sys
 
 # -----------------------------------------------------------------------------
@@ -37,16 +36,8 @@ import sys
 # -----------------------------------------------------------------------------
 
 
-def EscapeLine(line):
-
-    line_out = ''
-    for lchar in line:
-        if lchar == '"':
-            line_out += '\\"'
-        else:
-            line_out += lchar
-
-    return line_out
+def EscapeLine(ln):
+    return ln.replace('"', '\\"')
 
 # -----------------------------------------------------------------------------
 #
@@ -66,7 +57,7 @@ print('char *gpapszS57Classes[] = {')
 classes = open(directory + '/s57objectclasses.csv').readlines()
 
 for line in classes:
-    print('"%s",' % EscapeLine(string.strip(line)))
+    print('"%s",' % EscapeLine(line.strip()))
 
 print('NULL };')
 
@@ -74,6 +65,6 @@ print('char *gpapszS57attributes[] = {')
 classes = open(directory + '/s57attributes.csv').readlines()
 
 for line in classes:
-    print('"%s",' % EscapeLine(string.strip(line)))
+    print('"%s",' % EscapeLine(line.strip()))
 
 print('NULL };')

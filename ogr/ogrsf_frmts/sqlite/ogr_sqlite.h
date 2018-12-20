@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_sqlite.h 3bc98ac2e895141cb38924f83d1182b59d711148 2018-06-14 16:22:26 +0200 Even Rouault $
+ * $Id: ogr_sqlite.h b1eecf60a04ac462985fd2c7298d38780248497a 2018-10-27 15:20:25 -0400 Simon South $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/SQLite driver.
@@ -621,6 +621,8 @@ class OGRSQLiteSelectLayer : public OGRSQLiteLayer, public IOGRSQLiteSelectLayer
 
     virtual OGRErr      ResetStatement() override;
 
+    CPL_DISALLOW_COPY_ASSIGN(OGRSQLiteSelectLayer)
+
   public:
                         OGRSQLiteSelectLayer( OGRSQLiteDataSource *,
                                               CPLString osSQL,
@@ -947,9 +949,6 @@ class RL2RasterBand final: public GDALPamRasterBand
 
 CPLString OGRSQLiteFieldDefnToSQliteFieldDefn( OGRFieldDefn* poFieldDefn,
                                                int bSQLiteDialectInternalUse );
-
-int OGRSQLITEStringToDateTimeField( OGRFeature* poFeature, int iField,
-                                    const char* pszValue );
 
 typedef void (*pfnNotifyFileOpenedType)(void* pfnUserData, const char* pszFilename, VSILFILE* fp);
 sqlite3_vfs* OGRSQLiteCreateVFS(pfnNotifyFileOpenedType pfn, void* pfnUserData);

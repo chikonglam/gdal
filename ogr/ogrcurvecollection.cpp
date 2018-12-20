@@ -40,7 +40,7 @@
 #include "cpl_string.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: ogrcurvecollection.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrcurvecollection.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 //! @cond Doxygen_Suppress
 
@@ -48,12 +48,7 @@ CPL_CVSID("$Id: ogrcurvecollection.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 
 /*                         OGRCurveCollection()                         */
 /************************************************************************/
 
-OGRCurveCollection::OGRCurveCollection()
-
-{
-    nCurveCount = 0;
-    papoCurves = nullptr;
-}
+OGRCurveCollection::OGRCurveCollection() = default;
 
 /************************************************************************/
 /*             OGRCurveCollection( const OGRCurveCollection& )          */
@@ -68,9 +63,7 @@ OGRCurveCollection::OGRCurveCollection()
  * @since GDAL 2.1
  */
 
-OGRCurveCollection::OGRCurveCollection( const OGRCurveCollection& other ) :
-    nCurveCount(0),
-    papoCurves(nullptr)
+OGRCurveCollection::OGRCurveCollection( const OGRCurveCollection& other )
 {
     if( other.nCurveCount > 0 )
     {

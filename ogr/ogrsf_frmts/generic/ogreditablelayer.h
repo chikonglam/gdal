@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogreditablelayer.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: ogreditablelayer.h 10e54d45fee8229428eb8ab22949aa46eb9da150 2018-05-06 11:07:25 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGREditableLayer class
@@ -45,17 +45,19 @@ class CPL_DLL IOGREditableLayerSynchronizer
 
 class CPL_DLL OGREditableLayer : public OGRLayerDecorator
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGREditableLayer)
+
   protected:
 
     IOGREditableLayerSynchronizer *m_poSynchronizer;
     bool                           m_bTakeOwnershipSynchronizer;
     OGRFeatureDefn                *m_poEditableFeatureDefn;
     GIntBig                        m_nNextFID;
-    std::set<GIntBig>              m_oSetCreated;
-    std::set<GIntBig>              m_oSetEdited;
-    std::set<GIntBig>              m_oSetDeleted;
-    std::set<GIntBig>::iterator    m_oIter;
-    std::set<CPLString>            m_oSetDeletedFields;
+    std::set<GIntBig>              m_oSetCreated{};
+    std::set<GIntBig>              m_oSetEdited{};
+    std::set<GIntBig>              m_oSetDeleted{};
+    std::set<GIntBig>::iterator    m_oIter{};
+    std::set<CPLString>            m_oSetDeletedFields{};
     OGRLayer                      *m_poMemLayer;
     bool                           m_bStructureModified;
     bool                           m_bSupportsCreateGeomField;

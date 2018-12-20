@@ -32,7 +32,7 @@
 #include "gdal_frmts.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: rikdataset.cpp 33c893fc72f32e43c9ed2dea9b1621a16f46d6a3 2018-05-04 09:33:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: rikdataset.cpp fad6bf6f646cc44e18af22ed53f74cfcf46b0b0a 2018-05-04 09:33:05 +0200 Even Rouault $")
 
 #define RIK_HEADER_DEBUG 0
 #define RIK_CLEAR_DEBUG 0

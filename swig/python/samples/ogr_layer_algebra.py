@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ******************************************************************************
-#  $Id: ogr_layer_algebra.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
+#  $Id: ogr_layer_algebra.py c6a7f326309cf9e043663557dead654e66cffea9 2018-04-27 10:04:51 +1000 Ben Elliston $
 #
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for executing OGR layer algebra operations
@@ -124,7 +124,7 @@ def CreateLayer(output_ds, output_lyr_name, srs, geom_type, lco,
 
 def main(argv=None):
 
-    format = 'ESRI Shapefile'
+    frmt = 'ESRI Shapefile'
     quiet_flag = 0
     input_ds_name = None
     input_lyr_name = None
@@ -154,7 +154,7 @@ def main(argv=None):
 
         if arg == '-f' and i + 1 < len(argv):
             i = i + 1
-            format = argv[i]
+            frmt = argv[i]
 
         elif arg == '-input_ds' and i + 1 < len(argv):
             i = i + 1
@@ -364,9 +364,9 @@ def main(argv=None):
             print('Output datasource "%s" exists, but cannot be opened in update mode' % output_ds_name)
             return 1
 
-        drv = ogr.GetDriverByName(format)
+        drv = ogr.GetDriverByName(frmt)
         if drv is None:
-            print('Cannot find driver %s' % format)
+            print('Cannot find driver %s' % frmt)
             return 1
 
         output_ds = drv.CreateDataSource(output_ds_name, options=dsco)
@@ -412,6 +412,7 @@ def main(argv=None):
 
         if overwrite:
             cnt = output_ds.GetLayerCount()
+            iLayer = None  # initialise in case there are no loop iterations
             for iLayer in range(cnt):
                 poLayer = output_ds.GetLayer(iLayer)
                 if poLayer is not None \

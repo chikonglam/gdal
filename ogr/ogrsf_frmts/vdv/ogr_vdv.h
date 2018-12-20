@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_vdv.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: ogr_vdv.h bcfa716290c2ab4e6476a74e70a98ca9541cda0e 2018-10-03 21:06:30 +0200 Even Rouault $
  *
  * Project:  VDV Translator
  * Purpose:  Implements OGRVDVDriver.
@@ -42,14 +42,17 @@ class OGRVDVDataSource;
 
 class OGRIDFDataSource : public GDALDataset
 {
+    CPLString           m_osFilename;
     VSILFILE*           m_fpL;
     bool                m_bHasParsed;
-    GDALDataset        *m_poMemDS;
+    GDALDataset        *m_poTmpDS;
+    bool                m_bDestroyTmpDS = false;
 
     void                Parse();
 
   public:
-    explicit            OGRIDFDataSource(VSILFILE* fpL);
+    explicit            OGRIDFDataSource(const char* pszFilename,
+                                         VSILFILE* fpL);
                         virtual ~OGRIDFDataSource();
 
     virtual int                 GetLayerCount() override;

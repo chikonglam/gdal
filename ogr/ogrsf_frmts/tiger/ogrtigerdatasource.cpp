@@ -33,7 +33,7 @@
 #include <cctype>
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrtigerdatasource.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrtigerdatasource.cpp 317ae5a1782a7c432ccf90090cc616303b43afcc 2018-05-12 22:32:42 +0200 Even Rouault $")
 
 #define DIGIT_ZERO '0'
 
@@ -393,7 +393,7 @@ int OGRTigerDataSource::Open( const char * pszFilename, int bTestOpen,
 /* -------------------------------------------------------------------- */
     papszModules = nullptr;
 
-    for( int i = 0; papszFileList[i] != nullptr; i++ )
+    for( int i = 0; papszFileList && papszFileList[i] != nullptr; i++ )
     {
         if( bTestOpen || i == 0 )
         {

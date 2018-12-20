@@ -46,18 +46,9 @@
 #endif  // !DEBUG_VERBOSE
 
 #include "ogr_geojson.h"
-
-// Remove annoying warnings Microsoft Visual C++:
-//   'class': assignment operator could not be generated.
-//     The compiler cannot generate an assignment operator for the given
-//     class. No assignment operator was created.
-#if defined(_MSC_VER)
-#  pragma warning(disable:4512)
-#endif
-
 #include "ogrgeojsonreader.h"
 
-CPL_CVSID("$Id: ogrgeojsonlayer.cpp c7a85063f3aed63008861e94f030482ed2ce7177 2018-06-02 11:57:52 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeojsonlayer.cpp 287413caabcca722a41a2f74f819e5b03e44ed21 2018-09-16 15:01:08 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                       STATIC MEMBERS DEFINITION                      */

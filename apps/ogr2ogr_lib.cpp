@@ -41,6 +41,7 @@
 #include <algorithm>
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -64,7 +65,7 @@
 #include "ogrlayerdecorator.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogr2ogr_lib.cpp 3e78f98797f6bd1ce644c449e6ac02088a279390 2018-04-28 00:04:29 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr2ogr_lib.cpp 03663aa9cc098380fe5420faa4f424c3dac45a08 2018-10-29 23:18:12 +0100 Even Rouault $")
 
 typedef enum
 {
@@ -1987,6 +1988,16 @@ GDALDatasetH GDALVectorTranslate( const char *pszDest, GDALDatasetH hDstDS, int 
     if (psOptions->papszFieldMap && psOptions->bAddMissingFields)
     {
         CPLError( CE_Failure, CPLE_IllegalArg, "if -addfields is specified, -fieldmap cannot be used.");
+        if(pbUsageError)
+            *pbUsageError = TRUE;
+        GDALVectorTranslateOptionsFree(psOptions);
+        return nullptr;
+    }
+
+    if (psOptions->papszSelFields && bAppend && !psOptions->bAddMissingFields)
+    {
+        CPLError( CE_Failure, CPLE_IllegalArg, "if -append is specified, -select cannot be used "
+                  "(use -fieldmap or -sql instead)." );
         if(pbUsageError)
             *pbUsageError = TRUE;
         GDALVectorTranslateOptionsFree(psOptions);
@@ -3919,15 +3930,25 @@ TargetLayerInfo* SetupTargetLayer::Setup(OGRLayer* poSrcLayer,
     {
         int nDstFieldCount = poDstFDefn ? poDstFDefn->GetFieldCount() : 0;
 
+        const bool caseInsensitive =
+            !EQUAL(m_poDstDS->GetDriver()->GetDescription(), "GeoJSON");
+        auto formatName = [caseInsensitive](const char* name) {
+            if( caseInsensitive ) {
+                return CPLString(name).toupper();
+            } else {
+                return CPLString(name);
+            }
+        };
+
         /* Save the map of existing fields, before creating new ones */
         /* This helps when converting a source layer that has duplicated field names */
         /* which is a bad idea */
         std::map<CPLString, int> oMapPreExistingFields;
-        std::set<CPLString> oSetDstFieldNames;
+        std::unordered_set<std::string> oSetDstFieldNames;
         for( int iField = 0; iField < nDstFieldCount; iField++ )
         {
             const char* pszFieldName = poDstFDefn->GetFieldDefn(iField)->GetNameRef();
-            CPLString osUpperFieldName(CPLString(pszFieldName).toupper());
+            CPLString osUpperFieldName(formatName(pszFieldName));
             oSetDstFieldNames.insert(osUpperFieldName);
             if( oMapPreExistingFields.find(osUpperFieldName) ==
                                             oMapPreExistingFields.end() )
@@ -3961,11 +3982,11 @@ TargetLayerInfo* SetupTargetLayer::Setup(OGRLayer* poSrcLayer,
             }
         }
 
-        std::set<CPLString> oSetSrcFieldNames;
+        std::unordered_set<std::string> oSetSrcFieldNames;
         for( int i = 0; i < poSrcFDefn->GetFieldCount(); i++ )
         {
             oSetSrcFieldNames.insert(
-                CPLString(poSrcFDefn->GetFieldDefn(i)->GetNameRef()).toupper());
+                formatName(poSrcFDefn->GetFieldDefn(i)->GetNameRef()));
         }
 
         for( size_t i = 0; i < anSrcFieldIndices.size(); i++ )
@@ -3992,7 +4013,7 @@ TargetLayerInfo* SetupTargetLayer::Setup(OGRLayer* poSrcLayer,
 
             /* The field may have been already created at layer creation */
             std::map<CPLString, int>::iterator oIter =
-                oMapPreExistingFields.find(CPLString(oFieldDefn.GetNameRef()).toupper());
+                oMapPreExistingFields.find(formatName(oFieldDefn.GetNameRef()));
             if( oIter != oMapPreExistingFields.end() )
             {
                 panMap[iField] = oIter->second;
@@ -4003,26 +4024,30 @@ TargetLayerInfo* SetupTargetLayer::Setup(OGRLayer* poSrcLayer,
             /* In case the field name already exists in the target layer, */
             /* build a unique field name */
             if( oSetDstFieldNames.find(
-                    CPLString(oFieldDefn.GetNameRef()).toupper()) !=
+                    formatName(oFieldDefn.GetNameRef())) !=
                                                     oSetDstFieldNames.end() )
             {
                 int nTry = 1;
+                CPLString osTmpNameRaddixUC(oFieldDefn.GetNameRef());
+                osTmpNameRaddixUC = formatName(osTmpNameRaddixUC);
+                CPLString osTmpNameUC = osTmpNameRaddixUC;
+                osTmpNameUC.reserve(osTmpNameUC.size() + 10);
                 while( true )
                 {
                     ++nTry;
-                    CPLString osTmpName;
-                    osTmpName.Printf("%s%d", oFieldDefn.GetNameRef(), nTry);
+                    char szTry[32];
+                    snprintf(szTry, sizeof(szTry), "%d", nTry);
+                    osTmpNameUC.replace(osTmpNameRaddixUC.size(), std::string::npos, szTry);
+
                     /* Check that the proposed name doesn't exist either in the already */
                     /* created fields or in the source fields */
-                    if( oSetDstFieldNames.find(
-                            CPLString(osTmpName).toupper()) ==
+                    if( oSetDstFieldNames.find(osTmpNameUC) ==
                                                     oSetDstFieldNames.end() &&
-                        oSetSrcFieldNames.find(
-                            CPLString(osTmpName).toupper()) ==
+                        oSetSrcFieldNames.find(osTmpNameUC) ==
                                                     oSetSrcFieldNames.end() )
                     {
                         bHasRenamed = true;
-                        oFieldDefn.SetName(osTmpName);
+                        oFieldDefn.SetName((CPLString(oFieldDefn.GetNameRef()) + szTry).c_str());
                         break;
                     }
                 }
@@ -4054,7 +4079,7 @@ TargetLayerInfo* SetupTargetLayer::Setup(OGRLayer* poSrcLayer,
                                     "Field '%s' already exists. Renaming it as '%s'",
                                     poSrcFieldDefn->GetNameRef(), pszNewFieldName);
                         }
-                        oSetDstFieldNames.insert(CPLString(pszNewFieldName).toupper());
+                        oSetDstFieldNames.insert(formatName(pszNewFieldName));
                     }
 
                     panMap[iField] = nDstFieldCount;
@@ -4467,7 +4492,8 @@ int LayerTranslator::Translate( OGRFeature* poFeatureIn,
             /* target feature : we steal it from the source feature for now... */
             OGRGeometry* poStolenGeometry = nullptr;
             if( !bExplodeCollections && nSrcGeomFieldCount == 1 &&
-                nDstGeomFieldCount == 1 )
+                (nDstGeomFieldCount == 1 ||
+                 (nDstGeomFieldCount == 0 && m_poClipSrc)) )
             {
                 poStolenGeometry = poFeature->StealGeometry();
             }
@@ -4476,6 +4502,19 @@ int LayerTranslator::Translate( OGRFeature* poFeatureIn,
             {
                 poStolenGeometry = poFeature->StealGeometry(
                     psInfo->iRequestedSrcGeomField);
+            }
+
+            if( nDstGeomFieldCount == 0 && poStolenGeometry && m_poClipSrc )
+            {
+                OGRGeometry* poClipped = poStolenGeometry->Intersection(m_poClipSrc);
+                delete poStolenGeometry;
+                poStolenGeometry = nullptr;
+                if (poClipped == nullptr || poClipped->IsEmpty())
+                {
+                    delete poClipped;
+                    goto end_loop;
+                }
+                delete poClipped;
             }
 
             if( poDstFeature->SetFrom( poFeature, panMap, TRUE ) != OGRERR_NONE )

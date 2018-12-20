@@ -32,7 +32,7 @@
 #include "mitab/mitab_priv.h"
 #include "cpl_minixml.h"
 
-CPL_CVSID("$Id: ogr_miattrind.cpp e5a287aeb4a9c8665a45b9877e555e16ed93843d 2018-04-18 19:06:22 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr_miattrind.cpp 10e54d45fee8229428eb8ab22949aa46eb9da150 2018-05-06 11:07:25 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            OGRMIAttrIndex                            */
@@ -45,6 +45,8 @@ class OGRMILayerAttrIndex;
 
 class OGRMIAttrIndex : public OGRAttrIndex
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRMIAttrIndex)
+
 public:
     int         iIndex;
     TABINDFile  *poINDFile;
@@ -78,6 +80,8 @@ public:
 
 class OGRMILayerAttrIndex final: public OGRLayerAttrIndex
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRMILayerAttrIndex)
+
 public:
     TABINDFile  *poINDFile;
 

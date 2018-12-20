@@ -37,7 +37,7 @@
 #include "cpl_string.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: gdaldefaultasync.cpp ec7b85e6bb8f9737693a31f0bf7166e31e10992e 2018-04-16 00:08:36 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdaldefaultasync.cpp dca024c6230a7d7f29afd2818afdc23313a18542 2018-05-06 18:08:36 +0200 Even Rouault $")
 
 CPL_C_START
 GDALAsyncReader *
@@ -81,9 +81,7 @@ GDALAsyncReader::GDALAsyncReader() :
 /************************************************************************/
 /*                         ~GDALAsyncReader()                           */
 /************************************************************************/
-GDALAsyncReader::~GDALAsyncReader()
-{
-}
+GDALAsyncReader::~GDALAsyncReader() = default;
 
 /************************************************************************/
 /*                        GetNextUpdatedRegion()                        */
@@ -282,7 +280,9 @@ void CPL_STDCALL GDALARUnlockBuffer(GDALAsyncReaderH hARIO)
 class GDALDefaultAsyncReader : public GDALAsyncReader
 {
   private:
-    char **papszOptions;
+    char **papszOptions = nullptr;
+
+    CPL_DISALLOW_COPY_ASSIGN(GDALDefaultAsyncReader)
 
   public:
     GDALDefaultAsyncReader(GDALDataset* poDS,

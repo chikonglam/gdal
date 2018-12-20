@@ -34,7 +34,7 @@
 
 #include <vector>
 
-CPL_CVSID("$Id: cpgdataset.cpp 01037e400d90e8bc4a74f8d886ea5a27ecce02c5 2018-01-12 23:49:31Z Kurt Schwehr $")
+CPL_CVSID("$Id: cpgdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 enum Interleave { BSQ, BIL, BIP };
 
@@ -47,20 +47,20 @@ enum Interleave { BSQ, BIL, BIP };
 class SIRC_QSLCRasterBand;
 class CPG_STOKESRasterBand;
 
-class CPGDataset : public RawDataset
+class CPGDataset final: public RawDataset
 {
     friend class SIRC_QSLCRasterBand;
     friend class CPG_STOKESRasterBand;
 
     VSILFILE *afpImage[4];
-    std::vector<CPLString> aosImageFilenames;
+    std::vector<CPLString> aosImageFilenames{};
 
     int nGCPCount;
     GDAL_GCP *pasGCPList;
-    char *pszGCPProjection;
+    char *pszGCPProjection{};
 
     double adfGeoTransform[6];
-    char *pszProjection;
+    char *pszProjection{};
 
     int nLoadedStokesLine;
     float *padfStokesMatrix;
@@ -77,6 +77,8 @@ class CPGDataset : public RawDataset
     static GDALDataset *InitializeType3Dataset( const char *pszWorkname );
 #endif
   CPLErr LoadStokesLine( int iLine, int bNativeOrder );
+
+    CPL_DISALLOW_COPY_ASSIGN(CPGDataset)
 
   public:
     CPGDataset();
@@ -230,8 +232,8 @@ int CPGDataset::AdjustFilename( char **pszFilename,
     if ( EQUAL(pszPolarization,"stokes") )
     {
         const char *pszNewName =
-            CPLResetExtension((const char *) *pszFilename,
-                              (const char *) pszExtension);
+            CPLResetExtension(*pszFilename,
+                              pszExtension);
         CPLFree(*pszFilename);
         *pszFilename = CPLStrdup(pszNewName);
     }
@@ -249,16 +251,16 @@ int CPGDataset::AdjustFilename( char **pszFilename,
 
         strncpy( subptr, pszPolarization, 2);
         const char *pszNewName =
-            CPLResetExtension((const char *) *pszFilename,
-                              (const char *) pszExtension);
+            CPLResetExtension(*pszFilename,
+                              pszExtension);
         CPLFree(*pszFilename);
         *pszFilename = CPLStrdup(pszNewName);
     }
     else
     {
         const char *pszNewName =
-            CPLResetExtension((const char *) *pszFilename,
-                              (const char *) pszExtension);
+            CPLResetExtension(*pszFilename,
+                              pszExtension);
         CPLFree(*pszFilename);
         *pszFilename = CPLStrdup(pszNewName);
     }
@@ -656,7 +658,8 @@ GDALDataset* CPGDataset::InitializeType1Or2Dataset( const char *pszFilename )
             RawRasterBand *poBand
                 = new RawRasterBand( poDS, iBand+1, poDS->afpImage[iBand],
                                      0, 8, 8*nSamples,
-                                     GDT_CFloat32, !CPL_IS_LSB, TRUE );
+                                     GDT_CFloat32, !CPL_IS_LSB,
+                                     RawRasterBand::OwnFP::NO );
             poDS->SetBand( iBand+1, poBand );
 
             poBand->SetMetadataItem( "POLARIMETRIC_INTERP",

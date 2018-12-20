@@ -30,6 +30,7 @@
 #include "cpl_port.h"
 #include "gdal_priv.h"
 
+#include <cassert>
 #include <climits>
 #include <cstddef>
 #include <new>
@@ -45,7 +46,7 @@ constexpr int SUBBLOCK_SIZE = 64;
 #define TO_SUBBLOCK(x) ((x) >> 6)
 #define WITHIN_SUBBLOCK(x) ((x) & 0x3f)
 
-CPL_CVSID("$Id: gdalarraybandblockcache.cpp 0eef25187324a7b0cbff6a57927945a33b28cb55 2018-04-04 21:16:46 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalarraybandblockcache.cpp e7a90bdc58142dd21dfe6d7bf960e96b3f79de5d 2018-05-10 22:33:56 +0200 Even Rouault $")
 
 /* ******************************************************************** */
 /*                        GDALArrayBandBlockCache                       */
@@ -53,14 +54,18 @@ CPL_CVSID("$Id: gdalarraybandblockcache.cpp 0eef25187324a7b0cbff6a57927945a33b28
 
 class GDALArrayBandBlockCache final : public GDALAbstractBandBlockCache
 {
-    bool              bSubBlockingActive;
-    int               nSubBlocksPerRow;
-    int               nSubBlocksPerColumn;
-    union
+    bool              bSubBlockingActive = false;
+    int               nSubBlocksPerRow = 0;
+    int               nSubBlocksPerColumn = 0;
+    union u
     {
         GDALRasterBlock **papoBlocks;
         GDALRasterBlock ***papapoBlocks;
-    } u;
+
+        u(): papoBlocks(nullptr) {}
+    } u{};
+
+    CPL_DISALLOW_COPY_ASSIGN(GDALArrayBandBlockCache)
 
   public:
     explicit GDALArrayBandBlockCache( GDALRasterBand* poBand );
@@ -91,12 +96,8 @@ GDALAbstractBandBlockCache* GDALArrayBandBlockCacheCreate(GDALRasterBand* poBand
 /************************************************************************/
 
 GDALArrayBandBlockCache::GDALArrayBandBlockCache(GDALRasterBand* poBandIn) :
-    GDALAbstractBandBlockCache(poBandIn),
-    bSubBlockingActive(false),
-    nSubBlocksPerRow(0),
-    nSubBlocksPerColumn(0)
+    GDALAbstractBandBlockCache(poBandIn)
 {
-    u.papoBlocks = nullptr;
 }
 
 /************************************************************************/
@@ -384,6 +385,7 @@ CPLErr GDALArrayBandBlockCache::FlushBlock( int nXBlockOff, int nYBlockOff,
     {
         const int nBlockIndex = nXBlockOff + nYBlockOff * poBand->nBlocksPerRow;
 
+        assert(u.papoBlocks);
         poBlock = u.papoBlocks[nBlockIndex];
         u.papoBlocks[nBlockIndex] = nullptr;
     }

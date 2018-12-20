@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: vec_tr.py d7e898f6034a9c6c0f83cfbff921434dfc2082be 2018-04-18 23:07:52 +1000 Ben Elliston $
+# $Id: vec_tr.py 7151ebd90dea6635aceeda52bcf5240112a0f065 2018-05-08 03:24:39 +1000 Ben Elliston $
 #
 # Project:  OGR Python samples
 # Purpose:  Apply a transformation to all OGR geometries.
@@ -83,10 +83,7 @@ infile = None
 outfile = None
 layer_name = None
 
-i = 1
-while i < len(sys.argv):
-    arg = sys.argv[i]
-
+for arg in sys.argv[1:]:
     if infile is None:
         infile = arg
 
@@ -98,8 +95,6 @@ while i < len(sys.argv):
 
     else:
         Usage()
-
-    i = i + 1
 
 if outfile is None:
     Usage()

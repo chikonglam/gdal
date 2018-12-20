@@ -53,7 +53,7 @@
 #include "ogr_core.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrpgeogeometry.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrpgeogeometry.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 constexpr int SHPP_TRISTRIP  = 0;
 constexpr int SHPP_TRIFAN    = 1;
@@ -63,16 +63,16 @@ constexpr int SHPP_FIRSTRING = 4;
 constexpr int SHPP_RING      = 5;
 constexpr int SHPP_TRIANGLES = 6;  // Multipatch 9.0 specific.
 
-typedef enum
+enum CurveType
 {
     CURVE_ARC_INTERIOR_POINT,
     CURVE_ARC_CENTER_POINT,
     CURVE_BEZIER,
     CURVE_ELLIPSE_BY_CENTER
-} CurveType;
+};
 
 namespace {
-typedef struct
+struct CurveSegment
 {
     int       nStartPointIdx;
     CurveType eType;
@@ -113,7 +113,7 @@ typedef struct
             EMULATED_BOOL bIsComplete;
         } EllipseByCenter;
     } u;
-} CurveSegment;
+};
 } /* namespace */
 
 constexpr int EXT_SHAPE_SEGMENT_ARC = 1;

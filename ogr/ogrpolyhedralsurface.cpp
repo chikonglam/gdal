@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpolyhedralsurface.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $
+ * $Id: ogrpolyhedralsurface.cpp e7a90bdc58142dd21dfe6d7bf960e96b3f79de5d 2018-05-10 22:33:56 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRPolyhedralSurface geometry class.
@@ -34,7 +34,7 @@
 #include "ogr_api.h"
 #include "ogr_libs.h"
 
-CPL_CVSID("$Id: ogrpolyhedralsurface.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrpolyhedralsurface.cpp e7a90bdc58142dd21dfe6d7bf960e96b3f79de5d 2018-05-10 22:33:56 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                         OGRPolyhedralSurface()                       */
@@ -44,9 +44,7 @@ CPL_CVSID("$Id: ogrpolyhedralsurface.cpp 971ad299681ca1ea2e1b800e88209f426b77e9a
  * \brief Create an empty PolyhedralSurface
  */
 
-OGRPolyhedralSurface::OGRPolyhedralSurface()
-
-{ }
+OGRPolyhedralSurface::OGRPolyhedralSurface() = default;
 
 /************************************************************************/
 /*         OGRPolyhedralSurface( const OGRPolyhedralSurface& )          */
@@ -57,10 +55,7 @@ OGRPolyhedralSurface::OGRPolyhedralSurface()
  *
  */
 
-OGRPolyhedralSurface::OGRPolyhedralSurface( const OGRPolyhedralSurface& other ) :
-    OGRSurface(other),
-    oMP(other.oMP)
-{ }
+OGRPolyhedralSurface::OGRPolyhedralSurface( const OGRPolyhedralSurface& ) = default;
 
 /************************************************************************/
 /*                        ~OGRPolyhedralSurface()                       */
@@ -71,9 +66,7 @@ OGRPolyhedralSurface::OGRPolyhedralSurface( const OGRPolyhedralSurface& other ) 
  *
  */
 
-OGRPolyhedralSurface::~OGRPolyhedralSurface()
-
-{ }
+OGRPolyhedralSurface::~OGRPolyhedralSurface() = default;
 
 /************************************************************************/
 /*                 operator=( const OGRPolyhedralSurface&)              */
@@ -373,7 +366,6 @@ OGRErr OGRPolyhedralSurface::importFromWkt( const char ** ppszInput )
 
     char        szToken[OGR_WKT_TOKEN_MAX];
     const char  *pszInput = *ppszInput;
-    eErr = OGRERR_NONE;
 
     /* Skip first '(' */
     pszInput = OGRWktReadToken( pszInput, szToken );

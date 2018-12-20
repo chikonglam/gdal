@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gpx.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: ogr_gpx.h db7b8a03d90637c2f6ba5cbdb087e2819d8ec8dd 2018-05-12 22:34:30 +0200 Even Rouault $
  *
  * Project:  GPX Translator
  * Purpose:  Definition of classes for OGR .gpx driver.
@@ -52,7 +52,7 @@ typedef enum
 /*                             OGRGPXLayer                              */
 /************************************************************************/
 
-class OGRGPXLayer : public OGRLayer
+class OGRGPXLayer final: public OGRLayer
 {
     OGRFeatureDefn*    poFeatureDefn;
     OGRSpatialReference *poSRS;
@@ -172,7 +172,7 @@ typedef enum
     GPX_VALIDITY_VALID
 } OGRGPXValidity;
 
-class OGRGPXDataSource : public OGRDataSource
+class OGRGPXDataSource final: public OGRDataSource
 {
     char*               pszName;
 

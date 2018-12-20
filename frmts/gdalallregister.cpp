@@ -35,7 +35,7 @@
    #include "gnm_frmts.h"
 #endif
 
-CPL_CVSID("$Id: gdalallregister.cpp c77afa6dc277e9099347dcd28de7d954e619b774 2018-03-10 18:58:53Z Even Rouault $")
+CPL_CVSID("$Id: gdalallregister.cpp 25c199ba2b40bdcbdb3d7aafe52f94af676d8aab 2018-10-18 09:09:03 +0200 Even Rouault $")
 
 #ifdef notdef
 // we may have a use for this some day
@@ -426,6 +426,7 @@ void CPL_STDCALL GDALAllRegister()
     GDALRegister_LCP();
     GDALRegister_GTX();
     GDALRegister_LOSLAS();
+    GDALRegister_NTv1();
     GDALRegister_NTv2();
     GDALRegister_CTable2();
     GDALRegister_ACE2();
@@ -433,6 +434,7 @@ void CPL_STDCALL GDALAllRegister()
     GDALRegister_KRO();
     GDALRegister_ROIPAC();
     GDALRegister_RRASTER();
+    GDALRegister_BYN();
 #endif
 
 #ifdef FRMT_arg
@@ -549,24 +551,50 @@ void CPL_STDCALL GDALAllRegister()
     GDALRegister_RDA();
 #endif
 
+#ifdef FRMT_eeda
+    GDALRegister_EEDAI();
+    GDALRegister_EEDA();
+#endif
+
 #ifdef FRMT_null
     GDALRegister_NULL();
 #endif
 
+#ifdef FRMT_sigdem
+    GDALRegister_SIGDEM();
+#endif
+
+#ifdef FRMT_ignfheightasciigrid
+    GDALRegister_IGNFHeightASCIIGrid();
+#endif
+
+    // NOTE: you need to generally your own driver before that line.
+
+/* -------------------------------------------------------------------- */
+/*     GNM and OGR drivers                                              */
+/* -------------------------------------------------------------------- */
 #ifdef GNM_ENABLED
     GNMRegisterAllInternal();
 #endif
 
     OGRRegisterAllInternal();
 
+/* -------------------------------------------------------------------- */
+/*      Put here drivers that absolutely need to look for side car      */
+/*      files in their Identify()/Open() procedure.                     */
+/* -------------------------------------------------------------------- */
+
 #ifdef FRMT_raw
-    // Those ones need to look for side car files so put them at end
     GDALRegister_GenBin();
     GDALRegister_ENVI();
     GDALRegister_EHdr();
     GDALRegister_ISCE();
 #endif
 
+/* -------------------------------------------------------------------- */
+/*      Register GDAL HTTP last, to let a chance to other drivers       */
+/*      accepting URL to handle them before.                            */
+/* -------------------------------------------------------------------- */
 #ifdef FRMT_wcs
     GDALRegister_HTTP();
 #endif

@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: doq1dataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: doq1dataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 static const char UTM_FORMAT[] =
     "PROJCS[\"%s / UTM zone %dN\",GEOGCS[%s,PRIMEM[\"Greenwich\",0],"
@@ -120,6 +120,8 @@ class DOQ1Dataset : public RawDataset
     double      dfYPixelSize;
 
     char        *pszProjection;
+
+    CPL_DISALLOW_COPY_ASSIGN(DOQ1Dataset)
 
   public:
                 DOQ1Dataset();
@@ -280,7 +282,7 @@ GDALDataset *DOQ1Dataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->SetBand( i+1,
             new RawRasterBand( poDS, i+1, poDS->fpImage,
                                nSkipBytes + i, nBytesPerPixel, nBytesPerLine,
-                               GDT_Byte, TRUE, TRUE ) );
+                               GDT_Byte, TRUE, RawRasterBand::OwnFP::NO ) );
     }
 
 /* -------------------------------------------------------------------- */

@@ -41,29 +41,14 @@
 #include "ogr_geometry.h"
 #include "swq_parser.hpp"
 
-CPL_CVSID("$Id: swq_select.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: swq_select.cpp a8d30b37682544123e5e24d69cb33041d544c465 2018-05-06 01:37:21 +0200 Even Rouault $")
 
 //! @cond Doxygen_Suppress
 /************************************************************************/
 /*                             swq_select()                             */
 /************************************************************************/
 
-swq_select::swq_select() :
-    query_mode(0),
-    raw_select(nullptr),
-    result_columns(0),
-    column_defs(nullptr),
-    table_count(0),
-    table_defs(nullptr),
-    join_count(0),
-    join_defs(nullptr),
-    where_expr(nullptr),
-    order_specs(0),
-    order_defs(nullptr),
-    limit(-1),
-    offset(0),
-    poOtherSelect(nullptr)
-{}
+swq_select::swq_select() = default;
 
 /************************************************************************/
 /*                            ~swq_select()                             */

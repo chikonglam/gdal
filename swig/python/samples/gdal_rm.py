@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: gdal_rm.py 1c4c31920cab399201233778e0962abc445e4221 2018-04-15 13:25:48 +1000 Ben Elliston $
+# $Id: gdal_rm.py 8e263710cb425c4a8b76b1f363b98be41ea0a983 2018-04-30 19:40:20 +1000 Ben Elliston $
 #
 #  Project:  GDAL samples
 #  Purpose:  Delete a virtual file
@@ -70,11 +70,11 @@ def gdal_rm_recurse(filename, simulate=False):
         if simulate:
             print('Unlink(%s)' % filename)
             return 0
-        else:
-            return gdal.Unlink(filename)
+        return gdal.Unlink(filename)
 
 
 def gdal_rm(argv, progress=None):
+    # pylint: disable=unused-argument
     filename = None
     recurse = False
     simulate = False
@@ -84,7 +84,7 @@ def gdal_rm(argv, progress=None):
         return -1
 
     for i in range(1, len(argv)):
-        if len(argv[i]) == 0:
+        if not argv[i]:
             return Usage()
 
         if argv[i] == '-r':

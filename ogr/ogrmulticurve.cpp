@@ -36,7 +36,7 @@
 #include "ogr_core.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrmulticurve.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 2018-04-10 15:04:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrmulticurve.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            OGRMultiCurve()                           */
@@ -46,7 +46,7 @@ CPL_CVSID("$Id: ogrmulticurve.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 2018-
  * \brief Create an empty multi curve collection.
  */
 
-OGRMultiCurve::OGRMultiCurve() {}
+OGRMultiCurve::OGRMultiCurve() = default;
 
 /************************************************************************/
 /*                OGRMultiCurve( const OGRMultiCurve& )                 */
@@ -61,15 +61,13 @@ OGRMultiCurve::OGRMultiCurve() {}
  * @since GDAL 2.1
  */
 
-OGRMultiCurve::OGRMultiCurve( const OGRMultiCurve& other ) :
-    OGRGeometryCollection(other)
-{}
+OGRMultiCurve::OGRMultiCurve( const OGRMultiCurve& ) = default;
 
 /************************************************************************/
 /*                           ~OGRMultiCurve()                           */
 /************************************************************************/
 
-OGRMultiCurve::~OGRMultiCurve() {}
+OGRMultiCurve::~OGRMultiCurve() = default;
 
 /************************************************************************/
 /*                  operator=( const OGRMultiCurve&)                    */

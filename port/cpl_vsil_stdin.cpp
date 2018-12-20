@@ -52,7 +52,7 @@
 #include <fcntl.h>
 #endif
 
-CPL_CVSID("$Id: cpl_vsil_stdin.cpp 5524ee5324f7bd364d391d842a6488c90c0186a7 2018-04-02 16:20:13 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_vsil_stdin.cpp c39d156816d937c3139360b11786c769aeabd21e 2018-05-05 19:48:08 +0200 Even Rouault $")
 
 // We buffer the first 1MB of standard input to enable drivers
 // to autodetect data. In the first MB, backward and forward seeking
@@ -87,6 +87,8 @@ static void VSIStdinInit()
 
 class VSIStdinFilesystemHandler final : public VSIFilesystemHandler
 {
+    CPL_DISALLOW_COPY_ASSIGN(VSIStdinFilesystemHandler)
+
   public:
     VSIStdinFilesystemHandler();
     ~VSIStdinFilesystemHandler() override;
@@ -107,12 +109,14 @@ class VSIStdinFilesystemHandler final : public VSIFilesystemHandler
 class VSIStdinHandle final : public VSIVirtualHandle
 {
   private:
-    GUIntBig nCurOff;
+    CPL_DISALLOW_COPY_ASSIGN(VSIStdinHandle)
+
+    GUIntBig nCurOff = 0;
     int               ReadAndCache( void* pBuffer, int nToRead );
 
   public:
-    VSIStdinHandle();
-    ~VSIStdinHandle() override;
+    VSIStdinHandle() = default;
+    ~VSIStdinHandle() override = default;
 
     int Seek( vsi_l_offset nOffset, int nWhence ) override;
     vsi_l_offset Tell() override;
@@ -121,23 +125,6 @@ class VSIStdinHandle final : public VSIVirtualHandle
     int Eof() override;
     int Close() override;
 };
-
-/************************************************************************/
-/*                           VSIStdinHandle()                           */
-/************************************************************************/
-
-VSIStdinHandle::VSIStdinHandle()
-{
-    nCurOff = 0;
-}
-
-/************************************************************************/
-/*                          ~VSIStdinHandle()                           */
-/************************************************************************/
-
-VSIStdinHandle::~VSIStdinHandle()
-{
-}
 
 /************************************************************************/
 /*                              ReadAndCache()                          */

@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrociloaderlayer.cpp cf79f01d31f2de889a3045a3d09f944cb04d7071 2018-03-03 22:40:32Z Even Rouault $")
+CPL_CVSID("$Id: ogrociloaderlayer.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 /************************************************************************/
 /*                         OGROCILoaderLayer()                          */
@@ -122,7 +122,7 @@ void OGROCILoaderLayer::WriteLoaderHeader()
         pszGeometryName = "ORA_GEOMETRY";
 
 /* -------------------------------------------------------------------- */
-/*      Dermine our operation mode.                                     */
+/*      Determine our operation mode.                                   */
 /* -------------------------------------------------------------------- */
     const char *pszLDRMode = CSLFetchNameValue( papszOptions, "LOADER_MODE" );
 

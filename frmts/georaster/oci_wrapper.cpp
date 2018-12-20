@@ -29,7 +29,7 @@
 
 #include "oci_wrapper.h"
 
-CPL_CVSID("$Id: oci_wrapper.cpp 79c519fae99c9d29d132402579a7e3723b457ee0 2018-10-19 11:35:28 -0700 Fengting Chen $")
+CPL_CVSID("$Id: oci_wrapper.cpp 499f2eb9c7e58d30cb5a11ce5d88589a44a4df7b 2018-10-19 11:35:28 -0700 Fengting Chen $")
 
 static const OW_CellDepth ahOW_CellDepth[] = {
     {"8BIT_U",          GDT_Byte},
@@ -652,15 +652,9 @@ bool OWConnection::Commit()
 /*                           OWStatement                                     */
 /*****************************************************************************/
 
-OWStatement::OWStatement( OWConnection* pConnect, const char* pszStatement )
+OWStatement::OWStatement( OWConnection* pConnect, const char* pszStatement ):
+    poConnection(pConnect), hError(poConnection->hError)
 {
-    poConnection    = pConnect;
-    nStmtMode       = OCI_DEFAULT;
-    nNextCol        = 0;
-    nNextBnd        = 0;
-    hError          = poConnection->hError;
-    nFetchCount     = 0;
-
     //  -----------------------------------------------------------
     //  Create Statement handler
     //  -----------------------------------------------------------

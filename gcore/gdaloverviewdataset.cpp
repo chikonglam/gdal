@@ -39,7 +39,7 @@
 #include "gdal_mdreader.h"
 #include "gdal_proxy.h"
 
-CPL_CVSID("$Id: gdaloverviewdataset.cpp 29fae798a89ef1aa4367ca4af670559c561816d1 2018-04-02 16:50:56 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdaloverviewdataset.cpp dca024c6230a7d7f29afd2818afdc23313a18542 2018-05-06 18:08:36 +0200 Even Rouault $")
 
 /** In GDAL, GDALRasterBand::GetOverview() returns a stand-alone band, that may
     have no parent dataset. This can be inconvenient in certain contexts, where
@@ -60,16 +60,16 @@ class GDALOverviewDataset final: public GDALDataset
   private:
     friend class GDALOverviewBand;
 
-    GDALDataset* poMainDS;
+    GDALDataset* poMainDS = nullptr;
 
-    GDALDataset* poOvrDS;  // Will be often NULL.
-    int          nOvrLevel;
-    int          bThisLevelOnly;
+    GDALDataset* poOvrDS = nullptr;  // Will be often NULL.
+    int          nOvrLevel = 0;
+    int          bThisLevelOnly = 0;
 
-    int          nGCPCount;
-    GDAL_GCP    *pasGCPList;
-    char       **papszMD_RPC;
-    char       **papszMD_GEOLOCATION;
+    int          nGCPCount = 0;
+    GDAL_GCP    *pasGCPList = nullptr;
+    char       **papszMD_RPC = nullptr;
+    char       **papszMD_GEOLOCATION = nullptr;
 
     static void  Rescale( char**& papszMD, const char* pszItem,
                           double dfRatio, double dfDefaultVal );
@@ -87,7 +87,7 @@ class GDALOverviewDataset final: public GDALDataset
                          int bThisLevelOnly );
     ~GDALOverviewDataset() override;
 
-    const char *GetProjectionRef( void ) override;
+    const char *GetProjectionRef() override;
     CPLErr GetGeoTransform( double * ) override;
 
     int GetGCPCount() override;
@@ -113,7 +113,7 @@ class GDALOverviewBand final: public GDALProxyRasterBand
   protected:
     friend class GDALOverviewDataset;
 
-    GDALRasterBand*         poUnderlyingBand;
+    GDALRasterBand*         poUnderlyingBand = nullptr;
     GDALRasterBand* RefUnderlyingRasterBand() override;
 
   public:
@@ -169,11 +169,7 @@ GDALOverviewDataset::GDALOverviewDataset( GDALDataset* poMainDSIn,
                                           int bThisLevelOnlyIn ) :
     poMainDS(poMainDSIn),
     nOvrLevel(nOvrLevelIn),
-    bThisLevelOnly(bThisLevelOnlyIn),
-    nGCPCount(0),
-    pasGCPList(nullptr),
-    papszMD_RPC(nullptr),
-    papszMD_GEOLOCATION(nullptr)
+    bThisLevelOnly(bThisLevelOnlyIn)
 {
     poMainDSIn->Reference();
     eAccess = poMainDS->GetAccess();

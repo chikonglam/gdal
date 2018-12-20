@@ -33,7 +33,7 @@
 #include "gdal_frmts.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: httpdriver.cpp d755771083342f9f0fb88dfbeae49abab2b5ebe9 2018-07-25 17:55:54 +0200 Even Rouault $")
+CPL_CVSID("$Id: httpdriver.cpp 3deffce5cdc9f2c96341efbc04f82c7f2afca022 2018-07-25 17:55:54 +0200 Even Rouault $")
 
 /************************************************************************/
 /*               HTTPFetchContentDispositionFilename()                 */

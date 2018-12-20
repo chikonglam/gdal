@@ -1,5 +1,5 @@
 /* ***************************************************************************
-* $Id: javadoc.java 637961e9df5633b77d011c8e5f53dcab7a58c497 2018-04-20 13:59:35 +0200 Even Rouault $
+* $Id: javadoc.java efe6471e4a5082e6499b3d56786247e26e856fca 2018-07-16 23:21:30 +0200 Even Rouault $
 *
 * Project:  GDAL/OGR Java bindings
 * Purpose:  Documentation for the Java bindings
@@ -11751,7 +11751,7 @@ public class SpatialReference:public int SetVertCS(String VertCSName, String Ver
  * <li> "WGS72": same as "EPSG:4322" but has no dependence on EPSG data files.
  * <li> "NAD27": same as "EPSG:4267" but has no dependence on EPSG data files.
  * <li> "NAD83": same as "EPSG:4269" but has no dependence on EPSG data files.
- * <li> "EPSG:n": same as doing an ImportFromEPSG(n).
+ * <li> "EPSG:n": where n is the code a Geographic coordinate reference system.
  * </ul>
  *
  * @param name name of well known geographic coordinate system.

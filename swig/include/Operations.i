@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: Operations.i 535bfe70e164efb6b647eef686f7cc5b1d1066ba 2017-12-08 21:20:43Z Even Rouault $
+ * $Id: Operations.i 5c2c68af6b930de5249baf9ff9c1159ee805fbd7 2018-08-06 09:41:49 +0200 Hugo Mercier $
  *
  * Name:     Operations.i
  * Project:  GDAL Python Interface
@@ -541,6 +541,33 @@ int ContourGenerate( GDALRasterBandShadow *srcBand,
 %clear GDALRasterBandShadow *srcBand;
 %clear OGRLayerShadow* dstLayer;
 %clear  (int fixedLevelCount, double *fixedLevels );
+
+#ifndef SWIGJAVA
+%feature( "kwargs" ) ContourGenerateEx;
+#endif
+%apply Pointer NONNULL {GDALRasterBandShadow *srcBand, OGRLayerShadow* dstLayer};
+%inline %{
+int ContourGenerateEx( GDALRasterBandShadow *srcBand,
+                       OGRLayerShadow* dstLayer,
+                       char** options = NULL,
+                       GDALProgressFunc callback = NULL,
+                       void* callback_data = NULL )
+{
+    CPLErr eErr;
+
+    CPLErrorReset();
+
+    eErr =  GDALContourGenerateEx( srcBand,
+                                   dstLayer,
+                                   options,
+                                   callback,
+                                   callback_data);
+
+    return eErr;
+}
+%}
+%clear GDALRasterBandShadow *srcBand;
+%clear OGRLayerShadow* dstLayer;
 
 /************************************************************************/
 /*                        AutoCreateWarpedVRT()                         */

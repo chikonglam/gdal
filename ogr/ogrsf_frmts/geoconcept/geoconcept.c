@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: geoconcept.c 9acbe8a990f2a1745528a0d3dd7d5c8046034ac5 2018-04-21 12:25:32 +0200 Even Rouault $
+ * $Id: geoconcept.c 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $
  *
  * Name:     geoconcept.c
  * Project:  OpenGIS Simple Features Reference Implementation
@@ -36,7 +36,7 @@
 #include "cpl_string.h"
 #include "ogr_core.h"
 
-CPL_CVSID("$Id: geoconcept.c 9acbe8a990f2a1745528a0d3dd7d5c8046034ac5 2018-04-21 12:25:32 +0200 Even Rouault $")
+CPL_CVSID("$Id: geoconcept.c 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 #define kItemSize_GCIO      256
 #define kExtraSize_GCIO    4096
@@ -2302,7 +2302,7 @@ static OGRFeatureH GCIOAPI_CALL _buildOGRFeature_GCIO (
     if( CPLListCount(GetMetaTypes_GCIO(Meta))==0 )
     {
       CPLError( CE_Failure, CPLE_AppDefined,
-                "Line %ld, %s%s pragma expected fro type definition before objects dump.",
+                "Line %ld, %s%s pragma expected from type definition before objects dump.",
                 GetGCCurrentLinenum_GCIO(H), kPragma_GCIO, kMetadataFIELDS_GCIO );
     }
     else

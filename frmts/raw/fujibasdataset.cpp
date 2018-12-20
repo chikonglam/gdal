@@ -31,7 +31,7 @@
 #include "gdal_frmts.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: fujibasdataset.cpp f946b03da9b425043fed0a0c58a329295240840f 2017-12-15 13:36:23Z Kurt Schwehr $")
+CPL_CVSID("$Id: fujibasdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -42,9 +42,11 @@ CPL_CVSID("$Id: fujibasdataset.cpp f946b03da9b425043fed0a0c58a329295240840f 2017
 class FujiBASDataset : public RawDataset
 {
     VSILFILE        *fpImage;  // image data file.
-    CPLString        osRawFilename;
+    CPLString        osRawFilename{};
 
     char        **papszHeader;
+
+    CPL_DISALLOW_COPY_ASSIGN(FujiBASDataset)
 
   public:
                 FujiBASDataset();
@@ -214,7 +216,8 @@ GDALDataset *FujiBASDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->SetBand(
         1,
         new RawRasterBand( poDS, 1, poDS->fpImage,
-                           0, 2, nXSize * 2, GDT_UInt16, bNativeOrder, TRUE ) );
+                           0, 2, nXSize * 2, GDT_UInt16, bNativeOrder,
+                           RawRasterBand::OwnFP::NO ) );
 
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */

@@ -45,16 +45,16 @@
 #include "ogr_p.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ogr_srs_pci.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr_srs_pci.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 // PCI uses a 16-character string for coordinate system and datum/ellipsoid.
 constexpr int knProjSize = 16;
 
-typedef struct
+struct PCIDatums
 {
     const char *pszPCIDatum;
     int        nEPSGCode;
-} PCIDatums;
+};
 
 static const PCIDatums asDatums[] =
 {

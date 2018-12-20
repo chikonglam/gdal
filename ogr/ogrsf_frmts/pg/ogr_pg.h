@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pg.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
+ * $Id: ogr_pg.h e57c8627b2925254b5d0b35d42d987891eb3bcd0 2018-11-21 20:25:46 +0100 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/PostgreSQL driver.
@@ -56,6 +56,7 @@
 #define XIDOID                  28
 #define CIDOID                  29
 #define OIDVECTOROID            30
+#define JSONOID                 114
 #define FLOAT4OID               700
 #define FLOAT8OID               701
 #define BOOLARRAYOID            1000
@@ -75,6 +76,7 @@
 #define TIMESTAMPTZOID          1184
 #define NUMERICOID              1700
 #define NUMERICARRAYOID         1231
+#define JSONBOID                3802
 
 CPLString OGRPGEscapeString(void *hPGConn,
                             const char* pszStrValue, int nMaxLength = -1,
@@ -292,7 +294,8 @@ class OGRPGTableLayer final: public OGRPGLayer
     char              **papszOverrideColumnTypes;
     int                 nForcedSRSId;
     int                 nForcedGeometryTypeFlags;
-    int                 bCreateSpatialIndexFlag;
+    bool                bCreateSpatialIndexFlag;
+    CPLString           osSpatialIndexType;
     int                 bInResetReading;
 
     int                 bAutoFIDOnCreateViaCopy;
@@ -387,8 +390,9 @@ public:
                                 { nForcedSRSId = nForcedSRSIdIn; }
     void                SetForcedGeometryTypeFlags( int GeometryTypeFlagsIn )
                                 { nForcedGeometryTypeFlags = GeometryTypeFlagsIn; }
-    void                SetCreateSpatialIndexFlag( int bFlag )
-                                { bCreateSpatialIndexFlag = bFlag; }
+    void                SetCreateSpatialIndex( bool bFlag, const char* pszSpatialIndexType )
+                                { bCreateSpatialIndexFlag = bFlag;
+                                  osSpatialIndexType = pszSpatialIndexType; }
     void                SetForcedDescription( const char* pszDescriptionIn );
     void                AllowAutoFIDOnCreateViaCopy() { bAutoFIDOnCreateViaCopy = TRUE; }
     void                SetUseCopy() { bUseCopy = TRUE; bUseCopyByDefault = TRUE; }

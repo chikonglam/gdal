@@ -32,7 +32,7 @@
 #include "ogr_srs_api.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: loslasdataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: loslasdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /**
 
@@ -71,14 +71,15 @@ even the header record is this length though it means some waste.
 /* ==================================================================== */
 /************************************************************************/
 
-class LOSLASDataset : public RawDataset
+class LOSLASDataset final: public RawDataset
 {
-  public:
     VSILFILE    *fpImage;  // image data file.
 
     int         nRecordLength;
 
     double      adfGeoTransform[6];
+
+    CPL_DISALLOW_COPY_ASSIGN(LOSLASDataset)
 
   public:
     LOSLASDataset();
@@ -216,7 +217,8 @@ GDALDataset *LOSLASDataset::Open( GDALOpenInfo * poOpenInfo )
                                     poDS->nRecordLength + 4,
                               4, -1 * poDS->nRecordLength,
                               GDT_Float32,
-                              CPL_IS_LSB, TRUE, FALSE ) );
+                              CPL_IS_LSB,
+                              RawRasterBand::OwnFP::NO ) );
 
 /* -------------------------------------------------------------------- */
 /*      Setup georeferencing.                                           */

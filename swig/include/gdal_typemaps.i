@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_typemaps.i 4e12e8acd7d3278329713c3f88b841dba4146c92 2007-03-15 20:04:37Z Frank Warmerdam $
+ * $Id: gdal_typemaps.i 03ae1801b0e36769e546740af0e08eff08357c52 2018-05-03 08:03:25 +0200 Juergen E. Fischer $
  *
  * Name:     typemaps.i
  * Project:  GDAL Typemap library
@@ -34,14 +34,6 @@
 
 #ifdef SWIGPYTHON
 %import typemaps_python.i
-#endif
-
-#ifdef SWIGPHP
-%import typemaps_php.i
-#endif
-
-#ifdef SWIGRUBY
-%import typemaps_ruby.i
 #endif
 
 #ifdef SWIGPERL

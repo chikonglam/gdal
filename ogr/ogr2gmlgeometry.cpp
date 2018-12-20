@@ -57,17 +57,17 @@
 #include "ogr_p.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ogr2gmlgeometry.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr2gmlgeometry.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 constexpr int SRSDIM_LOC_GEOMETRY = 1 << 0;
 constexpr int SRSDIM_LOC_POSLIST = 1 << 1;
 
-typedef enum
+enum GMLSRSNameFormat
 {
     SRSNAME_SHORT,
     SRSNAME_OGC_URN,
     SRSNAME_OGC_URL
-} GMLSRSNameFormat;
+};
 
 /************************************************************************/
 /*                        MakeGMLCoordinate()                           */

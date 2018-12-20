@@ -32,7 +32,7 @@
 #include "ogr_srs_api.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: gtxdataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: gtxdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /**
 
@@ -65,12 +65,13 @@ Values are an offset in meters between two vertical datums.
 /* ==================================================================== */
 /************************************************************************/
 
-class GTXDataset : public RawDataset
+class GTXDataset final: public RawDataset
 {
-  public:
     VSILFILE    *fpImage;  // image data file.
 
     double      adfGeoTransform[6];
+
+    CPL_DISALLOW_COPY_ASSIGN(GTXDataset)
 
   public:
     GTXDataset() : fpImage(nullptr) {
@@ -100,8 +101,10 @@ class GTXDataset : public RawDataset
 /* ==================================================================== */
 /************************************************************************/
 
-class GTXRasterBand : public RawRasterBand
+class GTXRasterBand final: public RawRasterBand
 {
+    CPL_DISALLOW_COPY_ASSIGN(GTXRasterBand)
+
   public:
     GTXRasterBand( GDALDataset *poDS, int nBand, VSILFILE * fpRaw,
                    vsi_l_offset nImgOffset, int nPixelOffset,
@@ -124,7 +127,7 @@ GTXRasterBand::GTXRasterBand( GDALDataset *poDSIn, int nBandIn,
                                 GDALDataType eDataTypeIn, int bNativeOrderIn ) :
     RawRasterBand( poDSIn, nBandIn, fpRawIn,
                    nImgOffsetIn, nPixelOffsetIn, nLineOffsetIn,
-                   eDataTypeIn, bNativeOrderIn, TRUE )
+                   eDataTypeIn, bNativeOrderIn, RawRasterBand::OwnFP::NO )
 {
 }
 

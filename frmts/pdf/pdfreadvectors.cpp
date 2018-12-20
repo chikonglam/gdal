@@ -31,7 +31,7 @@
 #define SQUARE(x) ((x)*(x))
 #define EPSILON 1e-5
 
-CPL_CVSID("$Id: pdfreadvectors.cpp acf813919020dfdc36edba989b9f01a4f2a22fc7 2018-06-29 12:11:30 +0200 Even Rouault $")
+CPL_CVSID("$Id: pdfreadvectors.cpp e03b0a1b627659f23c592b9cb161ecc7f886f3b0 2018-06-29 12:11:30 +0200 Even Rouault $")
 
 #if defined(HAVE_POPPLER) || defined(HAVE_PODOFO) || defined(HAVE_PDFIUM)
 

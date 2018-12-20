@@ -37,7 +37,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: cpl_recode_stub.cpp 0f654dda9faabf9d86a44293f0f89903a8e97dd7 2018-04-15 20:18:32 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_recode_stub.cpp 9d3d2f715e84d9aa2ccaa72d1167a842a0bee1ed 2018-05-11 22:39:40 +0200 Even Rouault $")
 
 #ifdef CPL_RECODE_STUB
 
@@ -236,7 +236,7 @@ char *CPLRecodeStub( const char *pszSource,
             bHaveWarned1 = true;
             CPLError( CE_Warning, CPLE_AppDefined,
                       "Recode from %s to UTF-8 not supported, "
-                      "treated as ISO8859-1 to UTF-8.",
+                      "treated as ISO-8859-1 to UTF-8.",
                       pszSrcEncoding );
         }
 
@@ -260,7 +260,7 @@ char *CPLRecodeStub( const char *pszSource,
             bHaveWarned2 = true;
             CPLError( CE_Warning, CPLE_AppDefined,
                       "Recode from UTF-8 to %s not supported, "
-                      "treated as UTF-8 to ISO8859-1.",
+                      "treated as UTF-8 to ISO-8859-1.",
                       pszDstEncoding );
         }
 

@@ -49,7 +49,7 @@
 
 /*! @cond Doxygen_Suppress */
 
-CPL_CVSID("$Id: vrtderivedrasterband.cpp 56578e74c2851abf597312e07504cfe639cceedd 2018-04-24 20:38:09 +0200 Even Rouault $")
+CPL_CVSID("$Id: vrtderivedrasterband.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 // #define GDAL_VRT_DISABLE_PYTHON
 // #define PYTHONSO_DEFAULT "libpython2.7.so"
@@ -1397,7 +1397,7 @@ bool VRTDerivedRasterBand::InitializePython()
 
     // As we don't want to depend on numpy C API/ABI, we use a trick to build
     // a numpy array object. We define a Python function to which we pass a
-    // Python buffer oject.
+    // Python buffer object.
 
     // We need to build a unique module name, otherwise this will crash in
     // multithreaded use cases.

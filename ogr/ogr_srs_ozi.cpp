@@ -41,7 +41,7 @@
 #include "ogr_core.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogr_srs_ozi.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr_srs_ozi.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                          OSRImportFromOzi()                          */
@@ -359,7 +359,7 @@ OGRErr OGRSpatialReference::importFromOzi( const char * const* papszLines )
     else
     {
         CPLDebug( "OSR_Ozi", "Unsupported projection: \"%s\"", papszProj[1] );
-        SetLocalCS( CPLString().Printf("\"Ozi\" projection \"%s\"",
+        SetLocalCS( CPLString().Printf(R"("Ozi" projection "%s")",
                                        papszProj[1]) );
     }
 

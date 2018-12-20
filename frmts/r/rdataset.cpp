@@ -53,7 +53,7 @@
 #include "gdal_priv.h"
 #include "../raw/rawdataset.h"
 
-CPL_CVSID("$Id: rdataset.cpp be09f0a95a554cc61b240f5c4e5c85150489d2a9 2018-01-17 15:58:09Z Even Rouault $")
+CPL_CVSID("$Id: rdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 // constexpr int R_NILSXP = 0;
 constexpr int R_LISTSXP = 2;
@@ -573,7 +573,7 @@ GDALDataset *RDataset::Open( GDALOpenInfo * poOpenInfo )
                     poDS->nRasterXSize * poDS->nRasterYSize * 8 * iBand,
                 8, poDS->nRasterXSize * 8,
                 GDT_Float64, !CPL_IS_LSB,
-                TRUE, FALSE);
+                RawRasterBand::OwnFP::NO);
 
         poDS->SetBand(iBand + 1, poBand);
     }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: reader_rdk1.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: reader_rdk1.h e37e476c4cf8f4b0df8995e0d95d5d672fca1a9b 2018-05-05 16:54:18 +0200 Even Rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Read metadata from Resurs-DK1 imagery.
@@ -58,7 +58,7 @@ protected:
     virtual char** AddXMLNameValueToList(char** papszList, const char *pszName,
                                          const char *pszValue) override;
 protected:
-    CPLString m_osXMLSourceFilename;
+    CPLString m_osXMLSourceFilename{};
 };
 
 #endif // READER_RDK1_H_INCLUDED

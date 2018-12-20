@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_csv.h beebf746f6f9897ac32d3b7efd3cb8fc84cb9b99 2018-04-19 12:45:10 +0200 Even Rouault $
+ * $Id: ogr_csv.h fd8952bd5bc850b193b96cfe7ea2751ad373c293 2018-05-22 21:36:40 +0200 Even Rouault $
  *
  * Project:  CSV Translator
  * Purpose:  Definition of classes for OGR .csv driver.
@@ -32,6 +32,8 @@
 #define OGR_CSV_H_INCLUDED
 
 #include "ogrsf_frmts.h"
+
+#include <set>
 
 #if defined(_MSC_VER) && _MSC_VER <= 1600 // MSVC <= 2010
 # define GDAL_OVERRIDE
@@ -83,6 +85,7 @@ class OGRCSVLayer : public OGRLayer
 
   private:
     OGRFeatureDefn     *poFeatureDefn;
+    std::set<CPLString> m_oSetFields;
 
     VSILFILE           *fpCSV;
 
@@ -180,6 +183,7 @@ class OGRCSVLayer : public OGRLayer
 
     static
     OGRCSVCreateFieldAction PreCreateField( OGRFeatureDefn *poFeatureDefn,
+                                            const std::set<CPLString>& oSetFields,
                                             OGRFieldDefn *poNewField,
                                             int bApproxOK );
     virtual OGRErr      CreateGeomField( OGRGeomFieldDefn *poGeomField,

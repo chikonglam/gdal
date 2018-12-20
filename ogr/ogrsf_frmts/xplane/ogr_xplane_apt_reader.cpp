@@ -29,7 +29,7 @@
 #include "ogr_xplane_apt_reader.h"
 #include "ogr_geo_utils.h"
 
-CPL_CVSID("$Id: ogr_xplane_apt_reader.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr_xplane_apt_reader.cpp 317ae5a1782a7c432ccf90090cc616303b43afcc 2018-05-12 22:32:42 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                   OGRXPlaneCreateAptFileReader                       */
@@ -237,7 +237,8 @@ void OGRXPlaneAptReader::Read()
         {
             bResumeLine = false;
 
-            if( nTokens == 1 && strcmp(papszTokens[0], "99") == 0 )
+            if( nTokens == 1 && papszTokens && papszTokens[0] &&
+                strcmp(papszTokens[0], "99") == 0 )
             {
                 CSLDestroy(papszTokens);
                 papszTokens = nullptr;

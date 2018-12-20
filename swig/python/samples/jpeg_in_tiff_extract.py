@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: jpeg_in_tiff_extract.py 7efcede9e53afacee80ebbc6fe99b9df5b29b046 2018-04-16 01:35:25 +1000 Ben Elliston $
+# $Id: jpeg_in_tiff_extract.py 1af83ee733cf3fed0aae36c80e49cbfcbf810d55 2018-05-04 10:18:08 +1000 Ben Elliston $
 #
 # Project:  GDAL/OGR samples
 # Purpose:  Extract a JPEG file from a JPEG-in-TIFF tile/strip
@@ -165,10 +165,10 @@ def jpeg_in_tiff_extract(argv):
     radix_jpg_filename = jpg_filename
     extensions = ['.jpg', '.jpeg', '.JPG', '.JPEG']
     extension = None
-    for i in range(len(extensions)):
-        pos = radix_jpg_filename.find(extensions[i])
+    for ext in extensions:
+        pos = radix_jpg_filename.find(ext)
         if pos >= 0:
-            extension = extensions[i]
+            extension = ext
             radix_jpg_filename = radix_jpg_filename[0:pos]
             break
     if pos < 0:

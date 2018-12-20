@@ -45,7 +45,7 @@
 #include "gdal.h"
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: vrtrawrasterband.cpp 373f8b25e241d5ee1e2816b5eb7642ab7e60e096 2018-04-07 16:25:30 +0200 Even Rouault $")
+CPL_CVSID("$Id: vrtrawrasterband.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /*! @cond Doxygen_Suppress */
 
@@ -278,9 +278,11 @@ CPLErr VRTRawRasterBand::SetRawLink( const char *pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding RawRasterBand.                           */
 /* -------------------------------------------------------------------- */
-    m_poRawRaster = new RawRasterBand( fp, nImageOffset, nPixelOffset,
+    m_poRawRaster = new RawRasterBand( reinterpret_cast<VSILFILE*>(fp),
+                                       nImageOffset, nPixelOffset,
                                        nLineOffset, GetRasterDataType(),
-                                       bNative, GetXSize(), GetYSize(), TRUE );
+                                       bNative, GetXSize(), GetYSize(),
+                                       RawRasterBand::OwnFP::NO );
 
 /* -------------------------------------------------------------------- */
 /*      Reset block size to match the raw raster.                       */

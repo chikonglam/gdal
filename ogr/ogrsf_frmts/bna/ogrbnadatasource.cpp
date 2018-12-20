@@ -32,7 +32,7 @@
 #include "cpl_csv.h"
 #include "ogrbnaparser.h"
 
-CPL_CVSID("$Id: ogrbnadatasource.cpp f9af14bc04e6f4fea8175f0e212455c2b6520378 2018-06-01 14:24:48 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrbnadatasource.cpp a36939afd5248338d928ac2107e2136b32ffb9df 2018-06-01 14:24:48 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                          OGRBNADataSource()                          */

@@ -57,7 +57,7 @@
 #include "ogr_core.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ehdrdataset.cpp 74385c8cc244684d8cff57e1b66ec50a255057c1 2018-06-21 20:46:53 +0200 Even Rouault $")
+CPL_CVSID("$Id: ehdrdataset.cpp 38bc22bec5ab42c444f912c9719327512ba52b19 2018-06-21 20:46:53 +0200 Even Rouault $")
 
 constexpr int HAS_MIN_FLAG = 0x1;
 constexpr int HAS_MAX_FLAG = 0x2;
@@ -77,7 +77,7 @@ EHdrRasterBand::EHdrRasterBand( GDALDataset *poDSIn,
                                 GDALDataType eDataTypeIn, int bNativeOrderIn,
                                 int nBitsIn) :
   RawRasterBand(poDSIn, nBandIn, fpRawIn, nImgOffsetIn, nPixelOffsetIn,
-                nLineOffsetIn, eDataTypeIn, bNativeOrderIn, TRUE),
+                nLineOffsetIn, eDataTypeIn, bNativeOrderIn, RawRasterBand::OwnFP::NO),
   nBits(nBitsIn),
   nStartBit(0),
   nPixelOffsetBits(0),
@@ -446,10 +446,10 @@ const char *EHdrDataset::GetKeyValue( const char *pszKey,
     for( int i = 0; papszHDR[i] != nullptr; i++ )
     {
         if( EQUALN(pszKey,papszHDR[i],strlen(pszKey)) &&
-            isspace((unsigned char)papszHDR[i][strlen(pszKey)]) )
+            isspace(static_cast<unsigned char>(papszHDR[i][strlen(pszKey)])) )
         {
             const char *pszValue = papszHDR[i] + strlen(pszKey);
-            while( isspace((unsigned char)*pszValue) )
+            while( isspace(static_cast<unsigned char>(*pszValue)) )
                 pszValue++;
 
             return pszValue;

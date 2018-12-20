@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: ogrupdate.py c1fbba933ab495ea744145c45921b91a2053c513 2018-04-17 18:56:03 +1000 Ben Elliston $
+# $Id: ogrupdate.py 981f6a6bc5eafc15bd102633b0790a156c2567b5 2018-05-02 22:01:22 +1000 Ben Elliston $
 #
 # Project:  GDAL/OGR samples
 # Purpose:  Update an existing datasource with features from another one
@@ -100,7 +100,7 @@ def ogrupdate_analyse_args(argv, progress=None, progress_arg=None):
 
     dry_run = False
 
-    if len(argv) == 0:
+    if not argv:
         return Usage()
 
     i = 0
@@ -262,12 +262,11 @@ def AreFeaturesEqual(src_feat, dst_feat):
     dst_geom = dst_feat.GetGeometryRef()
     if src_geom is None and dst_geom is not None:
         return False
-    elif src_geom is not None and dst_geom is None:
+    if src_geom is not None and dst_geom is None:
         return False
-    elif src_geom is not None and dst_geom is not None:
+    if src_geom is not None and dst_geom is not None:
         return src_geom.Equals(dst_geom)
-    else:
-        return True
+    return True
 
 ###############################################################
 # ogrupdate_process()
@@ -352,7 +351,7 @@ def ogrupdate_process(src_layer, dst_layer, matchfieldname=None, update_mode=DEF
 
             else:
                 dst_fid = dst_feat.GetFID()
-                assert(dst_fid == src_fid)
+                assert dst_fid == src_fid
                 if compare_before_update and AreFeaturesEqual(src_feat, dst_feat):
                     continue
                 if papszSelFields is not None:

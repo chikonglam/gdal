@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrwarpedlayer.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: ogrwarpedlayer.h 10e54d45fee8229428eb8ab22949aa46eb9da150 2018-05-06 11:07:25 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRWarpedLayer class
@@ -40,6 +40,8 @@
 
 class OGRWarpedLayer : public OGRLayerDecorator
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRWarpedLayer)
+
   protected:
       OGRFeatureDefn              *m_poFeatureDefn;
       int                          m_iGeomField;
@@ -48,7 +50,7 @@ class OGRWarpedLayer : public OGRLayerDecorator
       OGRCoordinateTransformation *m_poReversedCT; /* may be NULL */
       OGRSpatialReference         *m_poSRS;
 
-      OGREnvelope                  sStaticEnvelope;
+      OGREnvelope                  sStaticEnvelope{};
 
       static int ReprojectEnvelope( OGREnvelope* psEnvelope,
                                     OGRCoordinateTransformation* poCT );

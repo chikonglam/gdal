@@ -40,7 +40,7 @@
 #include "cpl_vsi.h"
 #include "mitab_priv.h"
 
-CPL_CVSID("$Id: mitab_maptoolblock.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_maptoolblock.cpp fd5a52b3fb25239d417f2daed64aa6f8cbe38da9 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABMAPToolBlock
@@ -193,7 +193,7 @@ int     TABMAPToolBlock::CommitToFile()
 
     WriteInt16(TABMAP_TOOL_BLOCK);    // Block type code
     CPLAssert(m_nSizeUsed >= MAP_TOOL_HEADER_SIZE && m_nSizeUsed < MAP_TOOL_HEADER_SIZE + 32768);
-    WriteInt16((GInt16)(m_nSizeUsed - MAP_TOOL_HEADER_SIZE)); // num. bytes used
+    WriteInt16(static_cast<GInt16>(m_nSizeUsed - MAP_TOOL_HEADER_SIZE)); // num. bytes used
     WriteInt32(m_nNextToolBlock);
 
     int nStatus = CPLGetLastErrorType() == CE_Failure ? -1 : 0;

@@ -27,7 +27,7 @@
 
 #include "gdal_simplesurf.h"
 
-CPL_CVSID("$Id: gdal_octave.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: gdal_octave.cpp fe2d81c8819bf9794bce0210098e637565728350 2018-05-06 00:49:51 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -35,12 +35,7 @@ CPL_CVSID("$Id: gdal_octave.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12
 /* ==================================================================== */
 /************************************************************************/
 
-GDALIntegralImage::GDALIntegralImage()
-{
-    pMatrix = nullptr;
-    nHeight = 0;
-    nWidth = 0;
-}
+GDALIntegralImage::GDALIntegralImage() = default;
 
 int GDALIntegralImage::GetHeight() { return nHeight; }
 

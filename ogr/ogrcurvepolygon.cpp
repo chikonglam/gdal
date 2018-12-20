@@ -39,7 +39,7 @@
 #include "ogr_p.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ogrcurvepolygon.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 2018-04-10 15:04:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrcurvepolygon.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            OGRCurvePolygon()                         */
@@ -49,7 +49,7 @@ CPL_CVSID("$Id: ogrcurvepolygon.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 201
  * \brief Create an empty curve polygon.
  */
 
-OGRCurvePolygon::OGRCurvePolygon() {}
+OGRCurvePolygon::OGRCurvePolygon() = default;
 
 /************************************************************************/
 /*               OGRCurvePolygon( const OGRCurvePolygon& )              */
@@ -64,16 +64,13 @@ OGRCurvePolygon::OGRCurvePolygon() {}
  * @since GDAL 2.1
  */
 
-OGRCurvePolygon::OGRCurvePolygon( const OGRCurvePolygon& other ) :
-    OGRSurface(other),
-    oCC(other.oCC)
-{}
+OGRCurvePolygon::OGRCurvePolygon( const OGRCurvePolygon& ) = default;
 
 /************************************************************************/
 /*                           ~OGRCurvePolygon()                         */
 /************************************************************************/
 
-OGRCurvePolygon::~OGRCurvePolygon() {}
+OGRCurvePolygon::~OGRCurvePolygon() = default;
 
 /************************************************************************/
 /*                 operator=( const OGRCurvePolygon&)                  */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pds.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
+ * $Id: ogr_pds.h 29dcefd34892121afac0b7b978757ee6daad614a 2018-05-03 15:55:54 +0200 Even Rouault $
  *
  * Project:  PDS Translator
  * Purpose:  Definition of classes for OGR .pdstable driver.
@@ -76,6 +76,8 @@ class OGRPDSLayer final: public OGRLayer
 
     void               ReadStructure(CPLString osStructureFilename);
     OGRFeature        *GetNextRawFeature();
+
+    CPL_DISALLOW_COPY_ASSIGN(OGRPDSLayer)
 
   public:
                         OGRPDSLayer(CPLString osTableID,

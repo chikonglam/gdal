@@ -36,7 +36,7 @@
 #include "cpl_error.h"
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: ogr_api.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr_api.cpp 7b9e27aa9fa7d5fd0c2ebdcfa3c563d0c61d462c 2018-09-28 01:42:27 +0200 Even Rouault $")
 
 static bool bNonLinearGeometriesEnabled = true;
 
@@ -344,16 +344,16 @@ int OGR_G_GetPoints( OGRGeometryH hGeom,
  * aligned.
  *
  * @param hGeom handle to the geometry from which to get the coordinates.
- * @param pabyX a buffer of at least (sizeof(double) * nXStride * nPointCount)
+ * @param pabyX a buffer of at least (nXStride * nPointCount)
  * bytes, may be NULL.
  * @param nXStride the number of bytes between 2 elements of pabyX.
- * @param pabyY a buffer of at least (sizeof(double) * nYStride * nPointCount)
+ * @param pabyY a buffer of at least (nYStride * nPointCount)
  * bytes, may be NULL.
  * @param nYStride the number of bytes between 2 elements of pabyY.
- * @param pabyZ a buffer of at last size (sizeof(double) * nZStride *
+ * @param pabyZ a buffer of at last size (nZStride *
  * nPointCount) bytes, may be NULL.
  * @param nZStride the number of bytes between 2 elements of pabyZ.
- * @param pabyM a buffer of at last size (sizeof(double) * nMStride *
+ * @param pabyM a buffer of at last size (nMStride *
  * nPointCount) bytes, may be NULL.
  * @param nMStride the number of bytes between 2 elements of pabyM.
  *
@@ -1824,8 +1824,6 @@ OGRGeometryH OGR_G_Value( OGRGeometryH hGeom, double dfDistance )
  * @param bFlag TRUE if non-linear geometries might be returned (default value).
  *              FALSE to ask for non-linear geometries to be approximated as
  *              linear geometries.
- *
- * @return a point or NULL.
  *
  * @since GDAL 2.0
  */

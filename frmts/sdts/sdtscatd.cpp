@@ -29,7 +29,7 @@
 
 #include "sdts_al.h"
 
-CPL_CVSID("$Id: sdtscatd.cpp e13dcd4dc171dfeed63f912ba06b9374ce4f3bb2 2018-03-18 21:37:41Z Even Rouault $")
+CPL_CVSID("$Id: sdtscatd.cpp 2ace03ec48c36dae8ba74089d85617c095643428 2018-11-02 18:02:33 +0100 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -300,6 +300,19 @@ SDTSLayerType SDTS_CATD::GetEntryType( int iEntry ) const
 
     else
         return SLTUnknown;
+}
+
+/************************************************************************/
+/*                       SetEntryTypeUnknown()                          */
+/************************************************************************/
+
+void SDTS_CATD::SetEntryTypeUnknown(int iEntry)
+{
+    if( iEntry >= 0 && iEntry < nEntries )
+    {
+        CPLFree(papoEntries[iEntry]->pszType);
+        papoEntries[iEntry]->pszType = CPLStrdup("Unknown");
+    }
 }
 
 /************************************************************************/

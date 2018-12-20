@@ -31,7 +31,7 @@
 #include "gdal_frmts.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: doq2dataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: doq2dataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 static const char UTM_FORMAT[] =
     "PROJCS[\"%s / UTM zone %dN\",GEOGCS[%s,PRIMEM[\"Greenwich\",0],"
@@ -60,7 +60,7 @@ static const char NAD83_DATUM[] =
 /* ==================================================================== */
 /************************************************************************/
 
-class DOQ2Dataset : public RawDataset
+class DOQ2Dataset final: public RawDataset
 {
     VSILFILE    *fpImage;  // Image data file.
 
@@ -70,6 +70,8 @@ class DOQ2Dataset : public RawDataset
     double      dfYPixelSize;
 
     char        *pszProjection;
+
+    CPL_DISALLOW_COPY_ASSIGN(DOQ2Dataset)
 
   public:
                 DOQ2Dataset();
@@ -416,7 +418,7 @@ GDALDataset *DOQ2Dataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->SetBand( i+1,
             new RawRasterBand( poDS, i+1, poDS->fpImage,
                                nSkipBytes + i, nBytesPerPixel, nBytesPerLine,
-                               GDT_Byte, TRUE, TRUE ) );
+                               GDT_Byte, TRUE, RawRasterBand::OwnFP::NO ) );
         if( CPLGetLastErrorType() != CE_None )
         {
             delete poDS;

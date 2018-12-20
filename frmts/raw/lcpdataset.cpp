@@ -34,7 +34,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: lcpdataset.cpp 6574497e5ddfd7c08c094a76756a0ef477cef6a1 2018-04-04 22:15:20 +0200 Even Rouault $")
+CPL_CVSID("$Id: lcpdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 constexpr size_t LCP_HEADER_SIZE = 7316;
 constexpr int LCP_MAX_BANDS = 10;
@@ -48,17 +48,21 @@ constexpr int LCP_MAX_CLASSES = 100;
 /* ==================================================================== */
 /************************************************************************/
 
-class LCPDataset : public RawDataset
+class LCPDataset final: public RawDataset
 {
     VSILFILE    *fpImage;       // image data file.
     char        pachHeader[LCP_HEADER_SIZE];
 
-    CPLString   osPrjFilename;
+    CPLString   osPrjFilename{};
     char        *pszProjection;
+
+    int bHaveProjection{};
 
     static CPLErr ClassifyBandData( GDALRasterBand *poBand,
                                     GInt32 *pnNumClasses,
                                     GInt32 *panClasses );
+
+    CPL_DISALLOW_COPY_ASSIGN(LCPDataset)
 
   public:
     LCPDataset();
@@ -76,8 +80,6 @@ class LCPDataset : public RawDataset
                                     GDALProgressFunc pfnProgress,
                                     void * pProgressData );
     const char *GetProjectionRef(void) override;
-
-    int bHaveProjection;
 };
 
 /************************************************************************/
@@ -312,7 +314,8 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
    {
         GDALRasterBand  *poBand = new RawRasterBand(
             poDS, iBand, poDS->fpImage, LCP_HEADER_SIZE + ((iBand-1)*2),
-            iPixelSize, iPixelSize * nWidth, GDT_Int16, bNativeOrder, TRUE );
+            iPixelSize, iPixelSize * nWidth, GDT_Int16, bNativeOrder,
+            RawRasterBand::OwnFP::NO );
 
         poDS->SetBand(iBand, poBand);
 

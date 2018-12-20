@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gnm.i 80f31ac0b0753868ab421bf0ff62e6682ad9617e 2017-12-07 18:13:41Z Even Rouault $
+ * $Id: gnm.i c92cc7b9bd8a8ae987d1ee2a1f764787ec3ef445 2018-09-16 10:52:21 +0900 Hiroshi Miura $
  *
  * Project:  GNM Core SWIG Interface declarations.
  * Purpose:  GNM declarations.
@@ -38,6 +38,8 @@
 %module "Geo::GNM"
 #elif defined(SWIGCSHARP)
 %module Gnm
+#elif defined(SWIGPYTHON)
+%module (package="osgeo") gnm
 #else
 %module gnm
 #endif
@@ -104,10 +106,6 @@ typedef struct OGRGeomFieldDefnHS OGRGeomFieldDefnShadow;
 
 #if defined(SWIGPYTHON)
 %include gnm_python.i
-#elif defined(SWIGRUBY)
-//%include typemaps_ruby.i
-#elif defined(SWIGPHP4)
-//%include typemaps_php.i
 #elif defined(SWIGCSHARP)
 //%include gnm_csharp.i
 #elif defined(SWIGJAVA)

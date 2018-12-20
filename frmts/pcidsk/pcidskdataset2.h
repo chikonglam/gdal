@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pcidskdataset2.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
+ * $Id: pcidskdataset2.h fbbe58bc09c6bc7859a5704a7fb7870591967201 2018-08-08 14:43:58 +0200 Even Rouault $
  *
  * Project:  PCIDSK Database File
  * Purpose:  Read/write PCIDSK Database File used by the PCI software, using
@@ -41,6 +41,8 @@
 #include "pcidsk.h"
 #include "pcidsk_pct.h"
 #include "pcidsk_vectorsegment.h"
+
+#include <unordered_map>
 
 using namespace PCIDSK;
 
@@ -177,6 +179,8 @@ class OGRPCIDSKLayer final: public OGRLayer
     bool                bUpdateAccess;
 
     OGRSpatialReference *poSRS;
+
+    std::unordered_map<std::string, int> m_oMapFieldNameToIdx{};
 
   public:
     OGRPCIDSKLayer( PCIDSK::PCIDSKSegment*, PCIDSK::PCIDSKVectorSegment *, bool bUpdate );

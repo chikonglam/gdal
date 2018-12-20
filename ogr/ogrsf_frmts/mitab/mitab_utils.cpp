@@ -43,7 +43,7 @@
 #include "cpl_string.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: mitab_utils.cpp 0286372b17ff46a40069969c721c1476fd4a45f7 2018-09-17 15:19:47 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_utils.cpp e3d49048871a46752e24f351091f20d3bacce531 2018-09-17 15:19:47 +0200 Even Rouault $")
 
 /**********************************************************************
  *                       TABGenerateArc()
@@ -167,7 +167,7 @@ static bool TABAdjustCaseSensitiveFilename(char *pszFname)
     // by scanning all the sub-directories.
     // If we get to a point where a path component does not exist then
     // we simply return the rest of the path as is.
-    while(bValidPath && (int)strlen(pszTmpPath) < nTotalLen)
+    while(bValidPath && static_cast<int>(strlen(pszTmpPath)) < nTotalLen)
     {
         int iLastPartStart = iTmpPtr;
         char **papszDir = VSIReadDir(pszTmpPath);
@@ -342,7 +342,7 @@ char **TAB_CSLLoad(const char *pszFname)
  * Convert a string that can possibly contain escaped "\n" chars in
  * into into a new one with binary newlines in it.
  *
- * Tries to work on hte original buffer unless bSrcIsConst=TRUE, in
+ * Tries to work on the original buffer unless bSrcIsConst=TRUE, in
  * which case the original is always untouched and a copy is allocated
  * ONLY IF NECESSARY.  This means that the caller should compare the
  * return value and the source (pszString) to see if a copy was returned,

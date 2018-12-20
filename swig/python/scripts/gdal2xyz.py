@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: gdal2xyz.py ac171f5b0fe544a6c1ff7400249f6ce362e9ace0 2018-04-16 06:32:36 +1000 Ben Elliston $
+# $Id: gdal2xyz.py b26ef46ec91bcbc37db03a7023972732ff52d2f9 2018-04-24 16:10:04 +1000 Ben Elliston $
 #
 # Project:  GDAL
 # Purpose:  Script to translate GDAL supported raster into XYZ ASCII
@@ -143,9 +143,9 @@ if __name__ == '__main__':
     if abs(gt[0]) < 180 and abs(gt[3]) < 180 \
        and abs(srcds.RasterXSize * gt[1]) < 180 \
        and abs(srcds.RasterYSize * gt[5]) < 180:
-        format = '%.10g' + delim + '%.10g' + delim + '%s'
+        frmt = '%.10g' + delim + '%.10g' + delim + '%s'
     else:
-        format = '%.3f' + delim + '%.3f' + delim + '%s'
+        frmt = '%.3f' + delim + '%.3f' + delim + '%s'
 
     # Loop emitting data.
 
@@ -171,6 +171,6 @@ if __name__ == '__main__':
 
             band_str = band_format % tuple(x_i_data)
 
-            line = format % (float(geo_x), float(geo_y), band_str)
+            line = frmt % (float(geo_x), float(geo_y), band_str)
 
             dst_fh.write(line)

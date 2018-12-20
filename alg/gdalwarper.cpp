@@ -51,7 +51,7 @@
 #include <emmintrin.h>
 #endif
 
-CPL_CVSID("$Id: gdalwarper.cpp 9ff327806cd64df6d73a6c91f92d12ca0c5e07df 2018-04-07 20:25:06 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalwarper.cpp d16ecc80707f9c7097a11bfe47c8403bb9df310f 2018-07-27 20:14:48 -0700 piyush.agram@jpl.nasa.gov $")
 
 /************************************************************************/
 /*                         GDALReprojectImage()                         */
@@ -462,7 +462,6 @@ GDALWarpNoDataMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
           const int nWordSize = GDALGetDataTypeSizeBytes(eType);
 
           const bool bIsNoDataRealNan = CPL_TO_BOOL(CPLIsNan(padfNoData[0]));
-          const bool bIsNoDataImagNan = CPL_TO_BOOL(CPLIsNan(padfNoData[1]));
 
           double *padfWrk = static_cast<double *>(
               CPLMalloc(nXSize * sizeof(double) * 2));
@@ -477,11 +476,7 @@ GDALWarpNoDataMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
               {
                   if( ((bIsNoDataRealNan && CPLIsNan(padfWrk[iPixel*2])) ||
                        (!bIsNoDataRealNan &&
-                         ARE_REAL_EQUAL(padfWrk[iPixel*2], padfNoData[0])))
-                      && ((bIsNoDataImagNan && CPLIsNan(padfWrk[iPixel*2+1])) ||
-                          (!bIsNoDataImagNan &&
-                           ARE_REAL_EQUAL(padfWrk[iPixel*2+1],
-                                          padfNoData[1]))) )
+                         ARE_REAL_EQUAL(padfWrk[iPixel*2], padfNoData[0]))))
                   {
                       size_t iOffset =
                           iPixel + static_cast<size_t>(iLine) * nXSize;
@@ -1104,7 +1099,8 @@ GDALWarpDstAlphaMasker( void *pMaskFuncArg, int nBandCount,
  * is no corresponding input data.  This will disable initializing the
  * destination (INIT_DEST) and all other processing, and so should be used
  * carefully.  Mostly useful to short circuit a lot of extra work in mosaicing
- * situations.</li>
+ * situations. Starting with GDAL 2.4, gdalwarp will automatically enable this
+ * option when it is assumed to be safe to do so.</li>
  *
  * <li>UNIFIED_SRC_NODATA=YES/NO: By default nodata masking values considered
  * independently for each band.  However, sometimes it is desired to treat all

@@ -33,7 +33,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: pcidskdataset2.cpp 8bbc3a0c3cd76cff0f46d7c096a65cc4c41af23d 2018-08-28 11:46:23 +0200 Even Rouault $")
+CPL_CVSID("$Id: pcidskdataset2.cpp 59e42692cf156fd8e2d622fc6baa8923205cf4db 2018-08-28 11:55:58 +0200 Even Rouault $")
 
 const PCIDSK::PCIDSKInterfaces *PCIDSK2GetInterfaces(void);
 

@@ -34,7 +34,7 @@
 #include <algorithm>
 #include <vector>
 
-CPL_CVSID("$Id: xyzdataset.cpp feba3e02b56cfd80e5e98cfd3a822fad3bf521ba 2018-03-23 13:56:23 +0100 Even Rouault $")
+CPL_CVSID("$Id: xyzdataset.cpp b468e2f410c61622eb363d0d847096b1124e97cf 2018-11-19 20:59:38 +0100 Even Rouault $")
 
 constexpr double RELATIVE_ERROR = 1e-3;
 
@@ -400,8 +400,8 @@ CPLErr XYZRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
         if( poGDS->nDataLineNum != static_cast<GIntBig>(nBlockYOff + 1) * nBlockXSize )
         {
             CPLError(CE_Failure, CPLE_AssertionFailed,
-                     "The file has not the same number of values per "
-                     "line as initialy thought. It must be somehow corrupted");
+                     "The file does not have the same number of values per "
+                     "line as initially thought. It must be somehow corrupted");
             return CE_Failure;
         }
     }
@@ -526,6 +526,11 @@ int XYZDataset::IdentifyEx( GDALOpenInfo * poOpenInfo,
     nCommentLineCount = 0;
 
     CPLString osFilename(poOpenInfo->pszFilename);
+    if( EQUAL(CPLGetExtension(osFilename), "GRA") )
+    {
+        // IGNFHeightASCIIGRID .GRA
+        return FALSE;
+    }
 
     GDALOpenInfo* poOpenInfoToDelete = nullptr;
     /*  GZipped .xyz files are common, so automagically open them */
@@ -548,7 +553,7 @@ int XYZDataset::IdentifyEx( GDALOpenInfo * poOpenInfo,
     }
 
 /* -------------------------------------------------------------------- */
-/*      Chech that it looks roughly as a XYZ dataset                    */
+/*      Check that it looks roughly as an XYZ dataset                   */
 /* -------------------------------------------------------------------- */
     const char* pszData
         = reinterpret_cast<const char *>( poOpenInfo->pabyHeader );

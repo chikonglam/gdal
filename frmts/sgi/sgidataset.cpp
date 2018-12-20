@@ -38,7 +38,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: sgidataset.cpp 38e955f23c28c251b5ff50803cbcec74faf2f6eb 2018-06-14 21:29:20 +0200 Even Rouault $")
+CPL_CVSID("$Id: sgidataset.cpp c11e78a14a6fcd785d34dab60bff28d757b4b782 2018-06-14 21:29:20 +0200 Even Rouault $")
 
 struct ImageRec
 {

@@ -36,7 +36,7 @@
 #include "ogr_core.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrmultilinestring.cpp 99132fd3803311ecc233f6d375b94f8c7a016aef 2018-03-28 01:33:40 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrmultilinestring.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                        OGRMultiLineString()                          */
@@ -46,7 +46,7 @@ CPL_CVSID("$Id: ogrmultilinestring.cpp 99132fd3803311ecc233f6d375b94f8c7a016aef 
  * \brief Create an empty multi line string collection.
  */
 
-OGRMultiLineString::OGRMultiLineString() {}
+OGRMultiLineString::OGRMultiLineString() = default;
 
 /************************************************************************/
 /*           OGRMultiLineString( const OGRMultiLineString& )            */
@@ -61,15 +61,13 @@ OGRMultiLineString::OGRMultiLineString() {}
  * @since GDAL 2.1
  */
 
-OGRMultiLineString::OGRMultiLineString( const OGRMultiLineString& other ) :
-    OGRMultiCurve(other)
-{}
+OGRMultiLineString::OGRMultiLineString( const OGRMultiLineString& ) = default;
 
 /************************************************************************/
 /*                       ~OGRMultiLineString()                          */
 /************************************************************************/
 
-OGRMultiLineString::~OGRMultiLineString() {}
+OGRMultiLineString::~OGRMultiLineString() = default;
 
 /************************************************************************/
 /*                  operator=( const OGRMultiCurve&)                    */

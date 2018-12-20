@@ -46,7 +46,7 @@
 #include "ogrgeojsonutils.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrgeojsondriver.cpp 8f13232b6c2445e31b5e813c898af7dbfc4ea759 2018-09-15 14:52:33 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeojsondriver.cpp a965bda62acdb21b5ac3e5291f84cdadcbeb4b05 2018-11-22 12:39:10 +0100 Even Rouault $")
 
 static CPLMutex* ghMutex = nullptr;
 static char* gpszSource = nullptr;
@@ -662,6 +662,7 @@ void RegisterOGRGeoJSON()
 "    <Value>String</Value>"
 "    <Value>Integer</Value>"
 "  </Option>"
+"  <Option name='WRITE_NON_FINITE_VALUES' type='boolean' description='Whether to write NaN / Infinity values' default='NO'/>"
 "</LayerCreationOptionList>");
 
     poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );

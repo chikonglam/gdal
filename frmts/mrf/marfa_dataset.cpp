@@ -56,7 +56,7 @@
 #include <algorithm>
 #include <vector>
 
-CPL_CVSID("$Id: marfa_dataset.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: marfa_dataset.cpp 71d76bef344fbf58e14e5817d80230acefc78e30 2018-11-07 03:00:41 +0100 Even Rouault $")
 
 using std::vector;
 using std::string;
@@ -1676,7 +1676,7 @@ GDALDataset *GDALMRFDataset::CreateCopy(const char *pszFilename,
 
 // Prepares the data so it is suitable for Zen JPEG encoding, based on input mask
 // If bFBO is set, only the values of the first band are set non-zero when needed
-template<typename T> void ZenFilter(T* buffer, GByte *mask, int nPixels, int nBands, bool bFBO) {
+template<typename T> static void ZenFilter(T* buffer, GByte *mask, int nPixels, int nBands, bool bFBO) {
     for (int i = 0; i < nPixels; i++) {
         if (mask[i] == 0) { // enforce zero values
             for (int b = 0; b < nBands; b++)

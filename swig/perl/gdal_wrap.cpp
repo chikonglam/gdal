@@ -1537,18 +1537,18 @@ SWIG_Perl_SetModule(swig_module_info *module) {
 #define SWIGTYPE_p_OGRLayerShadow swig_types[28]
 #define SWIGTYPE_p_OGRStyleTableShadow swig_types[29]
 #define SWIGTYPE_p_OSRSpatialReferenceShadow swig_types[30]
-#define SWIGTYPE_p_VSIStatBufL swig_types[31]
-#define SWIGTYPE_p_VSIWriteFunction swig_types[32]
-#define SWIGTYPE_p_char swig_types[33]
-#define SWIGTYPE_p_double swig_types[34]
-#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[35]
-#define SWIGTYPE_p_int swig_types[36]
-#define SWIGTYPE_p_p_GDALDatasetShadow swig_types[37]
-#define SWIGTYPE_p_p_GDALRasterBandShadow swig_types[38]
-#define SWIGTYPE_p_p_GDAL_GCP swig_types[39]
-#define SWIGTYPE_p_p_GUIntBig swig_types[40]
-#define SWIGTYPE_p_p_char swig_types[41]
-#define SWIGTYPE_p_void swig_types[42]
+#define SWIGTYPE_p_VSILFILE swig_types[31]
+#define SWIGTYPE_p_VSIStatBufL swig_types[32]
+#define SWIGTYPE_p_VSIWriteFunction swig_types[33]
+#define SWIGTYPE_p_char swig_types[34]
+#define SWIGTYPE_p_double swig_types[35]
+#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[36]
+#define SWIGTYPE_p_int swig_types[37]
+#define SWIGTYPE_p_p_GDALDatasetShadow swig_types[38]
+#define SWIGTYPE_p_p_GDALRasterBandShadow swig_types[39]
+#define SWIGTYPE_p_p_GDAL_GCP swig_types[40]
+#define SWIGTYPE_p_p_GUIntBig swig_types[41]
+#define SWIGTYPE_p_p_char swig_types[42]
 static swig_type_info *swig_types[44];
 static swig_module_info swig_module = {swig_types, 43, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
@@ -1892,20 +1892,14 @@ typedef char retStringAndCPLFree;
     CPLDebug( msg_class, "%s", message );
   }
 
-  CPLErr SetErrorHandler( char const * pszCallbackName = NULL )
+  CPLErr SetErrorHandler( CPLErrorHandler pfnErrorHandler = NULL, void* user_data = NULL )
   {
-    CPLErrorHandler pfnHandler = NULL;
-    if( pszCallbackName == NULL || EQUAL(pszCallbackName,"CPLQuietErrorHandler") )
-      pfnHandler = CPLQuietErrorHandler;
-    else if( EQUAL(pszCallbackName,"CPLDefaultErrorHandler") )
-      pfnHandler = CPLDefaultErrorHandler;
-    else if( EQUAL(pszCallbackName,"CPLLoggingErrorHandler") )
-      pfnHandler = CPLLoggingErrorHandler;
+    if( pfnErrorHandler == NULL )
+    {
+        pfnErrorHandler = CPLDefaultErrorHandler;
+    }
 
-    if ( pfnHandler == NULL )
-      return CE_Fatal;
-
-    CPLSetErrorHandler( pfnHandler );
+    CPLSetErrorHandlerEx( pfnErrorHandler, user_data );
 
     return CE_None;
   }
@@ -3096,10 +3090,10 @@ SWIGINTERN void GDALRasterBandShadow_GetBlockSize(GDALRasterBandShadow *self,int
       GDALGetBlockSize(self, pnBlockXSize, pnBlockYSize);
   }
 SWIGINTERN GDALColorInterp GDALRasterBandShadow_GetColorInterpretation(GDALRasterBandShadow *self){
-    return GDALGetRasterColorInterpretation( self );
+    return GDALGetRasterColorInterpretation(self);
   }
 SWIGINTERN GDALColorInterp GDALRasterBandShadow_GetRasterColorInterpretation(GDALRasterBandShadow *self){
-    return GDALGetRasterColorInterpretation( self );
+    return GDALGetRasterColorInterpretation(self);
   }
 SWIGINTERN CPLErr GDALRasterBandShadow_SetColorInterpretation(GDALRasterBandShadow *self,GDALColorInterp val){
     return GDALSetRasterColorInterpretation( self, val );
@@ -3114,16 +3108,16 @@ SWIGINTERN CPLErr GDALRasterBandShadow_SetNoDataValue(GDALRasterBandShadow *self
     return GDALSetRasterNoDataValue( self, d );
   }
 SWIGINTERN CPLErr GDALRasterBandShadow_DeleteNoDataValue(GDALRasterBandShadow *self){
-    return GDALDeleteRasterNoDataValue( self );
+    return GDALDeleteRasterNoDataValue(self);
   }
 SWIGINTERN char const *GDALRasterBandShadow_GetUnitType(GDALRasterBandShadow *self){
-      return GDALGetRasterUnitType( self );
+      return GDALGetRasterUnitType(self);
   }
 SWIGINTERN CPLErr GDALRasterBandShadow_SetUnitType(GDALRasterBandShadow *self,char const *val){
     return GDALSetRasterUnitType( self, val );
   }
 SWIGINTERN char **GDALRasterBandShadow_GetRasterCategoryNames(GDALRasterBandShadow *self){
-    return GDALGetRasterCategoryNames( self );
+    return GDALGetRasterCategoryNames(self);
   }
 SWIGINTERN CPLErr GDALRasterBandShadow_SetRasterCategoryNames(GDALRasterBandShadow *self,char **names){
     return GDALSetRasterCategoryNames( self, names );
@@ -3177,7 +3171,7 @@ SWIGINTERN CPLErr GDALRasterBandShadow_SetStatistics(GDALRasterBandShadow *self,
     return GDALSetRasterStatistics( self, min, max, mean, stddev );
   }
 SWIGINTERN int GDALRasterBandShadow_GetOverviewCount(GDALRasterBandShadow *self){
-    return GDALGetOverviewCount( self );
+    return GDALGetOverviewCount(self);
   }
 SWIGINTERN GDALRasterBandShadow *GDALRasterBandShadow_GetOverview(GDALRasterBandShadow *self,int i){
     return (GDALRasterBandShadow*) GDALGetOverview( self, i );
@@ -3729,6 +3723,12 @@ SWIGINTERN int GDALRasterAttributeTableShadow_ChangesAreWrittenToFile(GDALRaster
 SWIGINTERN void GDALRasterAttributeTableShadow_DumpReadable(GDALRasterAttributeTableShadow *self){
         GDALRATDumpReadable( self, NULL );
     }
+SWIGINTERN void GDALRasterAttributeTableShadow_SetTableType(GDALRasterAttributeTableShadow *self,GDALRATTableType eTableType){
+        GDALRATSetTableType( self, eTableType );
+    }
+SWIGINTERN GDALRATTableType GDALRasterAttributeTableShadow_GetTableType(GDALRasterAttributeTableShadow *self){
+        return GDALRATGetTableType( self );
+    }
 
 #include "gdalgrid.h"
 
@@ -4002,6 +4002,26 @@ int ContourGenerate( GDALRasterBandShadow *srcBand,
                                  elevField,
                                  callback,
                                  callback_data);
+
+    return eErr;
+}
+
+
+int ContourGenerateEx( GDALRasterBandShadow *srcBand,
+                       OGRLayerShadow* dstLayer,
+                       char** options = NULL,
+                       GDALProgressFunc callback = NULL,
+                       void* callback_data = NULL )
+{
+    CPLErr eErr;
+
+    CPLErrorReset();
+
+    eErr =  GDALContourGenerateEx( srcBand,
+                                   dstLayer,
+                                   options,
+                                   callback,
+                                   callback_data);
 
     return eErr;
 }
@@ -4320,8 +4340,16 @@ GDALDriverShadow *IdentifyDriverEx( const char* utf8_path,
     if( papszArgv == NULL )
         return NULL;
 
+    bool bReloadDrivers = ( CSLFindString(papszArgv, "GDAL_SKIP") >= 0 ||
+                            CSLFindString(papszArgv, "OGR_SKIP") >= 0 );
+
     nResArgCount =
       GDALGeneralCmdLineProcessor( CSLCount(papszArgv), &papszArgv, nOptions );
+
+    if( bReloadDrivers )
+    {
+        GDALAllRegister();
+    }
 
     if( nResArgCount <= 0 )
         return NULL;
@@ -4362,9 +4390,22 @@ GDALDatasetShadow* wrapper_GDALTranslate( const char* dest,
         }
         GDALTranslateOptionsSetProgress(translateOptions, callback, callback_data);
     }
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
     GDALDatasetH hDSRet = GDALTranslate(dest, dataset, translateOptions, &usageError);
     if( bFreeOptions )
         GDALTranslateOptionsFree(translateOptions);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, hDSRet != NULL);
+    }
+#endif
     return hDSRet;
 }
 
@@ -4374,6 +4415,7 @@ SWIGINTERN GDALWarpAppOptions *new_GDALWarpAppOptions(char **options){
 SWIGINTERN void delete_GDALWarpAppOptions(GDALWarpAppOptions *self){
         GDALWarpAppOptionsFree( self );
     }
+
 
 int wrapper_GDALWarpDestDS( GDALDatasetShadow* dstDS,
                             int object_list_count, GDALDatasetShadow** poObjects,
@@ -4392,9 +4434,22 @@ int wrapper_GDALWarpDestDS( GDALDatasetShadow* dstDS,
         }
         GDALWarpAppOptionsSetProgress(warpAppOptions, callback, callback_data);
     }
-    int bRet = (GDALWarp(NULL, dstDS, object_list_count, poObjects, warpAppOptions, &usageError) != NULL);
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
+    bool bRet = (GDALWarp(NULL, dstDS, object_list_count, poObjects, warpAppOptions, &usageError) != NULL);
     if( bFreeOptions )
         GDALWarpAppOptionsFree(warpAppOptions);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, bRet);
+    }
+#endif
     return bRet;
 }
 
@@ -4416,9 +4471,22 @@ GDALDatasetShadow* wrapper_GDALWarpDestName( const char* dest,
         }
         GDALWarpAppOptionsSetProgress(warpAppOptions, callback, callback_data);
     }
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
     GDALDatasetH hDSRet = GDALWarp(dest, NULL, object_list_count, poObjects, warpAppOptions, &usageError);
     if( bFreeOptions )
         GDALWarpAppOptionsFree(warpAppOptions);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, hDSRet != NULL);
+    }
+#endif
     return hDSRet;
 }
 
@@ -4446,9 +4514,22 @@ int wrapper_GDALVectorTranslateDestDS( GDALDatasetShadow* dstDS,
         }
         GDALVectorTranslateOptionsSetProgress(options, callback, callback_data);
     }
-    int bRet = (GDALVectorTranslate(NULL, dstDS, 1, &srcDS, options, &usageError) != NULL);
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
+    bool bRet = (GDALVectorTranslate(NULL, dstDS, 1, &srcDS, options, &usageError) != NULL);
     if( bFreeOptions )
         GDALVectorTranslateOptionsFree(options);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, bRet);
+    }
+#endif
     return bRet;
 }
 
@@ -4470,9 +4551,22 @@ GDALDatasetShadow* wrapper_GDALVectorTranslateDestName( const char* dest,
         }
         GDALVectorTranslateOptionsSetProgress(options, callback, callback_data);
     }
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
     GDALDatasetH hDSRet = GDALVectorTranslate(dest, NULL, 1, &srcDS, options, &usageError);
     if( bFreeOptions )
         GDALVectorTranslateOptionsFree(options);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, hDSRet != NULL);
+    }
+#endif
     return hDSRet;
 }
 
@@ -4502,9 +4596,22 @@ GDALDatasetShadow* wrapper_GDALDEMProcessing( const char* dest,
         }
         GDALDEMProcessingOptionsSetProgress(options, callback, callback_data);
     }
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
     GDALDatasetH hDSRet = GDALDEMProcessing(dest, dataset, pszProcessing, pszColorFilename, options, &usageError);
     if( bFreeOptions )
         GDALDEMProcessingOptionsFree(options);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, hDSRet != NULL);
+    }
+#endif
     return hDSRet;
 }
 
@@ -4532,9 +4639,22 @@ int wrapper_GDALNearblackDestDS( GDALDatasetShadow* dstDS,
         }
         GDALNearblackOptionsSetProgress(options, callback, callback_data);
     }
-    int bRet = (GDALNearblack(NULL, dstDS, srcDS, options, &usageError) != NULL);
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
+    bool bRet = (GDALNearblack(NULL, dstDS, srcDS, options, &usageError) != NULL);
     if( bFreeOptions )
         GDALNearblackOptionsFree(options);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, bRet);
+    }
+#endif
     return bRet;
 }
 
@@ -4556,9 +4676,22 @@ GDALDatasetShadow* wrapper_GDALNearblackDestName( const char* dest,
         }
         GDALNearblackOptionsSetProgress(options, callback, callback_data);
     }
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
     GDALDatasetH hDSRet = GDALNearblack(dest, NULL, srcDS, options, &usageError);
     if( bFreeOptions )
         GDALNearblackOptionsFree(options);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, hDSRet != NULL);
+    }
+#endif
     return hDSRet;
 }
 
@@ -4586,9 +4719,22 @@ GDALDatasetShadow* wrapper_GDALGrid( const char* dest,
         }
         GDALGridOptionsSetProgress(options, callback, callback_data);
     }
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
     GDALDatasetH hDSRet = GDALGrid(dest, dataset, options, &usageError);
     if( bFreeOptions )
         GDALGridOptionsFree(options);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, hDSRet != NULL);
+    }
+#endif
     return hDSRet;
 }
 
@@ -4616,9 +4762,22 @@ int wrapper_GDALRasterizeDestDS( GDALDatasetShadow* dstDS,
         }
         GDALRasterizeOptionsSetProgress(options, callback, callback_data);
     }
-    int bRet = (GDALRasterize(NULL, dstDS, srcDS, options, &usageError) != NULL);
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
+    bool bRet = (GDALRasterize(NULL, dstDS, srcDS, options, &usageError) != NULL);
     if( bFreeOptions )
         GDALRasterizeOptionsFree(options);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, bRet);
+    }
+#endif
     return bRet;
 }
 
@@ -4640,9 +4799,22 @@ GDALDatasetShadow* wrapper_GDALRasterizeDestName( const char* dest,
         }
         GDALRasterizeOptionsSetProgress(options, callback, callback_data);
     }
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
     GDALDatasetH hDSRet = GDALRasterize(dest, NULL, srcDS, options, &usageError);
     if( bFreeOptions )
         GDALRasterizeOptionsFree(options);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, hDSRet != NULL);
+    }
+#endif
     return hDSRet;
 }
 
@@ -4670,9 +4842,22 @@ GDALDatasetShadow* wrapper_GDALBuildVRT_objects( const char* dest,
         }
         GDALBuildVRTOptionsSetProgress(options, callback, callback_data);
     }
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
     GDALDatasetH hDSRet = GDALBuildVRT(dest, object_list_count, poObjects, NULL, options, &usageError);
     if( bFreeOptions )
         GDALBuildVRTOptionsFree(options);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, hDSRet != NULL);
+    }
+#endif
     return hDSRet;
 }
 
@@ -4694,9 +4879,22 @@ GDALDatasetShadow* wrapper_GDALBuildVRT_names( const char* dest,
         }
         GDALBuildVRTOptionsSetProgress(options, callback, callback_data);
     }
+#ifdef SWIGPYTHON
+    std::vector<ErrorStruct> aoErrors;
+    if( bUseExceptions )
+    {
+        PushStackingErrorHandler(&aoErrors);
+    }
+#endif
     GDALDatasetH hDSRet = GDALBuildVRT(dest, CSLCount(source_filenames), NULL, source_filenames, options, &usageError);
     if( bFreeOptions )
         GDALBuildVRTOptionsFree(options);
+#ifdef SWIGPYTHON
+    if( bUseExceptions )
+    {
+        PopStackingErrorHandler(&aoErrors, hDSRet != NULL);
+    }
+#endif
     return hDSRet;
 }
 
@@ -4829,27 +5027,40 @@ XS(_wrap_Debug) {
 
 XS(_wrap_SetErrorHandler) {
   {
-    char *arg1 = (char *) NULL ;
-    int res1 ;
-    char *buf1 = 0 ;
-    int alloc1 = 0 ;
+    CPLErrorHandler arg1 = (CPLErrorHandler) NULL ;
+    void *arg2 = (void *) NULL ;
+    void *argp1 ;
+    int res1 = 0 ;
+    int res2 ;
     int argvi = 0;
     CPLErr result;
     dXSARGS;
     
-    if ((items < 0) || (items > 1)) {
-      SWIG_croak("Usage: SetErrorHandler(pszCallbackName);");
+    if ((items < 0) || (items > 2)) {
+      SWIG_croak("Usage: SetErrorHandler(pfnErrorHandler,user_data);");
     }
     if (items > 0) {
-      res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
-      if (!SWIG_IsOK(res1)) {
-        SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetErrorHandler" "', argument " "1"" of type '" "char const *""'");
+      {
+        res1 = SWIG_ConvertPtr(ST(0), &argp1, SWIGTYPE_p_CPLErrorHandler,  0 );
+        if (!SWIG_IsOK(res1)) {
+          SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetErrorHandler" "', argument " "1"" of type '" "CPLErrorHandler""'"); 
+        }  
+        if (!argp1) {
+          SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SetErrorHandler" "', argument " "1"" of type '" "CPLErrorHandler""'");
+        } else {
+          arg1 = *(reinterpret_cast< CPLErrorHandler * >(argp1));
+        }
       }
-      arg1 = reinterpret_cast< char * >(buf1);
+    }
+    if (items > 1) {
+      res2 = SWIG_ConvertPtr(ST(1),SWIG_as_voidptrptr(&arg2), 0, 0);
+      if (!SWIG_IsOK(res2)) {
+        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SetErrorHandler" "', argument " "2"" of type '" "void *""'"); 
+      }
     }
     {
       CPLErrorReset();
-      result = (CPLErr)SetErrorHandler((char const *)arg1);
+      result = (CPLErr)SetErrorHandler(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -4874,10 +5085,10 @@ XS(_wrap_SetErrorHandler) {
     {
       /* %typemap(out) CPLErr */
     }
-    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    
     XSRETURN(argvi);
   fail:
-    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    
     SWIG_croak_null();
   }
 }
@@ -5770,6 +5981,48 @@ XS(_wrap_VSIGetLastErrorMsg) {
       SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
       sv_2mortal(ST(argvi));
       argvi++;
+    }
+    XSRETURN(argvi);
+  fail:
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_VSIErrorReset) {
+  {
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 0) || (items > 0)) {
+      SWIG_croak("Usage: VSIErrorReset();");
+    }
+    {
+      CPLErrorReset();
+      VSIErrorReset();
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
     }
     XSRETURN(argvi);
   fail:
@@ -7615,7 +7868,7 @@ XS(_wrap_VSIFOpenL) {
       
       
     }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0); argvi++ ;
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_VSILFILE, 0 | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
       if (tmpbuf1) Safefree(tmpbuf1);
@@ -7704,7 +7957,7 @@ XS(_wrap_VSIFOpenExL) {
       
       
     }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0); argvi++ ;
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_VSILFILE, 0 | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
       if (tmpbuf1) Safefree(tmpbuf1);
@@ -7727,7 +7980,8 @@ XS(_wrap_VSIFOpenExL) {
 XS(_wrap_VSIFEofL) {
   {
     VSILFILE *arg1 = (VSILFILE *) 0 ;
-    int res1 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
     int argvi = 0;
     int result;
     dXSARGS;
@@ -7735,10 +7989,11 @@ XS(_wrap_VSIFEofL) {
     if ((items < 1) || (items > 1)) {
       SWIG_croak("Usage: VSIFEofL(fp);");
     }
-    res1 = SWIG_ConvertPtr(ST(0),SWIG_as_voidptrptr(&arg1), 0, 0);
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_VSILFILE, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VSIFEofL" "', argument " "1"" of type '" "VSILFILE *""'"); 
     }
+    arg1 = reinterpret_cast< VSILFILE * >(argp1);
     {
       if (!arg1) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
@@ -7778,10 +8033,67 @@ XS(_wrap_VSIFEofL) {
 }
 
 
+XS(_wrap_VSIFFlushL) {
+  {
+    VSILFILE *arg1 = (VSILFILE *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: VSIFFlushL(fp);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_VSILFILE, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VSIFFlushL" "', argument " "1"" of type '" "VSILFILE *""'"); 
+    }
+    arg1 = reinterpret_cast< VSILFILE * >(argp1);
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (int)VSIFFlushL(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_VSIFCloseL) {
   {
     VSILFILE *arg1 = (VSILFILE *) 0 ;
-    int res1 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
     int argvi = 0;
     VSI_RETVAL result;
     dXSARGS;
@@ -7789,10 +8101,11 @@ XS(_wrap_VSIFCloseL) {
     if ((items < 1) || (items > 1)) {
       SWIG_croak("Usage: VSIFCloseL(fp);");
     }
-    res1 = SWIG_ConvertPtr(ST(0),SWIG_as_voidptrptr(&arg1), 0, 0);
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_VSILFILE, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VSIFCloseL" "', argument " "1"" of type '" "VSILFILE *""'"); 
     }
+    arg1 = reinterpret_cast< VSILFILE * >(argp1);
     {
       if (!arg1) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
@@ -7845,7 +8158,8 @@ XS(_wrap_VSIFSeekL) {
     VSILFILE *arg1 = (VSILFILE *) 0 ;
     long arg2 ;
     int arg3 ;
-    int res1 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
     long val2 ;
     int ecode2 = 0 ;
     int val3 ;
@@ -7857,10 +8171,11 @@ XS(_wrap_VSIFSeekL) {
     if ((items < 3) || (items > 3)) {
       SWIG_croak("Usage: VSIFSeekL(fp,offset,whence);");
     }
-    res1 = SWIG_ConvertPtr(ST(0),SWIG_as_voidptrptr(&arg1), 0, 0);
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_VSILFILE, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VSIFSeekL" "', argument " "1"" of type '" "VSILFILE *""'"); 
     }
+    arg1 = reinterpret_cast< VSILFILE * >(argp1);
     ecode2 = SWIG_AsVal_long SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "VSIFSeekL" "', argument " "2"" of type '" "long""'");
@@ -7925,7 +8240,8 @@ XS(_wrap_VSIFSeekL) {
 XS(_wrap_VSIFTellL) {
   {
     VSILFILE *arg1 = (VSILFILE *) 0 ;
-    int res1 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
     int argvi = 0;
     long result;
     dXSARGS;
@@ -7933,10 +8249,11 @@ XS(_wrap_VSIFTellL) {
     if ((items < 1) || (items > 1)) {
       SWIG_croak("Usage: VSIFTellL(fp);");
     }
-    res1 = SWIG_ConvertPtr(ST(0),SWIG_as_voidptrptr(&arg1), 0, 0);
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_VSILFILE, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VSIFTellL" "', argument " "1"" of type '" "VSILFILE *""'"); 
     }
+    arg1 = reinterpret_cast< VSILFILE * >(argp1);
     {
       if (!arg1) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
@@ -7980,7 +8297,8 @@ XS(_wrap_VSIFTruncateL) {
   {
     VSILFILE *arg1 = (VSILFILE *) 0 ;
     long arg2 ;
-    int res1 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
     long val2 ;
     int ecode2 = 0 ;
     int argvi = 0;
@@ -7990,10 +8308,11 @@ XS(_wrap_VSIFTruncateL) {
     if ((items < 2) || (items > 2)) {
       SWIG_croak("Usage: VSIFTruncateL(fp,length);");
     }
-    res1 = SWIG_ConvertPtr(ST(0),SWIG_as_voidptrptr(&arg1), 0, 0);
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_VSILFILE, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VSIFTruncateL" "', argument " "1"" of type '" "VSILFILE *""'"); 
     }
+    arg1 = reinterpret_cast< VSILFILE * >(argp1);
     ecode2 = SWIG_AsVal_long SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "VSIFTruncateL" "', argument " "2"" of type '" "long""'");
@@ -8054,7 +8373,8 @@ XS(_wrap_VSIFWriteL) {
     size_t arg2 ;
     size_t arg3 ;
     VSILFILE *arg4 = (VSILFILE *) 0 ;
-    int res4 ;
+    void *argp4 = 0 ;
+    int res4 = 0 ;
     int argvi = 0;
     size_t result;
     dXSARGS;
@@ -8069,10 +8389,11 @@ XS(_wrap_VSIFWriteL) {
       arg2 = 1;
       arg3 = len;
     }
-    res4 = SWIG_ConvertPtr(ST(1),SWIG_as_voidptrptr(&arg4), 0, 0);
+    res4 = SWIG_ConvertPtr(ST(1), &argp4,SWIGTYPE_p_VSILFILE, 0 |  0 );
     if (!SWIG_IsOK(res4)) {
       SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "VSIFWriteL" "', argument " "4"" of type '" "VSILFILE *""'"); 
     }
+    arg4 = reinterpret_cast< VSILFILE * >(argp4);
     {
       if (!arg4) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
@@ -8118,7 +8439,8 @@ XS(_wrap_VSIFReadL) {
     size_t arg2 ;
     size_t arg3 ;
     VSILFILE *arg4 = (VSILFILE *) 0 ;
-    int res4 ;
+    void *argp4 = 0 ;
+    int res4 = 0 ;
     int argvi = 0;
     SV * _saved[1] ;
     size_t result;
@@ -8136,10 +8458,11 @@ XS(_wrap_VSIFReadL) {
       arg2 = 1;
       arg3 = len;
     }
-    res4 = SWIG_ConvertPtr(ST(1),SWIG_as_voidptrptr(&arg4), 0, 0);
+    res4 = SWIG_ConvertPtr(ST(1), &argp4,SWIGTYPE_p_VSILFILE, 0 |  0 );
     if (!SWIG_IsOK(res4)) {
       SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "VSIFReadL" "', argument " "4"" of type '" "VSILFILE *""'"); 
     }
+    arg4 = reinterpret_cast< VSILFILE * >(argp4);
     {
       if (!arg4) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
@@ -8336,6 +8659,73 @@ XS(_wrap_VSICurlClearCache) {
     }
     XSRETURN(argvi);
   fail:
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_VSICurlPartialClearCache) {
+  {
+    char *arg1 = (char *) 0 ;
+    U8 *tmpbuf1 = NULL ;
+    int argvi = 0;
+    dXSARGS;
+    
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (char *)"";
+    }
+    if ((items < 0) || (items > 1)) {
+      SWIG_croak("Usage: VSICurlPartialClearCache(utf8_path);");
+    }
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) (U8 *tmpbuf1) */
+        arg1 = sv_to_utf8_string(ST(0), &tmpbuf1);
+      }
+    }
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      VSICurlPartialClearCache((char const *)arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    {
+      /* %typemap(freearg) (const char* utf8_path) */
+      if (tmpbuf1) Safefree(tmpbuf1);
+    }
+    XSRETURN(argvi);
+  fail:
+    {
+      /* %typemap(freearg) (const char* utf8_path) */
+      if (tmpbuf1) Safefree(tmpbuf1);
+    }
     SWIG_croak_null();
   }
 }
@@ -22313,6 +22703,119 @@ XS(_wrap_RasterAttributeTable_DumpReadable) {
 }
 
 
+XS(_wrap_RasterAttributeTable_SetTableType) {
+  {
+    GDALRasterAttributeTableShadow *arg1 = (GDALRasterAttributeTableShadow *) 0 ;
+    GDALRATTableType arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: RasterAttributeTable_SetTableType(self,eTableType);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALRasterAttributeTableShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RasterAttributeTable_SetTableType" "', argument " "1"" of type '" "GDALRasterAttributeTableShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALRasterAttributeTableShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "RasterAttributeTable_SetTableType" "', argument " "2"" of type '" "GDALRATTableType""'");
+    } 
+    arg2 = static_cast< GDALRATTableType >(val2);
+    {
+      CPLErrorReset();
+      GDALRasterAttributeTableShadow_SetTableType(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_RasterAttributeTable_GetTableType) {
+  {
+    GDALRasterAttributeTableShadow *arg1 = (GDALRasterAttributeTableShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    GDALRATTableType result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: RasterAttributeTable_GetTableType(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALRasterAttributeTableShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RasterAttributeTable_GetTableType" "', argument " "1"" of type '" "GDALRasterAttributeTableShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALRasterAttributeTableShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (GDALRATTableType)GDALRasterAttributeTableShadow_GetTableType(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_TermProgress_nocb) {
   {
     double arg1 ;
@@ -24373,6 +24876,153 @@ XS(_wrap_ContourGenerate) {
     
     
     
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_ContourGenerateEx) {
+  {
+    GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+    OGRLayerShadow *arg2 = (OGRLayerShadow *) 0 ;
+    char **arg3 = (char **) NULL ;
+    GDALProgressFunc arg4 = (GDALProgressFunc) NULL ;
+    void *arg5 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    void *argp2 = 0 ;
+    int res2 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg5 = (void *)(&saved_env);
+    if ((items < 2) || (items > 5)) {
+      SWIG_croak("Usage: ContourGenerateEx(srcBand,dstLayer,options,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ContourGenerateEx" "', argument " "1"" of type '" "GDALRasterBandShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALRasterBandShadow * >(argp1);
+    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ContourGenerateEx" "', argument " "2"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg2 = reinterpret_cast< OGRLayerShadow * >(argp2);
+    if (items > 2) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(2))) {
+          if (SvROK(ST(2))) {
+            if (SvTYPE(SvRV(ST(2)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(2)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
+                arg3 = CSLAddString(arg3, tmp);
+                if (sf) Safefree(tmp); else free(tmp);
+              }
+            } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(2));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg3 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
+                arg3 = CSLAddNameValue(arg3, key, tmp);
+                if (sf) Safefree(tmp); else free(tmp);
+              }
+            } else
+            do_confess(NEED_REF, 1);
+          } else
+          do_confess(NEED_REF, 1);
+        }
+      }
+    }
+    if (items > 3) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(3))) {
+          if (SvROK(ST(3))) {
+            if (SvTYPE(SvRV(ST(3))) != SVt_PVCV) {
+              do_confess(NEED_CODE_REF, 1);
+            } else {
+              saved_env.fct = (SV *)ST(3);
+              arg4 = &callback_d_cp_vp;
+            }
+          } else {
+            do_confess(NEED_CODE_REF, 1);
+          }
+        }
+      }
+    }
+    if (items > 4) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(4)))
+        saved_env.data = (SV *)ST(4);
+      }
+    }
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (int)ContourGenerateEx(arg1,arg2,arg3,arg4,arg5);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
     
     SWIG_croak_null();
   }
@@ -30812,18 +31462,18 @@ static swig_type_info _swigt__p_OGRGeometryShadow = {"_p_OGRGeometryShadow", "OG
 static swig_type_info _swigt__p_OGRLayerShadow = {"_p_OGRLayerShadow", "OGRLayerShadow *", 0, 0, (void*)"Geo::OGR::Layer", 0};
 static swig_type_info _swigt__p_OGRStyleTableShadow = {"_p_OGRStyleTableShadow", "OGRStyleTableShadow *", 0, 0, (void*)"Geo::OGR::StyleTable", 0};
 static swig_type_info _swigt__p_OSRSpatialReferenceShadow = {"_p_OSRSpatialReferenceShadow", "OSRSpatialReferenceShadow *", 0, 0, (void*)"Geo::OSR::SpatialReference", 0};
+static swig_type_info _swigt__p_VSILFILE = {"_p_VSILFILE", "VSILFILE *", 0, 0, (void*)"Geo::GDAL::VSILFILE", 0};
 static swig_type_info _swigt__p_VSIStatBufL = {"_p_VSIStatBufL", "VSIStatBufL *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_VSIWriteFunction = {"_p_VSIWriteFunction", "VSIWriteFunction *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_f_double_p_q_const__char_p_void__int = {"_p_f_double_p_q_const__char_p_void__int", "int (*)(double,char const *,void *)", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldSubType *|GDALRATFieldType *|OGRFieldType *|RETURN_NONE *|int *|GDALAccess *|OGRwkbByteOrder *|CPLErr *|GDALRWFlag *|OGRJustification *|GDALRATFieldUsage *|GDALTileOrganization *|OGRAxisOrientation *|GDALPaletteInterp *|GDALColorInterp *|GDALResampleAlg *|GDALRIOResampleAlg *|OGRErr *|OGRwkbGeometryType *|GDALDataType *|GDALAsyncStatusType *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldSubType *|GDALRATFieldType *|OGRFieldType *|RETURN_NONE *|int *|GDALAccess *|OGRwkbByteOrder *|CPLErr *|GDALRWFlag *|OGRJustification *|GDALRATFieldUsage *|GDALTileOrganization *|OGRAxisOrientation *|GDALPaletteInterp *|GDALColorInterp *|GDALResampleAlg *|GDALRIOResampleAlg *|OGRErr *|OGRwkbGeometryType *|GDALDataType *|GDALAsyncStatusType *|GDALRATTableType *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GDALDatasetShadow = {"_p_p_GDALDatasetShadow", "GDALDatasetShadow **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GDALRasterBandShadow = {"_p_p_GDALRasterBandShadow", "GDALRasterBandShadow **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GDAL_GCP = {"_p_p_GDAL_GCP", "GDAL_GCP **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GUIntBig = {"_p_p_GUIntBig", "GUIntBig **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_void = {"_p_void", "VSILFILE *|void *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_CPLErrorHandler,
@@ -30857,6 +31507,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_OGRLayerShadow,
   &_swigt__p_OGRStyleTableShadow,
   &_swigt__p_OSRSpatialReferenceShadow,
+  &_swigt__p_VSILFILE,
   &_swigt__p_VSIStatBufL,
   &_swigt__p_VSIWriteFunction,
   &_swigt__p_char,
@@ -30868,7 +31519,6 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_p_GDAL_GCP,
   &_swigt__p_p_GUIntBig,
   &_swigt__p_p_char,
-  &_swigt__p_void,
 };
 
 static swig_cast_info _swigc__p_CPLErrorHandler[] = {  {&_swigt__p_CPLErrorHandler, 0, 0, 0},{0, 0, 0, 0}};
@@ -30902,6 +31552,7 @@ static swig_cast_info _swigc__p_OGRGeometryShadow[] = {  {&_swigt__p_OGRGeometry
 static swig_cast_info _swigc__p_OGRLayerShadow[] = {  {&_swigt__p_OGRLayerShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRStyleTableShadow[] = {  {&_swigt__p_OGRStyleTableShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OSRSpatialReferenceShadow[] = {  {&_swigt__p_OSRSpatialReferenceShadow, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_VSILFILE[] = {  {&_swigt__p_VSILFILE, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_VSIStatBufL[] = {  {&_swigt__p_VSIStatBufL, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_VSIWriteFunction[] = {  {&_swigt__p_VSIWriteFunction, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
@@ -30913,7 +31564,6 @@ static swig_cast_info _swigc__p_p_GDALRasterBandShadow[] = {  {&_swigt__p_p_GDAL
 static swig_cast_info _swigc__p_p_GDAL_GCP[] = {  {&_swigt__p_p_GDAL_GCP, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_GUIntBig[] = {  {&_swigt__p_p_GUIntBig, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_char[] = {  {&_swigt__p_p_char, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_void[] = {  {&_swigt__p_void, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_CPLErrorHandler,
@@ -30947,6 +31597,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_OGRLayerShadow,
   _swigc__p_OGRStyleTableShadow,
   _swigc__p_OSRSpatialReferenceShadow,
+  _swigc__p_VSILFILE,
   _swigc__p_VSIStatBufL,
   _swigc__p_VSIWriteFunction,
   _swigc__p_char,
@@ -30958,7 +31609,6 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_p_GDAL_GCP,
   _swigc__p_p_GUIntBig,
   _swigc__p_p_char,
-  _swigc__p_void,
 };
 
 
@@ -30992,6 +31642,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::GetErrorCounter", _wrap_GetErrorCounter},
 {"Geo::GDALc::VSIGetLastErrorNo", _wrap_VSIGetLastErrorNo},
 {"Geo::GDALc::VSIGetLastErrorMsg", _wrap_VSIGetLastErrorMsg},
+{"Geo::GDALc::VSIErrorReset", _wrap_VSIErrorReset},
 {"Geo::GDALc::PushFinderLocation", _wrap_PushFinderLocation},
 {"Geo::GDALc::PopFinderLocation", _wrap_PopFinderLocation},
 {"Geo::GDALc::FinderClean", _wrap_FinderClean},
@@ -31018,6 +31669,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::VSIFOpenL", _wrap_VSIFOpenL},
 {"Geo::GDALc::VSIFOpenExL", _wrap_VSIFOpenExL},
 {"Geo::GDALc::VSIFEofL", _wrap_VSIFEofL},
+{"Geo::GDALc::VSIFFlushL", _wrap_VSIFFlushL},
 {"Geo::GDALc::VSIFCloseL", _wrap_VSIFCloseL},
 {"Geo::GDALc::VSIFSeekL", _wrap_VSIFSeekL},
 {"Geo::GDALc::VSIFTellL", _wrap_VSIFTellL},
@@ -31027,6 +31679,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::VSIStdoutSetRedirection", _wrap_VSIStdoutSetRedirection},
 {"Geo::GDALc::VSIStdoutUnsetRedirection", _wrap_VSIStdoutUnsetRedirection},
 {"Geo::GDALc::VSICurlClearCache", _wrap_VSICurlClearCache},
+{"Geo::GDALc::VSICurlPartialClearCache", _wrap_VSICurlPartialClearCache},
 {"Geo::GDALc::ParseCommandLine", _wrap_ParseCommandLine},
 {"Geo::GDALc::MajorObject_GetDescription", _wrap_MajorObject_GetDescription},
 {"Geo::GDALc::MajorObject_SetDescription", _wrap_MajorObject_SetDescription},
@@ -31204,6 +31857,8 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::RasterAttributeTable_GetRowOfValue", _wrap_RasterAttributeTable_GetRowOfValue},
 {"Geo::GDALc::RasterAttributeTable_ChangesAreWrittenToFile", _wrap_RasterAttributeTable_ChangesAreWrittenToFile},
 {"Geo::GDALc::RasterAttributeTable_DumpReadable", _wrap_RasterAttributeTable_DumpReadable},
+{"Geo::GDALc::RasterAttributeTable_SetTableType", _wrap_RasterAttributeTable_SetTableType},
+{"Geo::GDALc::RasterAttributeTable_GetTableType", _wrap_RasterAttributeTable_GetTableType},
 {"Geo::GDALc::TermProgress_nocb", _wrap_TermProgress_nocb},
 {"Geo::GDALc::ComputeMedianCutPCT", _wrap_ComputeMedianCutPCT},
 {"Geo::GDALc::DitherRGB2PCT", _wrap_DitherRGB2PCT},
@@ -31217,6 +31872,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::_RegenerateOverviews", _wrap__RegenerateOverviews},
 {"Geo::GDALc::_RegenerateOverview", _wrap__RegenerateOverview},
 {"Geo::GDALc::ContourGenerate", _wrap_ContourGenerate},
+{"Geo::GDALc::ContourGenerateEx", _wrap_ContourGenerateEx},
 {"Geo::GDALc::_AutoCreateWarpedVRT", _wrap__AutoCreateWarpedVRT},
 {"Geo::GDALc::CreatePansharpenedVRT", _wrap_CreatePansharpenedVRT},
 {"Geo::GDALc::new_Transformer", _wrap_new_Transformer},
@@ -31590,6 +32246,7 @@ XS(SWIG_init) {
     GDALAllRegister();
   }
   
+  SWIG_TypeClientData(SWIGTYPE_p_VSILFILE, (void*) "Geo::GDAL::VSILFILE");
   SWIG_TypeClientData(SWIGTYPE_p_GDALMajorObjectShadow, (void*) "Geo::GDAL::MajorObject");
   SWIG_TypeClientData(SWIGTYPE_p_GDALDriverShadow, (void*) "Geo::GDAL::Driver");
   SWIG_TypeClientData(SWIGTYPE_p_GDAL_GCP, (void*) "Geo::GDAL::GCP");

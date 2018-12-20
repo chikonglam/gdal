@@ -33,7 +33,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrdxfdatasource.cpp b561097a376b4c9510f834f0d2338a93acaf1cf2 2018-03-04 10:46:23Z Alan Thomas $")
+CPL_CVSID("$Id: ogrdxfdatasource.cpp 6b6607358c2c280f54ea0922536a27a8e12930b5 2018-07-14 16:23:19 +1000 Alan Thomas $")
 
 /************************************************************************/
 /*                          OGRDXFDataSource()                          */
@@ -41,7 +41,8 @@ CPL_CVSID("$Id: ogrdxfdatasource.cpp b561097a376b4c9510f834f0d2338a93acaf1cf2 20
 
 OGRDXFDataSource::OGRDXFDataSource() :
     fp(nullptr),
-    iEntitiesSectionOffset(0),
+    iEntitiesOffset(0),
+    iEntitiesLineNumber(0),
     bInlineBlocks(false),
     bMergeBlockGeometries(false),
     bTranslateEscapeSequences(false),
@@ -309,7 +310,8 @@ int OGRDXFDataSource::Open( const char * pszFilename, int bHeaderOnly )
         return FALSE;
     }
 
-    iEntitiesSectionOffset = oReader.iSrcBufferFileOffset + oReader.iSrcBufferOffset;
+    iEntitiesOffset = oReader.iSrcBufferFileOffset + oReader.iSrcBufferOffset;
+    iEntitiesLineNumber = oReader.nLineNumber;
     apoLayers[0]->ResetReading();
 
     return TRUE;
@@ -906,6 +908,10 @@ void OGRDXFDataSource::AddStandardFields( OGRFeatureDefn *poFeatureDefn,
     OGRFieldDefn  oLayerField( "Layer", OFTString );
     poFeatureDefn->AddFieldDefn( &oLayerField );
 
+    OGRFieldDefn  oPaperSpaceField( "PaperSpace", OFTInteger );
+    oPaperSpaceField.SetSubType( OFSTBoolean );
+    poFeatureDefn->AddFieldDefn( &oPaperSpaceField );
+
     OGRFieldDefn  oClassField( "SubClasses", OFTString );
     poFeatureDefn->AddFieldDefn( &oClassField );
 
@@ -987,9 +993,10 @@ size_t OGRDXFDataSource::GetEntryFromAcDsDataSection(
         return 0;
     }
 
-    // Keep track of our current position in the file so we can
+    // Keep track of our current position and line number in the file so we can
     // return here later
     int iPrevOffset = oReader.iSrcBufferFileOffset + oReader.iSrcBufferOffset;
+    int nPrevLineNumber = oReader.nLineNumber;
 
     char szLineBuf[270]; // TODO figure out what to do with this re character escapes
     int nCode = 0;
@@ -1016,7 +1023,7 @@ size_t OGRDXFDataSource::GetEntryFromAcDsDataSection(
 
     if( !bFound )
     {
-        oReader.ResetReadPointer( iPrevOffset );
+        oReader.ResetReadPointer( iPrevOffset, nPrevLineNumber );
         return 0;
     }
 
@@ -1089,7 +1096,7 @@ size_t OGRDXFDataSource::GetEntryFromAcDsDataSection(
         }
     }
 
-    ResetReadPointer( iPrevOffset );
+    oReader.ResetReadPointer( iPrevOffset, nPrevLineNumber );
 
     bHaveReadSolidData = true;
 

@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogrdxfreader.cpp b57a7641313c473fb84a961e73d3b05727b70cdc 2017-12-19 14:24:54Z Kurt Schwehr $")
+CPL_CVSID("$Id: ogrdxfreader.cpp 6b6607358c2c280f54ea0922536a27a8e12930b5 2018-07-14 16:23:19 +1000 Alan Thomas $")
 
 /************************************************************************/
 /*                            OGRDXFReader()                            */
@@ -71,14 +71,15 @@ void OGRDXFReader::Initialize( VSILFILE *fpIn )
 /*                          ResetReadPointer()                          */
 /************************************************************************/
 
-void OGRDXFReader::ResetReadPointer( int iNewOffset )
+void OGRDXFReader::ResetReadPointer( int iNewOffset,
+    int nNewLineNumber /* = 0 */ )
 
 {
     nSrcBufferBytes = 0;
     iSrcBufferOffset = 0;
     iSrcBufferFileOffset = iNewOffset;
     nLastValueSize = 0;
-    nLineNumber = 0;
+    nLineNumber = nNewLineNumber;
 
     VSIFSeekL( fp, iNewOffset, SEEK_SET );
 }
@@ -237,6 +238,6 @@ void OGRDXFReader::UnreadValue()
     CPLAssert( nLastValueSize > 0 );
 
     iSrcBufferOffset -= nLastValueSize;
-
+    nLineNumber -= 2;
     nLastValueSize = 0;
 }

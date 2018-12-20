@@ -31,7 +31,7 @@
 #include "ogr_srs_api.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: snodasdataset.cpp bafa08986ed59d7c3382267a0a903a9076ce26a1 2018-04-26 11:24:11 +0200 Even Rouault $")
+CPL_CVSID("$Id: snodasdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -41,9 +41,9 @@ CPL_CVSID("$Id: snodasdataset.cpp bafa08986ed59d7c3382267a0a903a9076ce26a1 2018-
 
 class SNODASRasterBand;
 
-class SNODASDataset : public RawDataset
+class SNODASDataset final: public RawDataset
 {
-    CPLString   osDataFilename;
+    CPLString   osDataFilename{};
     bool        bGotTransform;
     double      adfGeoTransform[6];
     bool        bHasNoData;
@@ -54,6 +54,8 @@ class SNODASDataset : public RawDataset
     double      dfMax;
 
     friend class SNODASRasterBand;
+
+    CPL_DISALLOW_COPY_ASSIGN(SNODASDataset)
 
   public:
     SNODASDataset();
@@ -74,8 +76,10 @@ class SNODASDataset : public RawDataset
 /* ==================================================================== */
 /************************************************************************/
 
-class SNODASRasterBand : public RawRasterBand
+class SNODASRasterBand final: public RawRasterBand
 {
+    CPL_DISALLOW_COPY_ASSIGN(SNODASRasterBand)
+
   public:
     SNODASRasterBand( VSILFILE* fpRaw, int nXSize, int nYSize );
     ~SNODASRasterBand() override {}
@@ -93,7 +97,7 @@ SNODASRasterBand::SNODASRasterBand( VSILFILE* fpRawIn,
                                     int nXSize, int nYSize ) :
     RawRasterBand( fpRawIn, 0, 2,
                    nXSize * 2, GDT_Int16,
-                   !CPL_IS_LSB, nXSize, nYSize, TRUE, TRUE)
+                   !CPL_IS_LSB, nXSize, nYSize, RawRasterBand::OwnFP::YES)
 {}
 
 /************************************************************************/

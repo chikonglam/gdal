@@ -1,6 +1,6 @@
 /*-*-C++-*-*/
 /******************************************************************************
- * $Id: ogr_tiger.h 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $
+ * $Id: ogr_tiger.h 29dcefd34892121afac0b7b978757ee6daad614a 2018-05-03 15:55:54 +0200 Even Rouault $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Main declarations for Tiger translator.
@@ -553,6 +553,8 @@ class OGRTigerDataSource : public OGRDataSource
     bool                bWriteMode;
 
     TigerVersion        TigerCheckVersion( TigerVersion, const char * );
+
+    CPL_DISALLOW_COPY_ASSIGN(OGRTigerDataSource)
 
   public:
                         OGRTigerDataSource();

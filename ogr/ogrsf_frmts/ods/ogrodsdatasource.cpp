@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <set>
 
-CPL_CVSID("$Id: ogrodsdatasource.cpp 5d373e2a8b60c8e8b9c2ef5d9d7f765c1867a515 2018-11-19 23:28:06 +0100 Even Rouault $")
+CPL_CVSID("$Id: ogrodsdatasource.cpp 6bc220ef217363b682d933ac36002bc9b6fe79a0 2018-11-19 23:28:06 +0100 Even Rouault $")
 
 namespace OGRODS {
 

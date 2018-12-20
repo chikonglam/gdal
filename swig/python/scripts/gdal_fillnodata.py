@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ******************************************************************************
-#  $Id: gdal_fillnodata.py 1121758f74589f8850193a5baced7ab1335a4b39 2018-04-20 11:27:52 +0200 Even Rouault $
+#  $Id: gdal_fillnodata.py 5007596d1ffadd552a3652de0e2eb1b8accd82b0 2018-04-29 00:59:46 +1000 Ben Elliston $
 #
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for filling nodata areas in a raster by interpolation
@@ -62,7 +62,7 @@ src_filename = None
 src_band = 1
 
 dst_filename = None
-format = 'GTiff'
+frmt = 'GTiff'
 creation_options = []
 
 mask = 'default'
@@ -79,7 +79,7 @@ while i < len(argv):
 
     if arg == '-of' or arg == '-f':
         i = i + 1
-        format = argv[i]
+        frmt = argv[i]
 
     elif arg == '-co':
         i = i + 1
@@ -155,9 +155,9 @@ if src_ds is None:
 
 srcband = src_ds.GetRasterBand(src_band)
 
-if mask is 'default':
+if mask == 'default':
     maskband = srcband.GetMaskBand()
-elif mask is 'none':
+elif mask == 'none':
     maskband = None
 else:
     mask_ds = gdal.Open(mask)
@@ -169,7 +169,7 @@ else:
 
 if dst_filename is not None:
 
-    drv = gdal.GetDriverByName(format)
+    drv = gdal.GetDriverByName(frmt)
     dst_ds = drv.Create(dst_filename, src_ds.RasterXSize, src_ds.RasterYSize, 1,
                         srcband.DataType, creation_options)
     wkt = src_ds.GetProjection()

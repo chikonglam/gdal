@@ -5,7 +5,7 @@
  * Author:   Martin Landa, landa.martin gmail.com
  *
  ******************************************************************************
- * Copyright (c) 2009-2010, 2013-2016 Martin Landa <landa.martin gmail.com>
+ * Copyright (c) 2009-2010, 2013-2018 Martin Landa <landa.martin gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrvfkdatasource.cpp 971391e2b775c1822243f56d70cf12ae6dd7c39f 2018-04-09 16:18:27 +0200 Martin Landa $")
+CPL_CVSID("$Id: ogrvfkdatasource.cpp 1cfeb033bf33dceff1ca7e1fafa13e63149c1de5 2018-05-02 20:13:02 +0200 Martin Landa $")
 
 /*!
   \brief OGRVFKDataSource constructor
@@ -72,7 +72,7 @@ int OGRVFKDataSource::Open(GDALOpenInfo* poOpenInfo)
     pszName = CPLStrdup(poOpenInfo->pszFilename);
 
     /* create VFK reader */
-    poReader = CreateVFKReader(poOpenInfo->pszFilename);
+    poReader = CreateVFKReader( poOpenInfo );
     if (poReader == nullptr || !poReader->IsValid()) {
         /*
         CPLError(CE_Failure, CPLE_AppDefined,
@@ -167,6 +167,14 @@ OGRVFKLayer *OGRVFKDataSource::CreateLayerFromBlock(const IVFKDataBlock *poDataB
         if(poProperty->GetPrecision() > 0)
             oField.SetPrecision(poProperty->GetPrecision());
 
+        poLayer->GetLayerDefn()->AddFieldDefn(&oField);
+    }
+
+    if ( poDataBlock->GetReader()->HasFileField() ) {
+        /* open option FILE_FIELD=YES specified, append extra
+         * attribute */
+        OGRFieldDefn oField(FILE_COLUMN, OFTString);
+        oField.SetWidth(255);
         poLayer->GetLayerDefn()->AddFieldDefn(&oField);
     }
 

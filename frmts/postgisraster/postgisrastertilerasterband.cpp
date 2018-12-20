@@ -5,7 +5,7 @@
  * driver
  * Author:   Jorge Arevalo, jorge.arevalo@deimos-space.com
  *                          jorgearevalo@libregis.org
- * Last changes: $Id: postgisrastertilerasterband.cpp fe9b8c57ffdfb000d910e596080c8ee15a714a1c 2018-05-08 16:59:59 +0200 Even Rouault $
+ * Last changes: $Id: postgisrastertilerasterband.cpp e12a0fc61edef91a039e13c7baff2ce58288a552 2018-08-10 00:53:29 +0200 Juergen E. Fischer $
  *
  ***********************************************************************
  * Copyright (c) 2009 - 2013, Jorge Arevalo
@@ -34,7 +34,7 @@
 #include "postgisraster.h"
 #include <memory>
 
-CPL_CVSID("$Id: postgisrastertilerasterband.cpp fe9b8c57ffdfb000d910e596080c8ee15a714a1c 2018-05-08 16:59:59 +0200 Even Rouault $")
+CPL_CVSID("$Id: postgisrastertilerasterband.cpp e12a0fc61edef91a039e13c7baff2ce58288a552 2018-08-10 00:53:29 +0200 Juergen E. Fischer $")
 
 /************************
  * \brief Constructor
@@ -108,9 +108,13 @@ CPLErr PostGISRasterTileRasterBand::IReadBlock(int /*nBlockXOff*/,
     const int nTileXSize = nBlockXSize;
     const int nTileYSize = nBlockYSize;
 
+    CPLString osSchemaI(CPLQuotedSQLIdentifier(poRTDS->poRDS->pszSchema));
+    CPLString osTableI(CPLQuotedSQLIdentifier(poRTDS->poRDS->pszTable));
+    CPLString osColumnI(CPLQuotedSQLIdentifier(poRTDS->poRDS->pszColumn));
+
     CPLString osRasterToFetch;
     osRasterToFetch.Printf("ST_Band(%s, %d)",
-                           poRTDS->poRDS->pszColumn, nBand);
+                           osColumnI.c_str(), nBand);
     // We don't honour CLIENT_SIDE_IF_POSSIBLE since it would be likely too
     // costly in that context.
     if( poRTDS->poRDS->eOutDBResolution != OutDBResolution::CLIENT_SIDE )
@@ -119,22 +123,23 @@ CPLErr PostGISRasterTileRasterBand::IReadBlock(int /*nBlockXOff*/,
     }
 
     osCommand.Printf("SELECT %s FROM %s.%s WHERE ",
-        osRasterToFetch.c_str(), poRTDS->poRDS->pszSchema, poRTDS->poRDS->pszTable);
+        osRasterToFetch.c_str(), osSchemaI.c_str(), osTableI.c_str());
 
     // Get by PKID
     if (poRTDS->poRDS->pszPrimaryKeyName)
     {
+        CPLString osPrimaryKeyNameI(CPLQuotedSQLIdentifier(poRTDS->poRDS->pszPrimaryKeyName));
         osCommand += CPLSPrintf("%s = '%s'",
-                        poRTDS->poRDS->pszPrimaryKeyName, poRTDS->pszPKID);
+                        osPrimaryKeyNameI.c_str(), poRTDS->pszPKID);
     }
 
     // Get by upperleft
     else {
         osCommand += CPLSPrintf(
             "abs(ST_UpperLeftX(%s) - %.8f) < 1e-8 and abs(ST_UpperLeftY(%s) - %.8f) < 1e-8",
-            poRTDS->poRDS->pszColumn,
+            osColumnI.c_str(),
             dfTileUpperLeftX,
-            poRTDS->poRDS->pszColumn,
+            osColumnI.c_str(),
             dfTileUpperLeftY);
     }
 

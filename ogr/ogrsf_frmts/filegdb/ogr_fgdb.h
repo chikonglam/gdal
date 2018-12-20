@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: ogr_fgdb.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+* $Id: ogr_fgdb.h 365a72f2b5a94946e92323060b68f9963cd2dbd5 2018-05-06 22:14:36 +0200 Even Rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Standard includes and class definitions ArcObjects OGR driver.
@@ -103,7 +103,7 @@ public:
 
 class FGdbDataSource;
 
-class FGdbLayer : public FGdbBaseLayer
+class FGdbLayer final: public FGdbBaseLayer
 {
   friend class FGdbDataSource;
 
@@ -250,7 +250,7 @@ protected:
 /*                         FGdbResultLayer                              */
 /************************************************************************/
 
-class FGdbResultLayer : public FGdbBaseLayer
+class FGdbResultLayer final: public FGdbBaseLayer
 {
 public:
 
@@ -275,7 +275,7 @@ protected:
 
 class FGdbDatabaseConnection;
 
-class FGdbDataSource : public OGRDataSource
+class FGdbDataSource final: public OGRDataSource
 {
   CPLString             m_osFSName;
   CPLString             m_osPublicName;
@@ -370,7 +370,7 @@ public:
     void         CloseGeodatabase();
 };
 
-class FGdbDriver : public OGRSFDriver, public IOGRTransactionBehaviour
+class FGdbDriver final: public OGRSFDriver, public IOGRTransactionBehaviour
 {
   std::map<CPLString, FGdbDatabaseConnection*> oMapConnections;
   CPLMutex* hMutex;

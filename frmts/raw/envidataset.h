@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: envidataset.h 74385c8cc244684d8cff57e1b66ec50a255057c1 2018-06-21 20:46:53 +0200 Even Rouault $
+ * $Id: envidataset.h 38bc22bec5ab42c444f912c9719327512ba52b19 2018-06-21 20:46:53 +0200 Even Rouault $
  *
  * Project:  ENVI .hdr Driver
  * Purpose:  Implementation of ENVI .hdr labelled raw raster support.
@@ -60,7 +60,7 @@
 
 class ENVIRasterBand;
 
-class ENVIDataset : public RawDataset
+class ENVIDataset final: public RawDataset
 {
     friend class ENVIRasterBand;
 
@@ -76,9 +76,9 @@ class ENVIDataset : public RawDataset
 
     char       *pszProjection;
 
-    CPLStringList m_aosHeader;
+    CPLStringList m_aosHeader{};
 
-    CPLString   osStaFilename;
+    CPLString   osStaFilename{};
 
     bool        ReadHeader( VSILFILE * );
     bool        ProcessMapinfo( const char * );
@@ -101,6 +101,8 @@ class ENVIDataset : public RawDataset
 
     enum Interleave { BSQ, BIL, BIP } interleave;
     static int GetEnviType(GDALDataType eType);
+
+    CPL_DISALLOW_COPY_ASSIGN(ENVIDataset)
 
   public:
     ENVIDataset();
@@ -136,14 +138,15 @@ class ENVIDataset : public RawDataset
 /* ==================================================================== */
 /************************************************************************/
 
-class ENVIRasterBand : public RawRasterBand
+class ENVIRasterBand final: public RawRasterBand
 {
+    CPL_DISALLOW_COPY_ASSIGN(ENVIRasterBand)
+
   public:
-    ENVIRasterBand( GDALDataset *poDSIn, int nBandIn, void *fpRawIn,
+    ENVIRasterBand( GDALDataset *poDSIn, int nBandIn, VSILFILE *fpRawIn,
                     vsi_l_offset nImgOffsetIn, int nPixelOffsetIn,
                     int nLineOffsetIn, GDALDataType eDataTypeIn,
-                    int bNativeOrderIn, int bIsVSILIn = FALSE,
-                    int bOwnsFPIn = FALSE );
+                    int bNativeOrderIn );
     ~ENVIRasterBand() override {}
 
     void SetDescription( const char * ) override;

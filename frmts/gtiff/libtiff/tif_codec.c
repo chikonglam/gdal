@@ -73,6 +73,9 @@ static int NotConfigured(TIFF*, int);
 #ifndef ZSTD_SUPPORT
 #define TIFFInitZSTD NotConfigured
 #endif
+#ifndef WEBP_SUPPORT
+#define TIFFInitWebP NotConfigured
+#endif
 
 /*
  * Compression schemes statically built into the library.
@@ -100,8 +103,8 @@ TIFFCodec _TIFFBuiltinCODECS[] = {
     { "SGILog",		COMPRESSION_SGILOG,	TIFFInitSGILog },
     { "SGILog24",	COMPRESSION_SGILOG24,	TIFFInitSGILog },
     { "LZMA",		COMPRESSION_LZMA,	TIFFInitLZMA },
-    { "ZSTD",		COMPRESSION_ZSTD_OLD,	TIFFInitZSTD },
-    { "ZSTD",		COMPRESSION_ZSTD_NEW,	TIFFInitZSTD },
+    { "ZSTD",		COMPRESSION_ZSTD,	TIFFInitZSTD },
+    { "WEBP",		COMPRESSION_WEBP,	TIFFInitWebP },
     { NULL,             0,                      NULL }
 };
 

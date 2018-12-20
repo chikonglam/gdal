@@ -129,7 +129,23 @@ AX_CHECK_COMPILE_FLAG([-Wmissing-prototypes], [CXX_WFLAGS="$CXX_WFLAGS -Wmissing
 AX_CHECK_COMPILE_FLAG([-Wmissing-declarations], [CXX_WFLAGS="$CXX_WFLAGS -Wmissing-declarations"],,[$ERROR_ON_UNKNOWN_OPTIONS])
 AX_CHECK_COMPILE_FLAG([-Wnon-virtual-dtor], [CXX_WFLAGS="$CXX_WFLAGS -Wnon-virtual-dtor" NO_NON_VIRTUAL_DTOR_FLAG="-Wno-non-virtual-dtor"],,[$ERROR_ON_UNKNOWN_OPTIONS])
 AX_CHECK_COMPILE_FLAG([-Wold-style-cast], [WARN_OLD_STYLE_CAST="-Wold-style-cast"],,[$ERROR_ON_UNKNOWN_OPTIONS])
+AX_CHECK_COMPILE_FLAG([-Weffc++], [WARN_EFFCPLUSPLUS="-Weffc++"],,[$ERROR_ON_UNKNOWN_OPTIONS])
 
+dnl g++-4.8 complain a bit too much with -Weffc++
+if test "$WARN_EFFCPLUSPLUS" != ""; then
+    SAVED_CXXFLAGS=$CXXFLAGS
+    CXXFLAGS="$CXXFLAGS $WARN_EFFCPLUSPLUS -Werror"
+    AC_MSG_CHECKING([if -Weffc++ should be enabled])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[
+    class Base {};
+    class A: public Base {};
+    ]])],
+    [AC_MSG_RESULT([yes])],
+    [WARN_EFFCPLUSPLUS=""]
+    [AC_MSG_RESULT([no])])
+    CXXFLAGS=$SAVED_CXXFLAGS
+fi
 
 dnl Clang enables -Woverloaded-virtual if -Wall is defined, but not GCC
 AX_CHECK_COMPILE_FLAG([-Woverloaded-virtual], [CXX_WFLAGS="$CXX_WFLAGS -Woverloaded-virtual"],,[$ERROR_ON_UNKNOWN_OPTIONS])
@@ -198,6 +214,7 @@ AC_SUBST(NO_SIGN_COMPARE,$NO_SIGN_COMPARE)
 AC_SUBST(NO_NON_VIRTUAL_DTOR_FLAG,$NO_NON_VIRTUAL_DTOR_FLAG)
 AC_SUBST(NO_LOGICAL_OP_FLAG,$NO_LOGICAL_OP_FLAG)
 AC_SUBST(WARN_OLD_STYLE_CAST,$WARN_OLD_STYLE_CAST)
+AC_SUBST(WARN_EFFCPLUSPLUS,$WARN_EFFCPLUSPLUS)
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -276,6 +293,10 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS(assert.h fcntl.h unistd.h dbmalloc.h dlfcn.h stdint.h limits.h locale.h values.h float.h errno.h direct.h)
 
+dnl Check for userfaultfd support
+AC_CHECK_HEADERS([linux/userfaultfd.h], [ENABLE_UFFD="yes"], [ENABLE_UFFD="no"], [])
+AC_SUBST(ENABLE_UFFD,$ENABLE_UFFD)
+
 AC_C_BIGENDIAN
 
 dnl Check for 64 bit file API
@@ -317,6 +338,7 @@ dnl Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(snprintf vsnprintf)
 AC_CHECK_FUNCS(atoll)
+AC_CHECK_FUNCS(strtoull)
 AC_CHECK_FUNCS(strtof)
 AC_CHECK_FUNCS(getcwd)
 
@@ -332,6 +354,7 @@ AC_CHECK_FUNCS(mmap)
 AC_CHECK_FUNCS(sigaction)
 AC_CHECK_FUNCS(statvfs)
 AC_CHECK_FUNCS(statvfs64)
+AC_CHECK_FUNCS(getrlimit)
 
 dnl Make sure at least these are checked under C++.  Prototypes missing on
 dnl some platforms.
@@ -1818,6 +1841,17 @@ if test "$with_charls" = "yes" -o "$with_charls" = "" ; then
         LIBS="-lCharLS $LIBS"
         CHARLS_INC="-DCHARLS_INTERFACE_H"
     fi
+  else
+    AC_CHECK_HEADERS([CharLS/charls.h])
+    if test "$ac_cv_header_CharLS_charls_h" = "yes"; then
+        AC_LANG_PUSH([C++])
+        AC_CHECK_LIB(CharLS,JpegLsDecode,HAVE_CHARLS=yes)
+        AC_LANG_POP([C++])
+        if test "$HAVE_CHARLS" = "yes"; then
+            LIBS="-lCharLS $LIBS"
+            CHARLS_INC="-DCHARLS_2"
+        fi
+    fi
   fi
 fi
 
@@ -1834,7 +1868,16 @@ AC_ARG_WITH([jpeg12],
 
 TIFF_JPEG12_ENABLED=no
 AC_MSG_CHECKING([for jpeg12])
-if test "$with_jpeg12" = yes ; then
+if test "$with_jpeg12" =  no ; then
+    JPEG12_ENABLED=no
+    AC_MSG_RESULT([disabled by user])
+
+elif test "$JPEG_SETTING" = "internal" -a "$TIFF_SETTING" = "internal" ; then
+    AC_MSG_RESULT([enabled])
+    JPEG12_ENABLED=yes
+    TIFF_JPEG12_ENABLED=yes
+
+elif test "$with_jpeg12" = yes ; then
     AC_MSG_RESULT([enabled])
     JPEG12_ENABLED=yes
 
@@ -1854,18 +1897,9 @@ if test "$with_jpeg12" = yes ; then
     fi
     rm -f check_jpeg_abi.*
 
-elif test x"$with_jpeg12" = x ; then
-    if test "$JPEG_SETTING" = "internal" -a "$TIFF_SETTING" = "internal" ; then
-      AC_MSG_RESULT([enabled])
-      JPEG12_ENABLED=yes
-      TIFF_JPEG12_ENABLED=yes
-    else
-      JPEG12_ENABLED=no
-      AC_MSG_RESULT([disabled, libjpeg or libtiff not internal])
-    fi
 else
     JPEG12_ENABLED=no
-    AC_MSG_RESULT([disabled by user])
+    AC_MSG_RESULT([disabled, libjpeg or libtiff not internal])
 fi
 
 AC_SUBST(JPEG12_ENABLED,$JPEG12_ENABLED)
@@ -1934,33 +1968,38 @@ if test "$with_ogdi" = "no" ; then
 
 elif test "$with_ogdi" = "yes" -o "$with_ogdi" = "" ; then
 
-  AC_CHECK_HEADERS(ecs.h)
-
-  if test "$ac_cv_header_ecs_h" = "no" ; then
-    if test -f "/usr/include/ogdi/ecs.h"; then
-        OGDI_INCLUDE="-I/usr/include/ogdi"
-    elif test -f "/usr/local/include/ogdi/ecs.h"; then
-        OGDI_INCLUDE="-I/usr/local/include/ogdi"
-    elif test -f "/usr/include/ecs.h"; then
-        OGDI_INCLUDE="-I/usr/include"
-    elif test -f "/usr/local/include/ecs.h"; then
-        OGDI_INCLUDE="-I/usr/local/include"
-    fi
-  fi
-
-  if test "$OGDI_INCLUDE" != "" -o "$ac_cv_header_ecs_h" = "yes"; then
-    AC_CHECK_LIB(ogdi,cln_GetLayerCapabilities,HAVE_OGDI=yes,HAVE_OGDI=no,)
-    if test "$HAVE_OGDI" = "yes" ; then
-      LIBS="-logdi $LIBS"
-    else
-      dnl For backward compatibility. Retry with ogdi31 as a name
-      AC_CHECK_LIB(ogdi31,cln_GetLayerCapabilities,HAVE_OGDI=yes,HAVE_OGDI=no,)
-      if test "$HAVE_OGDI" = "yes" ; then
-        LIBS="-logdi31 $LIBS"
+  PKG_CHECK_MODULES([OGDI], [ogdi], [HAVE_OGDI=yes], [:])
+  if test "$HAVE_OGDI" = yes; then
+    OGDI_INCLUDE=$OGDI_CFLAGS
+    LIBS="$OGDI_LIBS $LIBS"
+  else
+    AC_CHECK_HEADERS(ecs.h)
+    if test "$ac_cv_header_ecs_h" = "no" ; then
+      if test -f "/usr/include/ogdi/ecs.h"; then
+          OGDI_INCLUDE="-I/usr/include/ogdi"
+      elif test -f "/usr/local/include/ogdi/ecs.h"; then
+          OGDI_INCLUDE="-I/usr/local/include/ogdi"
+      elif test -f "/usr/include/ecs.h"; then
+          OGDI_INCLUDE="-I/usr/include"
+      elif test -f "/usr/local/include/ecs.h"; then
+          OGDI_INCLUDE="-I/usr/local/include"
       fi
     fi
-  else
-    HAVE_OGDI=no
+
+    if test "$OGDI_INCLUDE" != "" -o "$ac_cv_header_ecs_h" = "yes"; then
+      AC_CHECK_LIB(ogdi,cln_GetLayerCapabilities,HAVE_OGDI=yes,HAVE_OGDI=no,)
+      if test "$HAVE_OGDI" = "yes" ; then
+        LIBS="-logdi $LIBS"
+      else
+        dnl For backward compatibility. Retry with ogdi31 as a name
+        AC_CHECK_LIB(ogdi31,cln_GetLayerCapabilities,HAVE_OGDI=yes,HAVE_OGDI=no,)
+        if test "$HAVE_OGDI" = "yes" ; then
+          LIBS="-logdi31 $LIBS"
+        fi
+      fi
+    else
+      HAVE_OGDI=no
+    fi
   fi
 
 else
@@ -2457,6 +2496,7 @@ dnl Check if netcdf library is available.
 dnl ---------------------------------------------------------------------------
 
 NETCDF_SETTING=
+NETCDF_MEM=
 NETCDF_ROOT=
 NETCDF_HAS_NC4=
 NETCDF_HAS_HDF4=
@@ -2467,6 +2507,7 @@ AC_ARG_WITH([netcdf],[  --with-netcdf[=ARG]     Include netCDF support (ARG=no o
 if test "$with_netcdf" = "no" ; then
 
   NETCDF_SETTING=no
+  NETCDF_MEM=no
 
   echo "netCDF support disabled."
 
@@ -2540,6 +2581,7 @@ elif test "$with_netcdf" = "yes" -o "$with_netcdf" = "" ; then
       echo -n "libnetcdf is installed but its location cannot be found, "
       echo "use --with-netcdf=/path_to_netcdf for proper support"
     fi
+    NETCDF_INCLUDEDIR="$NETCDF_ROOT/include/"
 
     LIBS="-lnetcdf $LIBS"
     if test "$NETCDF_ROOT" != "" ; then
@@ -2567,6 +2609,7 @@ else
       LIBS="-L$with_netcdf -lnetcdf $LIBS"
       EXTRA_INCLUDES="-I$with_netcdf $EXTRA_INCLUDES"
     fi
+    NETCDF_INCLUDEDIR="$with_netcdf/include/"
 
     echo "using libnetcdf from $with_netcdf"
 
@@ -2613,6 +2656,9 @@ AC_SUBST([NETCDF_SETTING], [$NETCDF_SETTING])
 
 if test "$NETCDF_SETTING" != "no" ; then
 
+   AC_CHECK_HEADERS([$NETCDF_INCLUDEDIR/netcdf_mem.h], [NETCDF_MEM=yes], [NETCDF_MEM=no],)
+
+   AC_SUBST([NETCDF_MEM], [$NETCDF_MEM])
    AC_SUBST([NETCDF_ROOT], [$NETCDF_ROOT])
    AC_SUBST([NETCDF_HAS_NC4], [$NETCDF_HAS_NC4])
    AC_SUBST([NETCDF_HAS_HDF4], [$NETCDF_HAS_HDF4])
@@ -3640,7 +3686,7 @@ if test "$CURL_SETTING" = "yes" ; then
 
   CURL_INC=`$LIBCURL_CONFIG --cflags`
   CURL_LIB=`$LIBCURL_CONFIG --libs`
-  OPT_GDAL_FORMATS="wcs wms plmosaic wmts rda $OPT_GDAL_FORMATS"
+  OPT_GDAL_FORMATS="wcs wms plmosaic wmts rda eeda $OPT_GDAL_FORMATS"
 
 fi
 
@@ -4111,6 +4157,8 @@ elif test "$with_webp" != "no" -a "$with_webp" != ""; then
 
 fi
 
+AC_SUBST(WEBP_SETTING,$WEBP_SETTING)
+
 if test "$WEBP_SETTING" != "no" ; then
   OPT_GDAL_FORMATS="webp $OPT_GDAL_FORMATS"
 fi
@@ -4423,6 +4471,10 @@ AC_ARG_ENABLE(pdf_plugin,
 
 PDF_PLUGIN=no
 if test "x$enable_pdf_plugin" = "xyes" ; then
+
+  if test "$with_libtool" = "yes"; then
+    AC_MSG_ERROR([--enable-pdf-plugin not supported together --with-libtool])
+  fi
 
   PDF_PLUGIN=yes
 
@@ -5087,34 +5139,6 @@ else
 fi
 
 dnl ---------------------------------------------------------------------------
-dnl PHP bindings.
-dnl ---------------------------------------------------------------------------
-
-AC_ARG_WITH(php,[  --with-php            Enable php bindings],,)
-
-AC_MSG_CHECKING([for php bindings])
-if test "$with_php" = "yes" ; then
-  BINDINGS="php $BINDINGS"
-  AC_MSG_RESULT([enabled])
-else
-  AC_MSG_RESULT([disabled])
-fi
-
-dnl ---------------------------------------------------------------------------
-dnl Ruby bindings.
-dnl ---------------------------------------------------------------------------
-
-dnl AC_ARG_WITH(ruby,[  --with-ruby           Enable Ruby bindings],,)
-
-dnl AC_MSG_CHECKING([for ruby bindings])
-dnl if test "$with_ruby" = "yes" ; then
-dnl   BINDINGS="ruby $BINDINGS"
-dnl   AC_MSG_RESULT([enabled])
-dnl else
-dnl   AC_MSG_RESULT([disabled])
-dnl fi
-
-dnl ---------------------------------------------------------------------------
 dnl NG Python bindings.
 dnl ---------------------------------------------------------------------------
 
@@ -5282,6 +5306,44 @@ fi
 
 AC_SUBST(JAVA_HOME,$JAVA_HOME)
 AC_SUBST(JAVA_INC,$JAVA_INC)
+
+dnl ---------------------------------------------------------------------------
+dnl HDFS support
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH(hdfs,[  --with-hdfs[=ARG]        Include HDFS support (ARG=Path or no)],,)
+
+HDFS_ENABLED=no
+
+if test -z "$with_hdfs" -o "$with_hdfs" = "no" ; then
+     AC_MSG_RESULT([HDFS support not requested.])
+else
+     if test "$JAVA_HOME"; then
+          JNI_LIB="-L$(find $JAVA_HOME | grep libjvm.so | head -1 | sed 's/libjvm.so$//') -ljvm"
+     else
+          AC_MSG_ERROR([HDFS support requires java support (--with-java). $JAVA_HOME])
+     fi
+     if echo $JNI_LIB | grep $JAVA_HOME; then
+          AC_MSG_CHECKING([for HDFS in $with_hdfs])
+          AC_CHECK_LIB(hdfs,hdfsConnect,HAVE_HDFS_LIB=yes,HAVE_HDFS_LIB=no,$JNI_LIB -L$with_hdfs/lib/native)
+          AC_CHECK_FILE($with_hdfs/include/hdfs.h,HAVE_HDFS_HEADER=yes,HAVE_HDFS_HEADER=no)
+          if test "$HAVE_HDFS_LIB" = "yes" -a "$HAVE_HDFS_HEADER" = "yes"; then
+               AC_MSG_RESULT([HDFS support enabled.])
+               HDFS_ENABLED=yes
+               HDFS_LIB="-L$with_hdfs/lib/native -lhdfs"
+               HDFS_INC="-I$with_hdfs/include"
+          else
+               AC_MSG_ERROR([HDFS support not enabled.])
+          fi
+     else
+          AC_MSG_ERROR([Unable to find libjvm.so.])
+     fi
+fi
+
+AC_SUBST(HDFS_ENABLED,$HDFS_ENABLED)
+AC_SUBST(HDFS_LIB,$HDFS_LIB)
+AC_SUBST(HDFS_INC,$HDFS_INC)
+AC_SUBST(JNI_LIB,$JNI_LIB)
 
 dnl ---------------------------------------------------------------------------
 dnl MDB driver
@@ -5675,6 +5737,25 @@ else
     AC_MSG_RESULT([disabled by user])
 fi
 
+dnl ---------------------------------------------------------------------------
+dnl Whether to include LERC in the build
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH([lerc],
+            AS_HELP_STRING([--without-lerc],
+               [Disable LERC library]),,)
+
+AC_MSG_CHECKING([for LERC])
+if test "$with_lerc" = yes -o x"$with_lerc" = x ; then
+    HAVE_LERC=yes
+    AC_MSG_RESULT([enabled])
+else
+    HAVE_LERC=no
+    AC_MSG_RESULT([disabled by user])
+fi
+
+AC_SUBST(HAVE_LERC,$HAVE_LERC)
+
 
 dnl ---------------------------------------------------------------------------
 dnl Whether to include NULL driver in the build
@@ -5784,6 +5865,9 @@ LOC_MSG([  HDF4 support:              ${HAVE_HDF4}])
 LOC_MSG([  HDF5 support:              ${HAVE_HDF5}])
 LOC_MSG([  Kea support:               ${HAVE_KEA}])
 LOC_MSG([  NetCDF support:            ${NETCDF_SETTING}])
+if test "$NETCDF_SETTING" = "yes" ; then
+  LOC_MSG([  NetCDF has netcdf_mem.h:   ${NETCDF_MEM}])
+fi
 LOC_MSG([  Kakadu support:            ${HAVE_KAKADU}])
 if test "x$HAVE_JASPER_UUID" != "x" ; then
   LOC_MSG([  JasPer support:            ${HAVE_JASPER} (GeoJP2=${HAVE_JASPER_UUID})])
@@ -5802,6 +5886,7 @@ LOC_MSG([  WebP support:              ${WEBP_SETTING}])
 LOC_MSG([  cURL support (wms/wcs/...):${CURL_SETTING}])
 LOC_MSG([  PostgreSQL support:        ${HAVE_PG}])
 LOC_MSG([  MRF support:               ${HAVE_MRF}])
+LOC_MSG([  LERC support:              ${HAVE_LERC}])
 LOC_MSG([  MySQL support:             ${HAVE_MYSQL}])
 LOC_MSG([  Ingres support:            ${HAVE_INGRES}])
 LOC_MSG([  Xerces-C support:          ${HAVE_XERCES}])
@@ -5839,6 +5924,9 @@ LOC_MSG([  Armadillo support:         ${HAVE_ARMADILLO}])
 LOC_MSG([  FreeXL support:            ${HAVE_FREEXL}])
 LOC_MSG([  SOSI support:              ${SOSI_ENABLED}])
 LOC_MSG([  MongoDB support:           ${MONGODB_ENABLED}])
+LOC_MSG([  HDFS support:              ${HDFS_ENABLED}])
+LOC_MSG([  userfaultfd support:       ${ENABLE_UFFD}])
+
 LOC_MSG()
 if test ! -z "`uname | grep Darwin`" ; then
   LOC_MSG([  Mac OS X Framework :       ${MACOSX_FRAMEWORK}])

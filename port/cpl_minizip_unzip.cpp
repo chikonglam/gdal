@@ -65,7 +65,7 @@ woven in by Terry Thorsen 1/2003.
 #   include <errno.h>
 #endif
 
-CPL_CVSID("$Id: cpl_minizip_unzip.cpp 0f654dda9faabf9d86a44293f0f89903a8e97dd7 2018-04-15 20:18:32 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_minizip_unzip.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 #ifndef CASESENSITIVITYDEFAULT_NO
 #  if !defined(unix) && !defined(CASESENSITIVITYDEFAULT_YES)
@@ -512,9 +512,9 @@ extern unzFile ZEXPORT cpl_unzOpen2 (const char *path,
     uLong   uL;
 
     uLong number_disk;          /* number of the current dist, used for
-                                   spaning ZIP, unsupported, always 0*/
+                                   spanning ZIP, unsupported, always 0*/
     uLong number_disk_with_CD;  /* number the disk with central dir, used
-                                   for spaning ZIP, unsupported, always 0*/
+                                   for spanning ZIP, unsupported, always 0*/
     uLong64 number_entry_CD;      /* total number of entries in
                                    the central dir
                                    (same than number_entry on nospan) */
@@ -1285,7 +1285,27 @@ static int unzlocal_CheckCurrentFileCoherencyHeader (unz_s* s, uInt* piSizeVar,
 
     if ((err==UNZ_OK) && (s->cur_file_info.compression_method!=0) &&
                          (s->cur_file_info.compression_method!=Z_DEFLATED))
+    {
+        if( s->cur_file_info.compression_method == 9 )
+        {
+            // Could potentially be handled by using the (unsupported)
+            // code at https://github.com/madler/zlib/tree/master/contrib/infback9
+            // Actually the infack9 API doesn't look very suitable as it
+            // processes the whole stream with in() and out() callbacks...
+            CPLError(CE_Failure, CPLE_NotSupported,
+                     "A file in the ZIP archive uses the Deflate64 unsupported "
+                     "compression method. You can uncompress priorly with the "
+                     "unzip utility.");
+        }
+        else
+        {
+            CPLError(CE_Failure, CPLE_NotSupported,
+                     "A file in the ZIP archive uses a unsupported "
+                     "compression method (%lu)",
+                     s->cur_file_info.compression_method);
+        }
         err=UNZ_BADZIPFILE;
+    }
 
     if (unzlocal_getLong(&s->z_filefunc, s->filestream,&uData) != UNZ_OK) /* date/time */
         err=UNZ_ERRNO;

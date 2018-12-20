@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreaderp.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: gmlreaderp.h 365a72f2b5a94946e92323060b68f9963cd2dbd5 2018-05-06 22:14:36 +0200 Even Rouault $
  *
  * Project:  GML Reader
  * Purpose:  Private Declarations for OGR free GML Reader code.
@@ -213,7 +213,7 @@ public:
 /************************************************************************/
 /*                         GMLXercesHandler                             */
 /************************************************************************/
-class GMLXercesHandler : public DefaultHandler, public GMLHandler
+class GMLXercesHandler final: public DefaultHandler, public GMLHandler
 {
     int        m_nEntityCounter;
     CPLString  m_osElement;
@@ -257,7 +257,7 @@ class GMLXercesHandler : public DefaultHandler, public GMLHandler
 /************************************************************************/
 /*                           GMLExpatHandler                            */
 /************************************************************************/
-class GMLExpatHandler : public GMLHandler
+class GMLExpatHandler final: public GMLHandler
 {
     XML_Parser m_oParser;
     bool       m_bStopParsing;
@@ -321,7 +321,7 @@ public:
 /*                              GMLReader                               */
 /************************************************************************/
 
-class GMLReader : public IGMLReader
+class GMLReader final: public IGMLReader
 {
   private:
     bool          m_bClassListLocked;

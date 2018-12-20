@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * Project:  VSI Virtual File System
- * Purpose:  Alternatve simplified implementation VSI*L File API that just
+ * Purpose:  Alternative simplified implementation VSI*L File API that just
  *           uses plain VSI API and/or posix calls.  This module isn't
  *           normally built into GDAL.  It is for simple packages like
  *           dgnlib.
@@ -31,7 +31,7 @@
 
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: cpl_vsil_simple.cpp ff8146d84de7cba8e09d212d5481ea7d2ede3e98 2017-06-27 20:47:31Z Even Rouault $")
+CPL_CVSID("$Id: cpl_vsil_simple.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 #ifdef WIN32
 #  include <sys/stat.h>

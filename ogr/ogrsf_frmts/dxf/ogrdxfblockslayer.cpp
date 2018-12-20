@@ -29,7 +29,7 @@
 #include "ogr_dxf.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrdxfblockslayer.cpp 3746b122f665aff6d6991677da8a0a5cd94b0f71 2018-05-03 12:31:28 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrdxfblockslayer.cpp 1dd8a744bbfec8b849371abec5cd44f729eecb03 2018-05-06 21:11:29 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                         OGRDXFBlocksLayer()                          */
@@ -40,7 +40,7 @@ OGRDXFBlocksLayer::OGRDXFBlocksLayer( OGRDXFDataSource *poDSIn ) :
     poFeatureDefn(new OGRFeatureDefn( "blocks" )),
     iNextFID(0)
 {
-    ResetReading();
+    OGRDXFBlocksLayer::ResetReading();
 
     poFeatureDefn->Reference();
 

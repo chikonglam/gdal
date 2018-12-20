@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gh5_convenience.h 475c4f64011c31db50d159b5b4d0399ef32303d2 2017-04-09 06:26:02Z Kurt Schwehr $
+ * $Id: gh5_convenience.h de35b73572bc3545ba4b5c3c72a6e340249339cf 2018-08-27 15:05:29 +0200 Even Rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  HDF5 convenience functions.
@@ -30,16 +30,7 @@
 #ifndef GH5_CONVENIENCE_H_INCLUDED_
 #define GH5_CONVENIENCE_H_INCLUDED_
 
-#define H5_USE_16_API
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4005) // warning C4005: '_HDF5USEDLL_' : macro redefinition
-#endif
-#include "hdf5.h"
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+#include "hdf5_api.h"
 
 #include "cpl_string.h"
 #include "gdal.h"
@@ -58,5 +49,13 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszName,
 bool GH5_FetchAttribute( hid_t loc_id, const char *pszName,
                          double &dfResult, bool bReportError = false );
 GDALDataType GH5_GetDataType(hid_t TypeID);
+bool GH5_CreateAttribute (hid_t loc_id, const char *pszAttrName,
+                          hid_t TypeID, unsigned nMaxLen = 0);
+bool GH5_WriteAttribute (hid_t loc_id, const char *pszAttrName,
+                          const char* pszValue);
+bool GH5_WriteAttribute (hid_t loc_id, const char *pszAttrName,
+                          double dfValue);
+bool GH5_WriteAttribute (hid_t loc_id, const char *pszAttrName,
+                         unsigned nValue);
 
 #endif /* ndef GH5_CONVENIENCE_H_INCLUDED_ */

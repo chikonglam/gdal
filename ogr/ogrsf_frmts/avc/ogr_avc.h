@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_avc.h f4a3c2f4c16433c9733c4a7ef83ee5d8ce637330 2018-04-29 22:51:20 +0200 Even Rouault $
+ * $Id: ogr_avc.h 5674cc4f81224ca1c47670fc59d6f66e02b5135a 2018-04-29 22:51:20 +0200 Even Rouault $
  *
  * Project:  Arc/Info Coverage (E00 & Binary) Reader
  * Purpose:  Declarations for OGR wrapper classes for coverage access.

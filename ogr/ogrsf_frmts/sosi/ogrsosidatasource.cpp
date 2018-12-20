@@ -31,7 +31,7 @@
 #include <map>
 #include <math.h>
 
-CPL_CVSID("$Id: ogrsosidatasource.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrsosidatasource.cpp 1a8cd1b07a75b672150242ef8a59b1821e82a137 2018-05-12 22:35:40 +0200 Even Rouault $")
 
 /* This is the most common encoding for SOSI files. Let's at least try if
  * it is supported, or generate a meaningful error message.               */
@@ -156,8 +156,6 @@ OGRSOSIDataSource::OGRSOSIDataSource() {
 
     pszEncoding = CPL_ENC_UTF8;
     nNumFeatures = 0;
-
-    SOSIInitTypes();
 
     nMode = MODE_READING;
 }

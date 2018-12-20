@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: avc_e00read.cpp 9293beb488fcbb5b09dbf290a74e3084a13f9043 2018-05-14 11:37:04 +0200 Even Rouault $
+ * $Id: avc_e00read.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $
  *
  * Name:     avc_e00read.c
  * Project:  Arc/Info vector coverage (AVC)  BIN->E00 conversion library
@@ -1877,7 +1877,7 @@ const char *AVCE00ReadNextLine(AVCE00ReadPtr psInfo)
             /*---------------------------------------------------------
              * Finished returning the last lines of the section...
              * proceed to the next section...
-             * OK, I don't really like recursivion, but it was
+             * OK, I don't really like recursion, but it was
              * the simplest way to do this, and anyways we should never
              * have more than one level of recursion.
              *--------------------------------------------------------*/

@@ -33,7 +33,7 @@
 #include <stdexcept>
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrdxf_leader.cpp f163ad1925eae2fc0fc48d4c45a59e20df8d5eae 2018-05-13 11:32:14 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrdxf_leader.cpp a6e2bb7694b24190eaeb80a0113bab2143868a2c 2018-07-14 16:24:37 +1000 Alan Thomas $")
 
 static void InterpolateSpline( OGRLineString* const poLine,
     const DXFTriple& oEndTangentDirection );
@@ -1265,7 +1265,7 @@ static std::vector<DXFTriple> GetBSplineControlPoints(
                         "DXF_MAX_BSPLINE_CONTROL_POINTS", "2000")) )
     {
         CPLError(CE_Failure, CPLE_AppDefined,
-                 "Too many number of control points (%d) for B-Spline. "
+                 "Too many control points (%d) for spline leader. "
                  "Set DXF_MAX_BSPLINE_CONTROL_POINTS configuration "
                  "option to a higher value to remove this limitation "
                  "(at the cost of significant RAM consumption)", nPoints);
@@ -1438,6 +1438,9 @@ static void InterpolateSpline( OGRLineString* const poLine,
         adfParameters, adfKnots, aoDataPoints, nDegree,
         oStartTangent, oEndTangent );
     const int nControlPoints = static_cast<int>( aoControlPoints.size() );
+
+    if( nControlPoints == 0 )
+        return;
 
     // Interpolate the spline using the intronurbs code
     int nWantedPoints = nControlPoints * 8;

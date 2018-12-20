@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: reader_digital_globe.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: reader_digital_globe.h e37e476c4cf8f4b0df8995e0d95d5d672fca1a9b 2018-05-05 16:54:18 +0200 Even Rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Read metadata from DigitalGlobe imagery.
@@ -66,9 +66,9 @@ protected:
     char** LoadRPBXmlNode(CPLXMLNode* psNode);
     char** LoadIMDXmlNode(CPLXMLNode* psNode);
 protected:
-    CPLString m_osXMLSourceFilename;
-    CPLString m_osIMDSourceFilename;
-    CPLString m_osRPBSourceFilename;
+    CPLString m_osXMLSourceFilename{};
+    CPLString m_osIMDSourceFilename{};
+    CPLString m_osRPBSourceFilename{};
 };
 
 #endif //READER_DIGITAL_GLOBE_H_INCLUDED

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlayerdecorator.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: ogrlayerdecorator.h 10e54d45fee8229428eb8ab22949aa46eb9da150 2018-05-06 11:07:25 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRLayerDecorator class
@@ -36,6 +36,8 @@
 
 class CPL_DLL OGRLayerDecorator : public OGRLayer
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRLayerDecorator)
+
   protected:
     OGRLayer *m_poDecoratedLayer;
     int       m_bHasOwnership;

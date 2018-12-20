@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrocitablelayer.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrocitablelayer.cpp c368bc9fdb1a0067d4400be15c08501137dab367 2018-05-18 05:10:17Z Ryan Oliver $")
 
 static int nDiscarded = 0;
 static int nHits = 0;
@@ -350,15 +350,32 @@ OGRFeatureDefn *OGROCITableLayer::ReadTableDefinition( const char * pszTable )
         char **papszResult;
         int iDim = -1;
 
-        const char* pszDimCmd = 
-            "SELECT COUNT(*)\n"
-            "FROM ALL_SDO_GEOM_METADATA u, TABLE(u.diminfo) t\n"
-            "WHERE u.table_name = :table_name\n"
-            "  AND u.column_name = :geometry_name";
+        if( osOwner != "" )
+        {
+            const char* pszDimCmdA =
+                "SELECT COUNT(*)\n"
+                "FROM ALL_SDO_GEOM_METADATA u, TABLE(u.diminfo) t\n"
+                "WHERE u.table_name = :table_name\n"
+                "  AND u.column_name = :geometry_name\n"
+                "  AND u.owner = :table_owner";
 
-        oDimStatement.Prepare( pszDimCmd );
-        oDimStatement.BindString( ":table_name", osTableName.c_str() );
-        oDimStatement.BindString( ":geometry_name", pszGeomName );
+            oDimStatement.Prepare( pszDimCmdA );
+            oDimStatement.BindString( ":table_name", osTableName.c_str() );
+            oDimStatement.BindString( ":geometry_name", pszGeomName );
+            oDimStatement.BindString( ":table_owner", osOwner.c_str() );
+        }
+        else
+        {
+            const char* pszDimCmdB =
+                "SELECT COUNT(*)\n"
+                "FROM USER_SDO_GEOM_METADATA u, TABLE(u.diminfo) t\n"
+                "WHERE u.table_name = :table_name\n"
+                "  AND u.column_name = :geometry_name";
+
+            oDimStatement.Prepare( pszDimCmdB );
+            oDimStatement.BindString( ":table_name", osTableName.c_str() );
+            oDimStatement.BindString( ":geometry_name", pszGeomName );
+        }
         oDimStatement.Execute( nullptr );
 
         papszResult = oDimStatement.SimpleFetchRow();
@@ -370,15 +387,31 @@ OGRFeatureDefn *OGROCITableLayer::ReadTableDefinition( const char * pszTable )
 
             CPLErrorReset();
 
-            const char* pszDimCmd2 =
-                "select m.sdo_index_dims\n"
-                "from   all_sdo_index_metadata m, all_sdo_index_info i\n"
-                "where  i.index_name = m.sdo_index_name\n"
-                "   and i.sdo_index_owner = m.sdo_index_owner\n"
-                "   and i.table_name = upper(:table_name)";
+            if( osOwner != "" )
+            {
+                const char* pszDimCmd2A =
+                    "select m.sdo_index_dims\n"
+                    "from   all_sdo_index_metadata m, all_sdo_index_info i\n"
+                    "where  i.index_name = m.sdo_index_name\n"
+                    "   and i.sdo_index_owner = m.sdo_index_owner\n"
+                    "   and i.sdo_index_owner = upper(:table_owner)\n"
+                    "   and i.table_name = upper(:table_name)";
 
-            oDimStatement2.Prepare( pszDimCmd2 );
-            oDimStatement2.BindString( ":table_name", osTableName.c_str());
+                oDimStatement2.Prepare( pszDimCmd2A );
+                oDimStatement2.BindString( ":table_owner", osOwner.c_str());
+                oDimStatement2.BindString( ":table_name", osTableName.c_str());
+            }
+            else
+            {
+                const char* pszDimCmd2B =
+                    "select m.sdo_index_dims\n"
+                    "from   user_sdo_index_metadata m, user_sdo_index_info i\n"
+                    "where  i.index_name = m.sdo_index_name\n"
+                    "   and i.table_name = upper(:table_name)";
+
+                oDimStatement2.Prepare( pszDimCmd2B );
+                oDimStatement2.BindString( ":table_name", osTableName.c_str());
+            }
             oDimStatement2.Execute( nullptr );
 
             papszResult2 = oDimStatement2.SimpleFetchRow();
@@ -412,15 +445,31 @@ OGRFeatureDefn *OGROCITableLayer::ReadTableDefinition( const char * pszTable )
             char **papszResult2;
 
             CPLErrorReset();
-            const char* pszLayerTypeCmd =
-                "select m.SDO_LAYER_GTYPE "
-                "from all_sdo_index_metadata m, all_sdo_index_info i "
-                "where i.index_name = m.sdo_index_name "
-                "and i.sdo_index_owner = m.sdo_index_owner "
-                "and i.table_name = upper(:table_name)";
+            if( osOwner != "" )
+            {
+                const char* pszLayerTypeCmdA =
+                    "select m.SDO_LAYER_GTYPE "
+                    "from all_sdo_index_metadata m, all_sdo_index_info i "
+                    "where i.index_name = m.sdo_index_name "
+                    "and i.sdo_index_owner = m.sdo_index_owner "
+                    "and i.sdo_index_owner = upper(:table_owner) "
+                    "and i.table_name = upper(:table_name)";
 
-            oDimStatement2.Prepare( pszLayerTypeCmd );
-            oDimStatement2.BindString( ":table_name", osTableName.c_str() );
+                oDimStatement2.Prepare( pszLayerTypeCmdA );
+                oDimStatement2.BindString( ":table_owner", osOwner.c_str() );
+                oDimStatement2.BindString( ":table_name", osTableName.c_str() );
+            }
+            else
+            {
+                const char* pszLayerTypeCmdB =
+                    "select m.SDO_LAYER_GTYPE "
+                    "from user_sdo_index_metadata m, user_sdo_index_info i "
+                    "where i.index_name = m.sdo_index_name "
+                    "and i.table_name = upper(:table_name)";
+                oDimStatement2.Prepare( pszLayerTypeCmdB );
+                oDimStatement2.BindString( ":table_name", osTableName.c_str() );
+            }
+
             oDimStatement2.Execute( nullptr );
 
             papszResult2 = oDimStatement2.SimpleFetchRow();

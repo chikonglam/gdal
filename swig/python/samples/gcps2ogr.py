@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ******************************************************************************
-#  $Id: gcps2ogr.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
+#  $Id: gcps2ogr.py 7464f4b11b93bb2d1098d1b962907228932bf8c1 2018-05-03 19:56:49 +1000 Ben Elliston $
 #
 #  Project:  GDAL
 #  Purpose:  Outputs GDAL GCPs as OGR points
@@ -74,11 +74,11 @@ out_lyr.CreateField(ogr.FieldDefn('Info', ogr.OFTString))
 out_lyr.CreateField(ogr.FieldDefn('X', ogr.OFTReal))
 out_lyr.CreateField(ogr.FieldDefn('Y', ogr.OFTReal))
 gcps = ds.GetGCPs()
-for i in range(len(gcps)):
+for gcp in gcps:
     f = ogr.Feature(out_lyr.GetLayerDefn())
-    f.SetField('Id', gcps[i].Id)
-    f.SetField('Info', gcps[i].Info)
-    f.SetField('X', gcps[i].GCPPixel)
-    f.SetField('Y', gcps[i].GCPLine)
-    f.SetGeometry(ogr.CreateGeometryFromWkt('POINT(%f %f)' % (gcps[i].GCPX, gcps[i].GCPY)))
+    f.SetField('Id', gcp.Id)
+    f.SetField('Info', gcp.Info)
+    f.SetField('X', gcp.GCPPixel)
+    f.SetField('Y', gcp.GCPLine)
+    f.SetGeometry(ogr.CreateGeometryFromWkt('POINT(%f %f)' % (gcp.GCPX, gcp.GCPY)))
     out_lyr.CreateFeature(f)

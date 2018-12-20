@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshape.h ca48fb20ae23b2a72c1ef8460a1fe863f4dd3df0 2018-04-04 19:26:54 +0200 Even Rouault $
+ * $Id: ogrshape.h a49de8d77ff24f95d0851e87666d608e867e6995 2018-05-06 11:10:57 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions within the Shapefile driver to implement
@@ -71,9 +71,11 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
 
 class OGRShapeGeomFieldDefn final: public OGRGeomFieldDefn
 {
-    char* pszFullName;
-    mutable bool  bSRSSet;
-    mutable CPLString osPrjFile;
+    CPL_DISALLOW_COPY_ASSIGN(OGRShapeGeomFieldDefn)
+
+    char* pszFullName = nullptr;
+    mutable bool  bSRSSet = false;
+    mutable CPLString osPrjFile{};
 
     public:
         OGRShapeGeomFieldDefn( const char* pszFullNameIn,
@@ -101,6 +103,8 @@ class OGRShapeDataSource;
 
 class OGRShapeLayer final: public OGRAbstractProxiedLayer
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRShapeLayer)
+
     OGRShapeDataSource  *poDS;
 
     OGRFeatureDefn     *poFeatureDefn;
@@ -141,7 +145,7 @@ class OGRShapeLayer final: public OGRAbstractProxiedLayer
     bool                bSbnSbxDeleted;
 
     CPLString           ConvertCodePage( const char * );
-    CPLString           osEncoding;
+    CPLString           osEncoding{};
 
     bool                bTruncationWarningEmitted;
 
@@ -265,10 +269,12 @@ class OGRShapeDataSource final: public OGRDataSource
 
     void                AddLayer( OGRShapeLayer* poLayer );
 
-    std::vector<CPLString> oVectorLayerName;
+    std::vector<CPLString> oVectorLayerName{};
 
     bool                b2GBLimit;
     char              **papszOpenOptions;
+
+    CPL_DISALLOW_COPY_ASSIGN(OGRShapeDataSource)
 
   public:
                         OGRShapeDataSource();

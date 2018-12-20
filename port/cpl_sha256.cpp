@@ -41,7 +41,7 @@
 #include "cpl_sha256.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: cpl_sha256.cpp 8e4c736c5491eb2ed544aa2c51c3ac07d55bcca8 2018-05-01 05:05:17 +0800 jerry73204 $")
+CPL_CVSID("$Id: cpl_sha256.cpp 274633c51fd3cdbadd5c6064755ef14683d4e3e8 2018-05-01 05:05:17 +0800 jerry73204 $")
 
 #define ROTL(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 #define ROTR(x, n) (((x) >> (n)) | ((x) << (32 - (n))))

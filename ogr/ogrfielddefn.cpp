@@ -41,7 +41,7 @@
 #include "cpl_string.h"
 
 
-CPL_CVSID("$Id: ogrfielddefn.cpp 555e540bc97e0201cd3ed57f7906323d476c13fb 2018-04-04 19:43:04 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrfielddefn.cpp 76bc4fed0662a4be6d6e7e17b6dfd6f8329ce47c 2018-11-21 19:28:32 +0100 Even Rouault $")
 
 /************************************************************************/
 /*                            OGRFieldDefn()                            */
@@ -720,6 +720,9 @@ const char * OGRFieldDefn::GetFieldSubTypeName( OGRFieldSubType eSubType )
       case OFSTFloat32:
         return "Float32";
 
+      case OFSTJSON:
+        return "JSON";
+
       default:
         return "(unknown)";
     }
@@ -767,6 +770,8 @@ int OGR_AreTypeSubTypeCompatible( OGRFieldType eType, OGRFieldSubType eSubType )
         return eType == OFTInteger || eType == OFTIntegerList;
     if( eSubType == OFSTFloat32 )
         return eType == OFTReal || eType == OFTRealList;
+    if( eSubType == OFSTJSON )
+        return eType == OFTString;
     return FALSE;
 }
 

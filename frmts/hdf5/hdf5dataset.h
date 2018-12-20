@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5dataset.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: hdf5dataset.h b3ec1e71415633add22044966b557b378e4d31a7 2018-08-25 17:48:10 +0200 Even Rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Header file for HDF5 datasets reader.
@@ -31,6 +31,8 @@
 #ifndef HDF5DATASET_H_INCLUDED_
 #define HDF5DATASET_H_INCLUDED_
 
+#include "hdf5_api.h"
+
 #include "cpl_list.h"
 #include "gdal_pam.h"
 
@@ -54,6 +56,9 @@ typedef struct HDF5GroupObjects
 } HDF5GroupObjects;
 
 herr_t HDF5CreateGroupObjs(hid_t, const char *, void *);
+
+hid_t HDF5GetFileDriver();
+void HDF5UnloadFileDriver();
 
 /************************************************************************/
 /* ==================================================================== */

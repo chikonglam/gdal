@@ -30,7 +30,7 @@
 #include "cpl_port.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: ogr_geo_utils.cpp 30257944a5dd6173fcfbbe36c89e95e84113dcb0 2018-01-14 04:08:39Z Kurt Schwehr $")
+CPL_CVSID("$Id: ogr_geo_utils.cpp ca96ce2460d05900411c3d00e212d00dae8d62db 2018-09-05 10:11:15 +0200 Even Rouault $")
 
 constexpr double RAD2METER = (180.0 / M_PI) * 60.0 * 1852.0;
 constexpr double METER2RAD = 1.0 / RAD2METER;
@@ -107,6 +107,11 @@ double OGR_GreatCircle_InitialHeading( double LatA_deg, double LonA_deg,
         const double sin_diffG = sin(diffG);
 
         const double denom = sin_LatA * cos_diffG - cos_LatA * tan(LatB_rad);
+        if( denom == 0.0 )
+        {
+            // Can be the the case if Lat_A = -Lat_B and abs(LonA - LonB) = 180
+            return 0.0;
+        }
 
         double track = atan (sin_diffG / denom) * RAD2DEG;
 

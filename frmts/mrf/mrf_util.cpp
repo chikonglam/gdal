@@ -44,7 +44,7 @@
 #include <zlib.h>
 #include <algorithm>
 
-CPL_CVSID("$Id: mrf_util.cpp 83f1dd8e7054233bd486cf4a61706c2311089b64 2018-04-02 15:27:25 +0200 Even Rouault $")
+CPL_CVSID("$Id: mrf_util.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 // LERC is not ready for big endian hosts for now
 #if defined(LERC) && defined(WORDS_BIGENDIAN)
@@ -239,12 +239,12 @@ CPLString getFname(CPLXMLNode *node, const char *token, const CPLString &in, con
         return getFname(in, def);
     size_t slashPos = fn.find_first_of("\\/");
 
-    // Does it look like an absolute path or we wont't find the basename of in
+    // Does it look like an absolute path or we won't find the basename of 'in'
     if (slashPos == 0                               // Starts with slash
         || (slashPos == 2 && fn[1] == ':')          // Starts with disk letter column
         || !(slashPos == fn.find_first_not_of('.')) // Does not start with dots and then slash
         || EQUALN(in,"<MRF_META>",10)               // XML string input
-        || in.find_first_of("\\/") == in.npos)      // We can't get a basename from in
+        || in.find_first_of("\\/") == in.npos)      // We can't get a basename from 'in'
         return fn;
 
     // Relative path, prepand the path from the in file name

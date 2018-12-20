@@ -35,7 +35,7 @@
 #include "gdal.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: gdalallvalidmaskband.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: gdalallvalidmaskband.cpp bcf6af1006f48771999512f1bfed906e3c509edf 2018-07-09 00:07:02 +0200 Even Rouault $")
 
 //! @cond Doxygen_Suppress
 /************************************************************************/
@@ -59,7 +59,7 @@ GDALAllValidMaskBand::GDALAllValidMaskBand( GDALRasterBand *poParent ) :
 /*                       ~GDALAllValidMaskBand()                        */
 /************************************************************************/
 
-GDALAllValidMaskBand::~GDALAllValidMaskBand() {}
+GDALAllValidMaskBand::~GDALAllValidMaskBand() = default;
 
 /************************************************************************/
 /*                             IReadBlock()                             */
@@ -93,4 +93,25 @@ int GDALAllValidMaskBand::GetMaskFlags()
 {
     return GMF_ALL_VALID;
 }
+
+/************************************************************************/
+/*                           ComputeStatistics()                        */
+/************************************************************************/
+
+CPLErr GDALAllValidMaskBand::ComputeStatistics( int /* bApproxOK */,
+                            double *pdfMin, double *pdfMax,
+                            double *pdfMean, double *pdfStdDev,
+                            GDALProgressFunc, void * /*pProgressData*/ )
+{
+    if( pdfMin )
+        *pdfMin = 255.0;
+    if( pdfMax )
+        *pdfMax = 255.0;
+    if( pdfMean )
+        *pdfMean = 255.0;
+    if( pdfStdDev )
+        *pdfStdDev = 0.0;
+    return CE_None;
+}
+
 //! @endcond

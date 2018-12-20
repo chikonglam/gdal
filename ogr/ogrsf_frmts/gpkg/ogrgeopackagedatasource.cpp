@@ -39,7 +39,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrgeopackagedatasource.cpp 05a25fb391048ccd916ab41b4c0c1e3084a44753 2018-10-04 13:47:44 +0200 Andrea Giudiceandrea $")
+CPL_CVSID("$Id: ogrgeopackagedatasource.cpp 14787d4dc99b60b85c305b08e4424a51abb27f9a 2018-11-21 19:44:02 +0100 Even Rouault $")
 
 // Keep in sync prototype of those 2 functions between gdalopeninfo.cpp,
 // ogrsqlitedatasource.cpp and ogrgeopackagedatasource.cpp
@@ -669,11 +669,11 @@ void GDALGeoPackageDataset::RemoveTableFromSQLiteMasterCache(
 }
 
 /************************************************************************/
-/*                          GetExtensions()                             */
+/*                  GetUnknownExtensionsTableSpecific()                 */
 /************************************************************************/
 
 const std::map< CPLString, std::vector<GPKGExtensionDesc> > &
-                        GDALGeoPackageDataset::GetExtensions()
+                    GDALGeoPackageDataset::GetUnknownExtensionsTableSpecific()
 {
     if( m_bMapTableToExtensionsBuilt )
         return m_oMapTableToExtensions;
@@ -693,7 +693,7 @@ const std::map< CPLString, std::vector<GPKGExtensionDesc> > &
             "'gpkg_geom_MULTISURFACE', 'gpkg_geom_CURVE', 'gpkg_geom_SURFACE', "
             "'gpkg_geom_POLYHEDRALSURFACE', 'gpkg_geom_TIN', 'gpkg_geom_TRIANGLE', "
             "'gpkg_rtree_index', 'gpkg_geometry_type_trigger', 'gpkg_srs_id_trigger', "
-            "'gpkg_crs_wkt')");
+            "'gpkg_crs_wkt', 'gpkg_schema')");
     const int nTableLimit =
                 atoi(CPLGetConfigOption("OGR_TABLE_LIMIT", "10000"));
     if( nTableLimit > 0 )
@@ -2746,6 +2746,30 @@ bool GDALGeoPackageDataset::HasMetadataTables()
 }
 
 /************************************************************************/
+/*                         HasDataColumnsTable()                        */
+/************************************************************************/
+
+bool GDALGeoPackageDataset::HasDataColumnsTable()
+{
+    const int nCount = SQLGetInteger(hDB,
+                "SELECT 1 FROM sqlite_master WHERE name = 'gpkg_data_columns'"
+                "AND type IN ('table', 'view')", nullptr);
+    return nCount == 1;
+}
+
+/************************************************************************/
+/*                    HasDataColumnConstraintsTable()                   */
+/************************************************************************/
+
+bool GDALGeoPackageDataset::HasDataColumnConstraintsTable()
+{
+    const int nCount = SQLGetInteger(hDB,
+    "SELECT 1 FROM sqlite_master WHERE name = 'gpkg_data_column_constraints'"
+    "AND type IN ('table', 'view')", nullptr);
+    return nCount == 1;
+}
+
+/************************************************************************/
 /*                            GetMetadata()                             */
 /************************************************************************/
 
@@ -3785,8 +3809,8 @@ int GDALGeoPackageDataset::Create( const char * pszFilename,
 
         if( m_bHasDefinition12_063 )
         {
-            CreateExtensionsTableIfNecessary();
-            if( OGRERR_NONE != SQLCommand(hDB,
+            if( OGRERR_NONE != CreateExtensionsTableIfNecessary() ||
+                OGRERR_NONE != SQLCommand(hDB,
                 "INSERT INTO gpkg_extensions "
                 "(table_name, column_name, extension_name, definition, scope) "
                 "VALUES "
@@ -5774,21 +5798,6 @@ OGRErr GDALGeoPackageDataset::CreateExtensionsTableIfNecessary()
         ")";
 
     return SQLCommand(hDB, pszCreateGpkgExtensions);
-}
-
-/************************************************************************/
-/*                         HasDataColumnsTable()                        */
-/************************************************************************/
-
-bool GDALGeoPackageDataset::HasDataColumnsTable()
-{
-    SQLResult oResultTable;
-    OGRErr err = SQLQuery(hDB,
-        "SELECT * FROM sqlite_master WHERE name = 'gpkg_data_columns' "
-        "AND type IN ('table', 'view')", &oResultTable);
-    bool bHasExtensionsTable = ( err == OGRERR_NONE && oResultTable.nRowCount == 1 );
-    SQLResultFree(&oResultTable);
-    return bHasExtensionsTable;
 }
 
 /************************************************************************/

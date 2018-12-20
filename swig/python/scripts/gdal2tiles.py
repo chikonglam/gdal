@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ******************************************************************************
-#  $Id: gdal2tiles.py cec4243ca7cc6c187fcc7498a657b9ad47ad4de6 2018-11-30 01:05:06 +0100 Even Rouault $
+#  $Id: gdal2tiles.py 1f32f6fdbfd2fd352047db41d316d8afbe3c3319 2018-11-30 01:05:06 +0100 Even Rouault $
 #
 # Project:  Google Summer of Code 2007, 2008 (http://code.google.com/soc/)
 # Support:  BRGM (http://www.brgm.fr)
@@ -61,7 +61,7 @@ except ImportError:
     # 'antialias' resampling is not available
     numpy_available = False
 
-__version__ = "$Id: gdal2tiles.py cec4243ca7cc6c187fcc7498a657b9ad47ad4de6 2018-11-30 01:05:06 +0100 Even Rouault $"
+__version__ = "$Id: gdal2tiles.py 1f32f6fdbfd2fd352047db41d316d8afbe3c3319 2018-11-30 01:05:06 +0100 Even Rouault $"
 
 resampling_list = ('average', 'near', 'bilinear', 'cubic', 'cubicspline', 'lanczos', 'antialias')
 profile_list = ('mercator', 'geodetic', 'raster')
@@ -890,8 +890,7 @@ def nb_data_bands(dataset):
             dataset.RasterCount == 4 or
             dataset.RasterCount == 2):
         return dataset.RasterCount - 1
-    else:
-        return dataset.RasterCount
+    return dataset.RasterCount
 
 def create_base_tile(tile_job_info, tile_detail, queue=None):
 
@@ -942,9 +941,14 @@ def create_base_tile(tile_job_info, tile_detail, queue=None):
     # We scale down the query to the tile_size by supplied algorithm.
 
     if rxsize != 0 and rysize != 0 and wxsize != 0 and wysize != 0:
+        alpha = alphaband.ReadRaster(rx, ry, rxsize, rysize, wxsize, wysize)
+
+        # Detect totally transparent tile and skip its creation
+        if tile_job_info.exclude_transparent and len(alpha) == alpha.count('\x00'.encode('ascii')):
+            return
+
         data = ds.ReadRaster(rx, ry, rxsize, rysize, wxsize, wysize,
                              band_list=list(range(1, dataBandsCount + 1)))
-        alpha = alphaband.ReadRaster(rx, ry, rxsize, rysize, wxsize, wysize)
 
     # The tile in memory is a transparent file by default. Write pixel values into it if
     # any
@@ -1062,9 +1066,13 @@ def create_overview_tiles(tile_job_info, output_folder, options):
                     for x in range(2 * tx, 2 * tx + 2):
                         minx, miny, maxx, maxy = tile_job_info.tminmax[tz + 1]
                         if x >= minx and x <= maxx and y >= miny and y <= maxy:
+                            base_tile_path = os.path.join(output_folder, str(tz + 1), str(x),
+                                                          "%s.%s" % (y, tile_job_info.tile_extension))
+                            if not os.path.isfile(base_tile_path):
+                                continue
+
                             dsquerytile = gdal.Open(
-                                os.path.join(output_folder, str(tz + 1), str(x),
-                                             "%s.%s" % (y, tile_job_info.tile_extension)),
+                                base_tile_path,
                                 gdal.GA_ReadOnly)
                             if (ty == 0 and y == 1) or (ty != 0 and (y % (2 * ty)) != 0):
                                 tileposy = 0
@@ -1085,28 +1093,29 @@ def create_overview_tiles(tile_job_info, output_folder, options):
                                 band_list=list(range(1, tilebands + 1)))
                             children.append([x, y, tz + 1])
 
-                scale_query_to_tile(dsquery, dstile, tile_driver, options,
-                                    tilefilename=tilefilename)
-                # Write a copy of tile to png/jpg
-                if options.resampling != 'antialias':
+                if children:
+                    scale_query_to_tile(dsquery, dstile, tile_driver, options,
+                                        tilefilename=tilefilename)
                     # Write a copy of tile to png/jpg
-                    out_driver.CreateCopy(tilefilename, dstile, strict=0)
+                    if options.resampling != 'antialias':
+                        # Write a copy of tile to png/jpg
+                        out_driver.CreateCopy(tilefilename, dstile, strict=0)
 
-                if options.verbose:
-                    print("\tbuild from zoom", tz + 1,
-                          " tiles:", (2 * tx, 2 * ty), (2 * tx + 1, 2 * ty),
-                          (2 * tx, 2 * ty + 1), (2 * tx + 1, 2 * ty + 1))
+                    if options.verbose:
+                        print("\tbuild from zoom", tz + 1,
+                              " tiles:", (2 * tx, 2 * ty), (2 * tx + 1, 2 * ty),
+                              (2 * tx, 2 * ty + 1), (2 * tx + 1, 2 * ty + 1))
 
-                # Create a KML file for this tile.
-                if tile_job_info.kml:
-                    with open(os.path.join(
-                        output_folder,
-                        '%d/%d/%d.kml' % (tz, tx, ty)
-                    ), 'wb') as f:
-                        f.write(generate_kml(
-                            tx, ty, tz, tile_job_info.tile_extension, tile_job_info.tile_size,
-                            get_tile_swne(tile_job_info, options), options, children
-                        ).encode('utf-8'))
+                    # Create a KML file for this tile.
+                    if tile_job_info.kml:
+                        with open(os.path.join(
+                            output_folder,
+                            '%d/%d/%d.kml' % (tz, tx, ty)
+                        ), 'wb') as f:
+                            f.write(generate_kml(
+                                tx, ty, tz, tile_job_info.tile_extension, tile_job_info.tile_size,
+                                get_tile_swne(tile_job_info, options), options, children
+                            ).encode('utf-8'))
 
                 if not options.verbose and not options.quiet:
                     progress_bar.log_progress()
@@ -1139,6 +1148,9 @@ def optparse_init():
     p.add_option("-v", "--verbose",
                  action="store_true", dest="verbose",
                  help="Print status messages to stdout")
+    p.add_option("-x", "--exclude",
+                 action="store_true", dest="exclude_transparent",
+                 help="Exclude transparent tiles from result tileset")
     p.add_option("-q", "--quiet",
                  action="store_true", dest="quiet",
                  help="Disable messages and status to stdout")
@@ -1188,9 +1200,9 @@ def process_args(argv):
     options, args = parser.parse_args(args=argv)
 
     # Args should be either an input file OR an input file and an output folder
-    if (len(args) == 0):
+    if not args:
         exit_with_error("You need to specify at least an input file as argument to the script")
-    if (len(args) > 2):
+    if len(args) > 2:
         exit_with_error("Processing of several input files is not supported.",
                         "Please first use a tool like gdal_vrtmerge.py or gdal_merge.py on the "
                         "files: gdal_vrtmerge.py -o merged.vrt %s" % " ".join(args))
@@ -1226,6 +1238,7 @@ def options_post_processing(options, input_file, output_folder):
     if options.resampling == 'antialias' and not numpy_available:
         exit_with_error("'antialias' resampling algorithm is not available.",
                         "Install PIL (Python Imaging Library) and numpy.")
+
     try:
         os.path.basename(input_file).encode('ascii')
     except UnicodeEncodeError:
@@ -1301,6 +1314,7 @@ class TileJobInfo(object):
     ominy = 0
     is_epsg_4326 = False
     options = None
+    exclude_transparent = False
 
     def __init__(self, **kwargs):
         for key in kwargs:
@@ -1346,6 +1360,9 @@ class GDAL2Tiles(object):
 
         self.input_file = None
         self.output_folder = None
+
+        self.isepsg4326 = None
+        self.in_srs_wkt = None
 
         # Tile format
         self.tile_size = 256
@@ -1404,7 +1421,7 @@ class GDAL2Tiles(object):
         self.mem_drv = gdal.GetDriverByName('MEM')
 
         if not self.out_drv:
-            raise Exception("The '%s' driver was not found, is it available in this GDAL build?",
+            raise Exception("The '%s' driver was not found, is it available in this GDAL build?" %
                             self.tiledriver)
         if not self.mem_drv:
             raise Exception("The 'MEM' driver was not found, is it available in this GDAL build?")
@@ -1877,6 +1894,7 @@ class GDAL2Tiles(object):
             ominy=self.ominy,
             is_epsg_4326=self.isepsg4326,
             options=self.options,
+            exclude_transparent=self.options.exclude_transparent,
         )
 
         return conf, tile_details

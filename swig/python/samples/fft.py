@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: fft.py 93b634eed5ded27c5c56df73f932f769c6b2a955 2018-04-14 08:07:52 +1000 Ben Elliston $
+# $Id: fft.py a2c9063c76ff26e548d34bf6d8f4f148935d27ac 2018-05-11 19:03:02 +1000 Ben Elliston $
 #
 # Project:  GDAL Python samples
 # Purpose:  Script to perform forward and inverse two-dimensional fast
@@ -48,38 +48,37 @@ def Usage():
 # =============================================================================
 
 
-def ParseType(type):
-    if type == 'Byte':
+def ParseType(typ):
+    if typ == 'Byte':
         return gdal.GDT_Byte
-    elif type == 'Int16':
+    elif typ == 'Int16':
         return gdal.GDT_Int16
-    elif type == 'UInt16':
+    elif typ == 'UInt16':
         return gdal.GDT_UInt16
-    elif type == 'Int32':
+    elif typ == 'Int32':
         return gdal.GDT_Int32
-    elif type == 'UInt32':
+    elif typ == 'UInt32':
         return gdal.GDT_UInt32
-    elif type == 'Float32':
+    elif typ == 'Float32':
         return gdal.GDT_Float32
-    elif type == 'Float64':
+    elif typ == 'Float64':
         return gdal.GDT_Float64
-    elif type == 'CInt16':
+    elif typ == 'CInt16':
         return gdal.GDT_CInt16
-    elif type == 'CInt32':
+    elif typ == 'CInt32':
         return gdal.GDT_CInt32
-    elif type == 'CFloat32':
+    elif typ == 'CFloat32':
         return gdal.GDT_CFloat32
-    elif type == 'CFloat64':
+    elif typ == 'CFloat64':
         return gdal.GDT_CFloat64
-    else:
-        return gdal.GDT_Byte
+    return gdal.GDT_Byte
 # =============================================================================
 
 
 infile = None
 outfile = None
 format = 'GTiff'
-type = None
+typ = None
 transformation = 'forward'
 
 # Parse command line arguments.
@@ -89,16 +88,16 @@ while i < len(sys.argv):
 
     if arg == '-inv':
         transformation = 'inverse'
-        if type is None:
-            type = gdal.GDT_Float32
+        if typ is None:
+            typ = gdal.GDT_Float32
 
     elif arg == '-of':
         i = i + 1
-        format = sys.argv[i]
+        frmt = sys.argv[i]
 
     elif arg == '-ot':
         i = i + 1
-        type = ParseType(sys.argv[i])
+        typ = ParseType(sys.argv[i])
         set_type = 'yes'
 
     elif infile is None:
@@ -117,13 +116,13 @@ if infile is None:
 if outfile is None:
     Usage()
 
-if type is None:
-    type = gdal.GDT_CFloat32
+if typ is None:
+    typ = gdal.GDT_CFloat32
 
 indataset = gdal.Open(infile, gdal.GA_ReadOnly)
 
-out_driver = gdal.GetDriverByName(format)
-outdataset = out_driver.Create(outfile, indataset.RasterXSize, indataset.RasterYSize, indataset.RasterCount, type)
+out_driver = gdal.GetDriverByName(frmt)
+outdataset = out_driver.Create(outfile, indataset.RasterXSize, indataset.RasterYSize, indataset.RasterCount, typ)
 
 for iBand in range(1, indataset.RasterCount + 1):
     inband = indataset.GetRasterBand(iBand)

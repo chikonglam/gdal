@@ -38,7 +38,7 @@
 #include "cpl_error.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: gdalcolortable.cpp 3c5e4ec07e57067c187d87dad3b6be5490b76a4e 2018-04-02 23:38:56 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalcolortable.cpp 07992936d7131adb0203bd5b10db3aea923841d0 2018-08-01 14:10:49 -0700 Kurt Schwehr $")
 
 /************************************************************************/
 /*                           GDALColorTable()                           */
@@ -82,7 +82,7 @@ GDALColorTableH CPL_STDCALL GDALCreateColorTable( GDALPaletteInterp eInterp )
  * This destructor is the same as the C GDALDestroyColorTable() function.
  */
 
-GDALColorTable::~GDALColorTable() {}
+GDALColorTable::~GDALColorTable() = default;
 
 /************************************************************************/
 /*                       GDALDestroyColorTable()                        */
@@ -343,7 +343,7 @@ GDALPaletteInterp GDALColorTable::GetPaletteInterpretation() const
 }
 
 /************************************************************************/
-/*                    GDALGetPaltteInterpretation()                     */
+/*                    GDALGetPaletteInterpretation()                    */
 /************************************************************************/
 
 /**

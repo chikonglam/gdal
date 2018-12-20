@@ -32,7 +32,7 @@
 #include "ogr_ili2.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrili2driver.cpp 3bc98ac2e895141cb38924f83d1182b59d711148 2018-06-14 16:22:26 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrili2driver.cpp a0845a051c0cd1cc7dfbeebb776dc325af262cac 2018-06-14 16:22:26 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                                Open()                                */

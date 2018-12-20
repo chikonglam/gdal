@@ -43,7 +43,7 @@
 #include "ogr_p.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gmlutils.cpp df507edcc67aa14ada1432baf516f49e6557fb06 2018-04-10 15:26:13 +0200 Even Rouault $")
+CPL_CVSID("$Id: gmlutils.cpp 7063b8664855306154d97a05b35c968c8d8b81d0 2018-05-09 21:24:13 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                GML_ExtractSrsNameFromGeometry()                      */
@@ -358,4 +358,22 @@ char *GML_GetSRSName(const OGRSpatialReference *poSRS,
         }
     }
     return CPLStrdup("");
+}
+
+/************************************************************************/
+/*                       GML_IsLegitSRSName()                           */
+/************************************************************************/
+
+bool GML_IsLegitSRSName(const char* pszSRSName)
+{
+
+    if( STARTS_WITH_CI(pszSRSName, "http") )
+    {
+        if( !(STARTS_WITH_CI(pszSRSName, "http://opengis.net/def/crs")
+        || STARTS_WITH_CI(pszSRSName, "http://www.opengis.net/def/crs")) )
+        {
+            return false;
+        }
+    }
+    return true;
 }

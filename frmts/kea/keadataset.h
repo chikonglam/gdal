@@ -1,5 +1,5 @@
 /*
- * $Id: keadataset.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: keadataset.h 1dd8a744bbfec8b849371abec5cd44f729eecb03 2018-05-06 21:11:29 +0200 Even Rouault $
  *  keadataset.h
  *
  *  Created by Pete Bunting on 01/08/2012.
@@ -36,7 +36,7 @@
 #include "libkea_headers.h"
 
 // class that implements a GDAL dataset
-class KEADataset : public GDALPamDataset
+class KEADataset final: public GDALPamDataset
 {
     static H5::H5File *CreateLL( const char * pszFilename,
                                   int nXSize, int nYSize, int nBands,

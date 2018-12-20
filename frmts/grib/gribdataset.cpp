@@ -51,11 +51,8 @@
 #include "cpl_multiproc.h"
 #include "cpl_string.h"
 #include "cpl_vsi.h"
-#include "degrib/degrib/datasource.h"
 #include "degrib/degrib/degrib2.h"
-#include "degrib/degrib/filedatasource.h"
 #include "degrib/degrib/inventory.h"
-#include "degrib/degrib/memorydatasource.h"
 #include "degrib/degrib/meta.h"
 #include "degrib/degrib/metaname.h"
 #include "degrib/degrib/myerror.h"
@@ -70,7 +67,7 @@ CPL_C_END
 #include "gdal_priv.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gribdataset.cpp 4e2373cedbaf3e6ec46721a7e642ae2048b8bba6 2018-11-17 22:33:18 +0100 Even Rouault $")
+CPL_CVSID("$Id: gribdataset.cpp 34aa9f038dc8664ede976beaf1fcc4beb00a8e57 2018-11-17 22:33:18 +0100 Even Rouault $")
 
 static CPLMutex *hGRIBMutex = nullptr;
 
@@ -638,10 +635,8 @@ CPLErr GRIBRasterBand::LoadData()
             }
         }
 
-        FileDataSource grib_fp(poGDS->fp);
-
         // we don't seem to have any way to detect errors in this!
-        ReadGribData(grib_fp, start, subgNum, &m_Grib_Data, &m_Grib_MetaData);
+        ReadGribData(poGDS->fp, start, subgNum, &m_Grib_Data, &m_Grib_MetaData);
         if( !m_Grib_Data )
         {
             CPLError(CE_Failure, CPLE_AppDefined, "Out of memory.");
@@ -775,7 +770,7 @@ double GRIBRasterBand::GetNoDataValue( int *pbSuccess )
 /*                            ReadGribData()                            */
 /************************************************************************/
 
-void GRIBRasterBand::ReadGribData( DataSource &fp, sInt4 start, int subgNum,
+void GRIBRasterBand::ReadGribData( VSILFILE * fp, vsi_l_offset start, int subgNum,
                                    double **data, grib_MetaData **metaData)
 {
     // Initialization, for calling the ReadGrib2Record function.
@@ -809,7 +804,7 @@ void GRIBRasterBand::ReadGribData( DataSource &fp, sInt4 start, int subgNum,
         f_unit = 0;  // Do not normalize units to metric.
 
     // Read GRIB message from file position "start".
-    fp.DataSourceFseek(start, SEEK_SET);
+    VSIFSeekL(fp, start, SEEK_SET);
     uInt4 grib_DataLen = 0;  // Size of Grib_Data.
     *metaData = new grib_MetaData();
     MetaInit(*metaData);
@@ -958,8 +953,18 @@ GDALDataset *GRIBDataset::Open( GDALOpenInfo *poOpenInfo )
     // grib is not thread safe, make sure not to cause problems
     // for other thread safe formats
     CPLMutexHolderD(&hGRIBMutex);
-    MemoryDataSource mds(poOpenInfo->pabyHeader, poOpenInfo->nHeaderBytes);
-    if (ReadSECT0(mds, &buff, &buffLen, -1, sect0, &gribLen, &version) < 0) {
+
+    CPLString tmpFilename;
+    tmpFilename.Printf("/vsimem/gribdataset-%p", poOpenInfo);
+
+    VSILFILE * memfp = VSIFileFromMemBuffer(tmpFilename, poOpenInfo->pabyHeader, poOpenInfo->nHeaderBytes, FALSE);
+    if (memfp == nullptr || ReadSECT0(memfp, &buff, &buffLen, -1, sect0, &gribLen, &version) < 0)
+    {
+        if (memfp != nullptr)
+        {
+            VSIFCloseL(memfp);
+            VSIUnlink(tmpFilename);
+        }
         free(buff);
         char *errMsg = errSprintf(nullptr);
         if( errMsg != nullptr && strstr(errMsg,"Ran out of file") == nullptr )
@@ -967,6 +972,8 @@ GDALDataset *GRIBDataset::Open( GDALOpenInfo *poOpenInfo )
         free(errMsg);
         return nullptr;
     }
+    VSIFCloseL(memfp);
+    VSIUnlink(tmpFilename);
     free(buff);
 
     // Confirm the requested access is supported.
@@ -993,10 +1000,8 @@ GDALDataset *GRIBDataset::Open( GDALOpenInfo *poOpenInfo )
 
     VSIFSeekL(poDS->fp, 0, SEEK_SET);
 
-    FileDataSource grib_fp(poDS->fp);
-
     // Contains an GRIB2 message inventory of the file.
-    gdal::grib::InventoryWrapper oInventories(grib_fp);
+    gdal::grib::InventoryWrapper oInventories(poDS->fp);
 
     if( oInventories.result() <= 0 )
     {
@@ -1053,7 +1058,7 @@ GDALDataset *GRIBDataset::Open( GDALOpenInfo *poOpenInfo )
             // in it.
             double *data = nullptr;
             grib_MetaData *metaData = nullptr;
-            GRIBRasterBand::ReadGribData(grib_fp, 0,
+            GRIBRasterBand::ReadGribData(poDS->fp, 0,
                                          psInv->subgNum,
                                          &data, &metaData);
             if( data == nullptr || metaData == nullptr || metaData->gds.Nx < 1 ||

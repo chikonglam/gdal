@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ******************************************************************************
-#  $Id: gdalchksum.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
+#  $Id: gdalchksum.py 8e263710cb425c4a8b76b1f363b98be41ea0a983 2018-04-30 19:40:20 +1000 Ben Elliston $
 #
 #  Project:  GDAL
 #  Purpose:  Application to checksum a GDAL image file.
@@ -89,7 +89,7 @@ if ds is None:
 if srcwin is None:
     srcwin = [0, 0, ds.RasterXSize, ds.RasterYSize]
 
-if len(bands) == 0:
+if not bands:
     bands = list(range(1, (ds.RasterCount + 1)))
 
 

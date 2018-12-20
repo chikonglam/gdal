@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_couchdb.h 55901e50fd8583acecc3d37c9cc2870043fc8bdb 2018-01-11 09:11:21Z Dmitry Baryshnikov $
+ * $Id: ogr_couchdb.h db7b8a03d90637c2f6ba5cbdb087e2819d8ec8dd 2018-05-12 22:34:30 +0200 Even Rouault $
  *
  * Project:  CouchDB Translator
  * Purpose:  Definition of classes for OGR CouchDB / GeoCouch driver.
@@ -160,6 +160,8 @@ class OGRCouchDBTableLayer : public OGRCouchDBLayer
     virtual void              WriteMetadata();
     virtual void              LoadMetadata();
     virtual bool              RunSpatialFilterQueryIfNecessary();
+
+    void                      BuildLayerDefn();
 
     public:
             OGRCouchDBTableLayer(OGRCouchDBDataSource* poDS,

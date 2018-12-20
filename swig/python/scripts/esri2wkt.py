@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ******************************************************************************
-#  $Id: esri2wkt.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
+#  $Id: esri2wkt.py 7464f4b11b93bb2d1098d1b962907228932bf8c1 2018-05-03 19:56:49 +1000 Ben Elliston $
 #
 #  Project:  GDAL
 #  Purpose:  Simple command line program for translating ESRI .prj files
@@ -29,7 +29,6 @@
 #  DEALINGS IN THE SOFTWARE.
 # ******************************************************************************
 
-import string
 import sys
 
 from osgeo import osr
@@ -43,8 +42,8 @@ prj_fd = open(sys.argv[1])
 prj_lines = prj_fd.readlines()
 prj_fd.close()
 
-for i in range(len(prj_lines)):
-    prj_lines[i] = string.rstrip(prj_lines[i])
+for i, prj_line in enumerate(prj_lines):
+    prj_lines[i] = prj_line.rstrip()
 
 prj_srs = osr.SpatialReference()
 err = prj_srs.ImportFromESRI(prj_lines)

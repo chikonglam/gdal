@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrtriangle.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 2018-04-10 15:04:42 +0200 Even Rouault $
+ * $Id: ogrtriangle.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRTriangle geometry class.
@@ -32,7 +32,7 @@
 #include "ogr_api.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: ogrtriangle.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 2018-04-10 15:04:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrtriangle.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                             OGRTriangle()                            */
@@ -43,8 +43,7 @@ CPL_CVSID("$Id: ogrtriangle.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 2018-04
  *
  */
 
-OGRTriangle::OGRTriangle()
-{ }
+OGRTriangle::OGRTriangle() = default;
 
 /************************************************************************/
 /*                             OGRTriangle()                            */
@@ -55,9 +54,7 @@ OGRTriangle::OGRTriangle()
  *
  */
 
-OGRTriangle::OGRTriangle(const OGRTriangle& other) :
-    OGRPolygon(other)
-{ }
+OGRTriangle::OGRTriangle(const OGRTriangle&) = default;
 
 /************************************************************************/
 /*                             OGRTriangle()                            */
@@ -123,9 +120,7 @@ OGRTriangle::OGRTriangle(const OGRPoint &p, const OGRPoint &q,
  *
  */
 
-OGRTriangle::~OGRTriangle()
-{
-}
+OGRTriangle::~OGRTriangle() = default;
 
 /************************************************************************/
 /*                    operator=( const OGRGeometry&)                    */

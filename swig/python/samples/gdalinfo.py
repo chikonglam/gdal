@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # *****************************************************************************
-# $Id: gdalinfo.py d7e898f6034a9c6c0f83cfbff921434dfc2082be 2018-04-18 23:07:52 +1000 Ben Elliston $
+# $Id: gdalinfo.py 8e263710cb425c4a8b76b1f363b98be41ea0a983 2018-04-30 19:40:20 +1000 Ben Elliston $
 #
 # Project:  GDAL Utilities
 # Purpose:  Python port of Commandline application to list info about a file.
@@ -163,7 +163,7 @@ def main(argv=None):
         hDriver.LongName))
 
     papszFileList = hDataset.GetFileList()
-    if papszFileList is None or len(papszFileList) == 0:
+    if papszFileList is None or not papszFileList:
         print("Files: none associated")
     else:
         print("Files: %s" % papszFileList[0])
@@ -246,7 +246,7 @@ def main(argv=None):
         papszMetadata = hDataset.GetMetadata_List()
     else:
         papszMetadata = None
-    if bShowMetadata and papszMetadata is not None and len(papszMetadata) > 0:
+    if bShowMetadata and papszMetadata:
         print("Metadata:")
         for metadata in papszMetadata:
             print("  %s" % metadata)
@@ -254,7 +254,7 @@ def main(argv=None):
     if bShowMetadata:
         for extra_domain in papszExtraMDDomains:
             papszMetadata = hDataset.GetMetadata_List(extra_domain)
-            if papszMetadata is not None and len(papszMetadata) > 0:
+            if papszMetadata:
                 print("Metadata (%s):" % extra_domain)
                 for metadata in papszMetadata:
                     print("  %s" % metadata)
@@ -266,7 +266,7 @@ def main(argv=None):
         papszMetadata = hDataset.GetMetadata_List("IMAGE_STRUCTURE")
     else:
         papszMetadata = None
-    if bShowMetadata and papszMetadata is not None and len(papszMetadata) > 0:
+    if bShowMetadata and papszMetadata:
         print("Image Structure Metadata:")
         for metadata in papszMetadata:
             print("  %s" % metadata)
@@ -275,7 +275,7 @@ def main(argv=None):
 #      Report subdatasets.
 # --------------------------------------------------------------------
     papszMetadata = hDataset.GetMetadata_List("SUBDATASETS")
-    if papszMetadata is not None and len(papszMetadata) > 0:
+    if papszMetadata:
         print("Subdatasets:")
         for metadata in papszMetadata:
             print("  %s" % metadata)
@@ -287,7 +287,7 @@ def main(argv=None):
         papszMetadata = hDataset.GetMetadata_List("GEOLOCATION")
     else:
         papszMetadata = None
-    if bShowMetadata and papszMetadata is not None and len(papszMetadata) > 0:
+    if bShowMetadata and papszMetadata:
         print("Geolocation:")
         for metadata in papszMetadata:
             print("  %s" % metadata)
@@ -299,7 +299,7 @@ def main(argv=None):
         papszMetadata = hDataset.GetMetadata_List("RPC")
     else:
         papszMetadata = None
-    if bShowMetadata and papszMetadata is not None and len(papszMetadata) > 0:
+    if bShowMetadata and papszMetadata:
         print("RPC Metadata:")
         for metadata in papszMetadata:
             print("  %s" % metadata)
@@ -307,7 +307,7 @@ def main(argv=None):
 # --------------------------------------------------------------------
 #      Setup projected to lat/long transform if appropriate.
 # --------------------------------------------------------------------
-    if pszProjection is not None and len(pszProjection) > 0:
+    if pszProjection:
         hProj = osr.SpatialReference(pszProjection)
         if hProj is not None:
             hLatLong = hProj.CloneGeogCS()
@@ -360,7 +360,7 @@ def main(argv=None):
                                                                    hBand.GetRasterColorInterpretation())))
 
         if hBand.GetDescription() is not None \
-                and len(hBand.GetDescription()) > 0:
+                and hBand.GetDescription():
             print("  Description = %s" % hBand.GetDescription())
 
         dfMin = hBand.GetMinimum()
@@ -491,7 +491,7 @@ def main(argv=None):
                     else:
                         line = line + "(null)"
 
-        if len(hBand.GetUnitType()) > 0:
+        if hBand.GetUnitType():
             print("  Unit Type: %s" % hBand.GetUnitType())
 
         papszCategories = hBand.GetRasterCategoryNames()
@@ -511,7 +511,7 @@ def main(argv=None):
             papszMetadata = hBand.GetMetadata_List()
         else:
             papszMetadata = None
-        if bShowMetadata and papszMetadata is not None and len(papszMetadata) > 0:
+        if bShowMetadata and papszMetadata:
             print("  Metadata:")
             for metadata in papszMetadata:
                 print("    %s" % metadata)
@@ -520,7 +520,7 @@ def main(argv=None):
             papszMetadata = hBand.GetMetadata_List("IMAGE_STRUCTURE")
         else:
             papszMetadata = None
-        if bShowMetadata and papszMetadata is not None and len(papszMetadata) > 0:
+        if bShowMetadata and papszMetadata:
             print("  Image Structure Metadata:")
             for metadata in papszMetadata:
                 print("    %s" % metadata)

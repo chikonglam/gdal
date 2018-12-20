@@ -1,5 +1,5 @@
 # ******************************************************************************
-#  $Id: lookup.py d7e898f6034a9c6c0f83cfbff921434dfc2082be 2018-04-18 23:07:52 +1000 Ben Elliston $
+#  $Id: lookup.py d5e0d780b2b0b96cf6933d358ea7927be776dfbb 2018-05-11 19:04:41 +1000 Ben Elliston $
 #
 #  Project:  GDAL ECW Driver
 #  Purpose:  Script to lookup ECW (GDT) coordinate systems and translate
@@ -28,7 +28,6 @@
 #  DEALINGS IN THE SOFTWARE.
 # ******************************************************************************
 
-import string
 import osr
 
 ##############################################################################
@@ -48,9 +47,7 @@ def load_dict(filename):
     this_dict = {}
     for line in lines:
         if line[:8] != 'proj_name':
-            tokens = string.split(line, ',')
-            for i in range(len(tokens)):
-                tokens[i] = string.strip(tokens[i])
+            tokens = [token.strip() for token in line.split(',')]
 
             this_dict[tokens[0]] = tokens
 
@@ -61,7 +58,7 @@ def load_dict(filename):
 
 
 # dir = 'M:/software/ER Viewer 2.0c/GDT_Data/'
-dir = '/u/data/ecw/gdt/'
+directory = '/u/data/ecw/gdt/'
 
 dict_list = ['tranmerc', 'lambert1', 'lamcon2', 'utm', 'albersea', 'mercator',
              'obmerc_b', 'grinten', 'cassini', 'lambazea', 'datum_sp']
@@ -69,28 +66,27 @@ dict_list = ['tranmerc', 'lambert1', 'lamcon2', 'utm', 'albersea', 'mercator',
 dict_dict = {}
 
 for item in dict_list:
-    dict_dict[item] = load_dict(dir + item + '.dat')
+    dict_dict[item] = load_dict(directory + item + '.dat')
     # print 'loaded: %s' % item
 
-pfile = open(dir + 'project.dat')
+pfile = open(directory + 'project.dat')
 pfile.readline()
 
 for line in pfile.readlines():
     try:
-        tokens = string.split(string.strip(line), ',')
+        tokens = line.strip().split(',')
         if len(tokens) < 3:
             continue
 
-        for i in range(len(tokens)):
-            tokens[i] = string.strip(tokens[i])
+        tokens = [token.strip() for token in tokens]
 
-        id = tokens[0]
-        type = tokens[1]
+        ident = tokens[0]
+        typ = tokens[1]
 
         lsize = float(tokens[2])
         lsize_str = tokens[2]
 
-        dline = dict_dict[type][id]
+        dline = dict_dict[typ][ident]
 
         srs = osr.SpatialReference()
 
@@ -144,20 +140,20 @@ for line in pfile.readlines():
 
         # Handle Units from projects.dat file.
         if srs.IsProjected():
-            srs.SetAttrValue('PROJCS', id)
+            srs.SetAttrValue('PROJCS', ident)
             if lsize_str == '0.30480061':
                 srs.SetLinearUnits('US Foot', float(lsize_str))
             elif lsize_str != '1.0':
                 srs.SetLinearUnits('unnamed', float(lsize_str))
 
         wkt = srs.ExportToWkt()
-        if len(wkt) > 0:
-            print('%s,%s' % (id, srs.ExportToWkt()))
+        if wkt:
+            print('%s,%s' % (ident, srs.ExportToWkt()))
         else:
-            print('%s,LOCAL_CS["%s - (unsupported)"]' % (id, id))
+            print('%s,LOCAL_CS["%s - (unsupported)"]' % (ident, ident))
 
     except KeyError:
-        print('%s,LOCAL_CS["%s - (unsupported)"]' % (id, id))
+        print('%s,LOCAL_CS["%s - (unsupported)"]' % (ident, ident))
 
     except:
         print('cant translate: ', line)
@@ -165,27 +161,25 @@ for line in pfile.readlines():
 
 # Translate datums to their underlying spheroid information.
 
-pfile = open(dir + 'datum.dat')
+pfile = open(directory + 'datum.dat')
 pfile.readline()
 
 for line in pfile.readlines():
-    tokens = string.split(string.strip(line), ',')
-    for i in range(len(tokens)):
-        tokens[i] = string.strip(tokens[i])
+    tokens = [token.strip() for token in line.strip().split(',')]
 
-    id = tokens[0]
+    ident = tokens[0]
 
     sp_name = tokens[2]
-    dline = dict_dict['datum_sp'][id]
+    dline = dict_dict['datum_sp'][ident]
     srs = osr.SpatialReference()
 
-    if id == 'WGS84':
+    if ident == 'WGS84':
         srs.SetWellKnownGeogCS('WGS84')
-    elif id == 'NAD27':
+    elif ident == 'NAD27':
         srs.SetWellKnownGeogCS('NAD27')
-    elif id == 'NAD83':
+    elif ident == 'NAD83':
         srs.SetWellKnownGeogCS('NAD83')
     else:
-        srs.SetGeogCS(tokens[1], id, sp_name, float(dline[2]), float(dline[4]))
+        srs.SetGeogCS(tokens[1], ident, sp_name, float(dline[2]), float(dline[4]))
 
-    print('%s,%s' % (id, srs.ExportToWkt()))
+    print('%s,%s' % (ident, srs.ExportToWkt()))

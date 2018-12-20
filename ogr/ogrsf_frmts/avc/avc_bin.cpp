@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: avc_bin.cpp 8029ce19249e565396baedfc59169fb4fb94e779 2018-04-05 17:59:01 +0200 Even Rouault $
+ * $Id: avc_bin.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $
  *
  * Name:     avc_bin.c
  * Project:  Arc/Info vector coverage (AVC)  BIN->E00 conversion library
@@ -393,7 +393,7 @@ int _AVCBinReadHeader(AVCRawBinFile *psFile, AVCBinHeader *psHeader,
     int nStatus = 0;
 
     /*-----------------------------------------------------------------
-     * For AVCCoverPC coverages (files without hte .adf extension),
+     * For AVCCoverPC coverages (files without the .adf extension),
      * there is a first 256 bytes header that we just skip and that
      * precedes the 100 bytes header block.
      *

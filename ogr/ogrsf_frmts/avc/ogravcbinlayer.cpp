@@ -33,7 +33,7 @@
 
 #include <cstdlib>
 
-CPL_CVSID("$Id: ogravcbinlayer.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogravcbinlayer.cpp 365a72f2b5a94946e92323060b68f9963cd2dbd5 2018-05-06 22:14:36 +0200 Even Rouault $")
 
 constexpr int SERIAL_ACCESS_FID = INT_MIN;
 
@@ -90,7 +90,7 @@ OGRAVCBinLayer::OGRAVCBinLayer( OGRAVCBinDataSource *poDSIn,
 OGRAVCBinLayer::~OGRAVCBinLayer()
 
 {
-    ResetReading();
+    OGRAVCBinLayer::ResetReading();
 }
 
 /************************************************************************/

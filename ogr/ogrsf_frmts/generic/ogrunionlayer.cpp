@@ -32,7 +32,7 @@
 #include "ogrwarpedlayer.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrunionlayer.cpp e5a287aeb4a9c8665a45b9877e555e16ed93843d 2018-04-18 19:06:22 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrunionlayer.cpp 10e54d45fee8229428eb8ab22949aa46eb9da150 2018-05-06 11:07:25 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                      OGRUnionLayerGeomFieldDefn()                    */
@@ -41,9 +41,7 @@ CPL_CVSID("$Id: ogrunionlayer.cpp e5a287aeb4a9c8665a45b9877e555e16ed93843d 2018-
 OGRUnionLayerGeomFieldDefn::OGRUnionLayerGeomFieldDefn(
     const char* pszNameIn,
     OGRwkbGeometryType eType) :
-    OGRGeomFieldDefn(pszNameIn, eType),
-    bGeomTypeSet(FALSE),
-    bSRSSet(FALSE)
+    OGRGeomFieldDefn(pszNameIn, eType)
 {}
 
 /************************************************************************/
@@ -52,9 +50,7 @@ OGRUnionLayerGeomFieldDefn::OGRUnionLayerGeomFieldDefn(
 
 OGRUnionLayerGeomFieldDefn::OGRUnionLayerGeomFieldDefn(
     OGRGeomFieldDefn* poSrc) :
-    OGRGeomFieldDefn(poSrc->GetNameRef(), poSrc->GetType()),
-    bGeomTypeSet(FALSE),
-    bSRSSet(FALSE)
+    OGRGeomFieldDefn(poSrc->GetNameRef(), poSrc->GetType())
 {
     SetSpatialRef(poSrc->GetSpatialRef());
 }

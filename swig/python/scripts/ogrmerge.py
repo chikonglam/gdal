@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: ogrmerge.py 82c6cafa90dc335a6a6ca0e84baded4a0ba251a3 2018-11-01 19:28:00 +0100 Even Rouault $
+# $Id: ogrmerge.py 545d0423e15cc28a5aca3a9852fab80b80601162 2018-12-12 11:49:36 +1300 Craig de Stigter $
 #
 # Project:  GDAL/OGR samples
 # Purpose:  Merge the content of several vector datasets into a single one.
@@ -91,7 +91,7 @@ def GetOutputDriversFor(filename):
         if (drv.GetMetadataItem(gdal.DCAP_CREATE) is not None or
             drv.GetMetadataItem(gdal.DCAP_CREATECOPY) is not None) and \
            drv.GetMetadataItem(gdal.DCAP_VECTOR) is not None:
-            if len(ext) > 0 and DoesDriverHandleExtension(drv, ext):
+            if ext and DoesDriverHandleExtension(drv, ext):
                 drv_list.append(drv.ShortName)
             else:
                 prefix = drv.GetMetadataItem(gdal.DMD_CONNECTION_PREFIX)
@@ -104,8 +104,8 @@ def GetOutputDriversFor(filename):
 def GetOutputDriverFor(filename):
     drv_list = GetOutputDriversFor(filename)
     ext = GetExtension(filename)
-    if len(drv_list) == 0:
-        if len(ext) == 0:
+    if not drv_list:
+        if not ext:
             return 'ESRI Shapefile'
         else:
             raise Exception("Cannot guess driver for %s" % filename)
@@ -149,7 +149,7 @@ def _Esc(x):
     return gdal.EscapeString(x, gdal.CPLES_XML)
 
 
-class XMLWriter:
+class XMLWriter(object):
 
     def __init__(self, f):
         self.f = f
@@ -157,7 +157,7 @@ class XMLWriter:
         self.elements = []
 
     def _indent(self):
-        return ''.join(['  ' for i in range(self.inc)])
+        return '  ' * self.inc
 
     def open_element(self, name, attrs=None):
         xml_attrs = ''
@@ -195,7 +195,7 @@ class XMLWriter:
 
 def process(argv, progress=None, progress_arg=None):
 
-    if len(argv) == 0:
+    if not argv:
         return Usage()
 
     dst_filename = None
@@ -304,7 +304,7 @@ def process(argv, progress=None, progress_arg=None):
         if output_format is not None:
             print('ERROR: -f incompatible with -update')
             return 1
-        if len(dsco) != 0:
+        if dsco:
             print('ERROR: -dsco incompatible with -update')
             return 1
         output_format = ''
@@ -323,7 +323,7 @@ def process(argv, progress=None, progress_arg=None):
               'shapefile output')
         return 1
 
-    if len(src_datasets) == 0:
+    if not src_datasets:
         print('ERROR: No source datasets')
         return 1
 
@@ -392,7 +392,7 @@ def process(argv, progress=None, progress_arg=None):
                 gdal.Unlink(vrt_filename)
                 return 1
             for src_lyr_idx, src_lyr in enumerate(src_ds):
-                if len(src_geom_types) != 0:
+                if src_geom_types:
                     gt = ogr.GT_Flatten(src_lyr.GetGeomType())
                     if gt not in src_geom_types:
                         continue
@@ -421,7 +421,7 @@ def process(argv, progress=None, progress_arg=None):
                 basename = None
                 if os.path.exists(src_dsname):
                     basename = os.path.basename(src_dsname)
-                    if basename.find('.') >= 0:
+                    if '.' in basename:
                         basename = '.'.join(basename.split(".")[0:-1])
 
                 if basename == src_lyr_name:
@@ -457,8 +457,8 @@ def process(argv, progress=None, progress_arg=None):
                 if EQUAL(output_format, 'VRT') and \
                    os.path.exists(src_dsname) and \
                    not os.path.isabs(src_dsname) and \
-                   vrt_filename.find('/') < 0 and \
-                   vrt_filename.find('\\') < 0:
+                   '/' not in vrt_filename and \
+                   '\\' not in vrt_filename:
                     attrs = {'relativeToVRT': '1'}
                 writer.write_element_value('SrcDataSource', src_dsname,
                                            attrs=attrs)
@@ -492,7 +492,7 @@ def process(argv, progress=None, progress_arg=None):
                 gdal.Unlink(vrt_filename)
                 return 1
             for src_lyr_idx, src_lyr in enumerate(src_ds):
-                if len(src_geom_types) != 0:
+                if src_geom_types:
                     gt = ogr.GT_Flatten(src_lyr.GetGeomType())
                     if gt not in src_geom_types:
                         continue
@@ -507,7 +507,7 @@ def process(argv, progress=None, progress_arg=None):
                 basename = None
                 if os.path.exists(src_dsname):
                     basename = os.path.basename(src_dsname)
-                    if basename.find('.') >= 0:
+                    if '.' in basename:
                         basename = '.'.join(basename.split(".")[0:-1])
 
                 if basename == src_lyr_name:
@@ -522,9 +522,9 @@ def process(argv, progress=None, progress_arg=None):
 
                 if basename is not None:
                     layer_name = layer_name.replace('{DS_BASENAME}', basename)
-                elif layer_name.find('{DS_BASENAME}') >= 0:
+                elif '{DS_BASENAME}' in layer_name:
                     if skip_failures:
-                        if layer_name.find('{DS_INDEX}') < 0:
+                        if '{DS_INDEX}' not in layer_name:
                             layer_name = layer_name.replace(
                                 '{DS_BASENAME}', 'Dataset%d' % src_ds_idx)
                     else:
@@ -554,8 +554,8 @@ def process(argv, progress=None, progress_arg=None):
                 if EQUAL(output_format, 'VRT') and \
                    os.path.exists(src_dsname) and \
                    not os.path.isabs(src_dsname) and \
-                   vrt_filename.find('/') < 0 and \
-                   vrt_filename.find('\\') < 0:
+                   '/' not in vrt_filename and \
+                   '\\' not in vrt_filename:
                     attrs = {'relativeToVRT': '1'}
                 writer.write_element_value('SrcDataSource', src_dsname,
                                            attrs=attrs)

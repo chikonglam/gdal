@@ -29,7 +29,7 @@
 #include "ogr_bna.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrbnadriver.cpp f9af14bc04e6f4fea8175f0e212455c2b6520378 2018-06-01 14:24:48 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrbnadriver.cpp a36939afd5248338d928ac2107e2136b32ffb9df 2018-06-01 14:24:48 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                                Open()                                */

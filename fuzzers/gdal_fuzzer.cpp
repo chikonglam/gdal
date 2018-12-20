@@ -67,7 +67,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len);
 int LLVMFuzzerInitialize(int* /*argc*/, char*** argv)
 {
     const char* exe_path = (*argv)[0];
-    CPLSetConfigOption("GDAL_DATA", CPLGetPath(exe_path));
+    if( CPLGetConfigOption("GDAL_DATA", nullptr) == nullptr )
+    {
+        CPLSetConfigOption("GDAL_DATA", CPLGetPath(exe_path));
+    }
     CPLSetConfigOption("CPL_TMPDIR", "/tmp");
     CPLSetConfigOption("DISABLE_OPEN_REAL_NETCDF_FILES", "YES");
     // Disable PDF text rendering as fontconfig cannot access its config files
@@ -160,6 +163,21 @@ int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len)
                     break;
                 }
 
+                // Limit to 1000 blocks read for each band.
+                while( (nXSizeToRead > 1 || nYSizeToRead > 1) &&
+                       (DIV_ROUND_UP(nXSizeToRead, nBXSize) *
+                        DIV_ROUND_UP(nYSizeToRead, nBYSize) > 1000) )
+                {
+                    if( nXSizeToRead > 1 &&
+                        DIV_ROUND_UP(nXSizeToRead, nBXSize) >
+                            DIV_ROUND_UP(nYSizeToRead, nBYSize) )
+                        nXSizeToRead /= 2;
+                    else if( nYSizeToRead > 1 )
+                        nYSizeToRead /= 2;
+                    else
+                        nXSizeToRead /= 2;
+                }
+
                 // Currently decoding of PIXARLOG compressed TIFF requires
                 // a temporary buffer for the whole strip (if stripped) or
                 // image (if tiled), so be careful for a
@@ -177,7 +195,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len)
                     GDALGetDatasetDriver(hDS) == GDALGetDriverByName("GTiff") )
                 {
                     if( EQUAL(pszCompress, "PIXARLOG") &&
-                        GDALGetRasterYSize(hDS) > INT_MAX /
+                        GDALGetRasterYSize(hDS) > (INT_MAX / 2) /
                             static_cast<int>(sizeof(GUInt16)) /
                                 nSimultaneousBands / GDALGetRasterXSize(hDS) )
                     {
@@ -185,7 +203,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len)
                     }
                     // https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=2874
                     else if( EQUAL(pszCompress, "SGILOG24") &&
-                        GDALGetRasterYSize(hDS) > INT_MAX /
+                        GDALGetRasterYSize(hDS) > (INT_MAX / 2) /
                             static_cast<int>(sizeof(GUInt32)) /
                                 nSimultaneousBands / GDALGetRasterXSize(hDS) )
                     {

@@ -33,7 +33,7 @@
 
 #include <cmath>
 
-CPL_CVSID("$Id: zmapdataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: zmapdataset.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -222,7 +222,7 @@ int ZMapDataset::Identify( GDALOpenInfo * poOpenInfo )
         return FALSE;
 
 /* -------------------------------------------------------------------- */
-/*      Chech that it looks roughly as a ZMap dataset                   */
+/*      Check that it looks roughly as a ZMap dataset                   */
 /* -------------------------------------------------------------------- */
     const char* pszData
         = reinterpret_cast<const char *>( poOpenInfo->pabyHeader );

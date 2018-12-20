@@ -36,7 +36,7 @@
 
 using std::fill;
 
-CPL_CVSID("$Id: elasdataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: elasdataset.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 typedef struct ELASHeader {
     ELASHeader();
@@ -113,7 +113,7 @@ ELASHeader::ELASHeader() :
 
 class ELASRasterBand;
 
-class ELASDataset : public GDALPamDataset
+class ELASDataset final: public GDALPamDataset
 {
     friend class ELASRasterBand;
 
@@ -151,7 +151,7 @@ class ELASDataset : public GDALPamDataset
 /* ==================================================================== */
 /************************************************************************/
 
-class ELASRasterBand : public GDALPamRasterBand
+class ELASRasterBand final: public GDALPamRasterBand
 {
     friend class ELASDataset;
 
@@ -274,7 +274,7 @@ ELASDataset::ELASDataset() :
 ELASDataset::~ELASDataset()
 
 {
-    FlushCache();
+    ELASDataset::FlushCache();
 
     if( fp != nullptr )
     {
@@ -592,7 +592,7 @@ GDALDataset *ELASDataset::Create( const char * pszFilename,
 
 /* -------------------------------------------------------------------- */
 /*      Now write out zero data for all the imagery.  This is           */
-/*      inefficient, but simplies the IReadBlock() / IWriteBlock() logic.*/
+/*      inefficient, but simplifies IReadBlock() / IWriteBlock() logic. */
 /* -------------------------------------------------------------------- */
     GByte *pabyLine = (GByte *) CPLCalloc(nBandOffset,nBands);
     for( int iLine = 0; iLine < nYSize; iLine++ )

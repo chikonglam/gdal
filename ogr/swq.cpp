@@ -22,6 +22,7 @@
 #include "cpl_port.h"
 #include "swq.h"
 
+#include <cassert>
 #include <cctype>
 #include <cmath>
 #include <cstddef>
@@ -38,7 +39,7 @@
 #include "cpl_time.h"
 #include "swq_parser.hpp"
 
-CPL_CVSID("$Id: swq.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: swq.cpp 88eda08930b6dafb9ea1374ba19e0b1cf5ded3d3 2018-08-11 20:16:37 +0200 Even Rouault $")
 
 #define YYSTYPE swq_expr_node *
 
@@ -390,6 +391,7 @@ swq_select_summarize( swq_select *select_info,
             select_info->column_summary[i].osMin = "9999/99/99 99:99:99";
             select_info->column_summary[i].osMax = "0000/00/00 00:00:00";
         }
+        assert( !select_info->column_summary.empty() );
     }
 
 /* -------------------------------------------------------------------- */
@@ -410,7 +412,7 @@ swq_select_summarize( swq_select *select_info,
                 if( select_info->order_specs == 0 )
                 {
                     // If not sorted, keep values in their original order
-                    summary.oVectorDistinctValues.push_back(value);
+                    summary.oVectorDistinctValues.emplace_back(value);
                 }
                 summary.count ++;
             }
@@ -820,11 +822,9 @@ static const char* const apszSQLReservedKeywords[] = {
 
 int swq_is_reserved_keyword(const char* pszStr)
 {
-    for( size_t i = 0;
-         i < CPL_ARRAYSIZE(apszSQLReservedKeywords);
-         i++ )
+    for( const auto& pszKeyword: apszSQLReservedKeywords )
     {
-        if( EQUAL(pszStr, apszSQLReservedKeywords[i]) )
+        if( EQUAL(pszStr, pszKeyword) )
             return TRUE;
     }
     return FALSE;

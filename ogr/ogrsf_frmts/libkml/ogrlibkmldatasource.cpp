@@ -35,7 +35,7 @@
 #include "ogr_p.h"
 #include "cpl_vsi_error.h"
 
-CPL_CVSID("$Id: ogrlibkmldatasource.cpp 2957de2c8bc039c0b96299bffec0ddea3be22772 2018-10-06 21:53:20 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrlibkmldatasource.cpp b7ae35320a4300822d556396be8e7b3f507012b6 2018-10-06 21:53:20 +0200 Even Rouault $")
 
 using kmlbase::Attributes;
 using kmldom::ContainerPtr;
@@ -1250,7 +1250,7 @@ int OGRLIBKMLDataSource::OpenKmz( const char *pszFilename, int bUpdateIn )
                 if( !poKmlLyrRoot )
                 {
                     CPLError( CE_Failure, CPLE_OpenFailed,
-                              "ERROR parseing kml layer %s from %s :%s",
+                              "ERROR parsing kml layer %s from %s :%s",
                               poKmlHref->get_path().c_str(),
                               pszFilename, oKmlErrors.c_str() );
                     delete poKmlHref;

@@ -46,7 +46,7 @@ constexpr int RECORD_SIZE = 512;
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: isis2dataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: isis2dataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -672,7 +672,7 @@ GDALDataset *ISIS2Dataset::Open( GDALOpenInfo * poOpenInfo )
 #else
                                chByteOrder == 'M',
 #endif
-                               TRUE );
+                               RawRasterBand::OwnFP::NO );
 
         if( bNoDataSet )
             poBand->SetNoDataValue( dfNoData );

@@ -31,7 +31,7 @@
 #include "ogr_dods.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrdodssequencelayer.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrdodssequencelayer.cpp 317ae5a1782a7c432ccf90090cc616303b43afcc 2018-05-12 22:32:42 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                        OGRDODSSequenceLayer()                        */
@@ -303,7 +303,8 @@ BaseType *OGRDODSSequenceLayer::GetFieldValue( OGRDODSFieldDefn *poFDefn,
     {
         return seq->var_value( nFeatureId, poFDefn->iFieldIndex );
     }
-    else if( poFDefn->iFieldIndex >= 0 && poFDefn->bRelativeToSuperSequence )
+    else if( poSuperSeq != nullptr &&
+             poFDefn->iFieldIndex >= 0 && poFDefn->bRelativeToSuperSequence )
     {
         return poSuperSeq->var_value( iLastSuperSeq, poFDefn->iFieldIndex );
     }

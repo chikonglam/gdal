@@ -30,7 +30,7 @@
 #include "cpl_string.h"
 #include "ershdrnode.h"
 
-CPL_CVSID("$Id: ershdrnode.cpp f49c61c59a89bfdbf90f066a59767f6f492ee974 2018-05-29 21:18:51 +0200 Even Rouault $")
+CPL_CVSID("$Id: ershdrnode.cpp 315a1454d3b784db7245724bad0056028203cf08 2018-05-29 21:18:51 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                             ERSHdrNode()                             */
@@ -97,10 +97,12 @@ void ERSHdrNode::MakeSpace()
 int ERSHdrNode::ReadLine( VSILFILE * fp, CPLString &osLine )
 
 {
-    int  nBracketLevel;
+    int  nBracketLevel = 0;
+    bool bInQuote = false;
+    size_t i = 0;
+    bool bLastCharWasSlashInQuote = false;
 
     osLine = "";
-
     do
     {
         const char *pszNewLine = CPLReadLineL( fp );
@@ -110,24 +112,24 @@ int ERSHdrNode::ReadLine( VSILFILE * fp, CPLString &osLine )
 
         osLine += pszNewLine;
 
-        bool bInQuote = false;
-
-        nBracketLevel = 0;
-
-        for( size_t i = 0; i < osLine.length(); i++ )
+        for( ; i < osLine.length(); i++ )
         {
-            if( osLine[i] == '"' )
+            const char ch = osLine[i];
+            if( bLastCharWasSlashInQuote )
+            {
+                bLastCharWasSlashInQuote = false;
+            }
+            else if( ch == '"' )
                 bInQuote = !bInQuote;
-            else if( osLine[i] == '{' && !bInQuote )
+            else if( ch == '{' && !bInQuote )
                 nBracketLevel++;
-            else if( osLine[i] == '}' && !bInQuote )
+            else if( ch == '}' && !bInQuote )
                 nBracketLevel--;
-
             // We have to ignore escaped quotes and backslashes in strings.
-            else if( osLine[i] == '\\' && osLine[i+1] == '"' && bInQuote )
-                i++;
-            else if( osLine[i] == '\\' && osLine[i+1] == '\\' && bInQuote )
-                i++;
+            else if( ch == '\\' && bInQuote )
+            {
+                bLastCharWasSlashInQuote = true;
+            }
         }
     } while( nBracketLevel > 0 );
 

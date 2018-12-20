@@ -42,7 +42,7 @@
 #include "hdf4compat.h"
 #include "hdf4dataset.h"
 
-CPL_CVSID("$Id: hdf4dataset.cpp 83369b4a8075b0cc331eeb3eb8430d49a4f665a6 2018-04-28 11:07:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: hdf4dataset.cpp e0fe031cf229f4dd832be10643d000d79e3e4fb4 2018-07-04 22:13:59 +0200 Even Rouault $")
 
 extern const char * const pszGDALSignature;
 
@@ -697,6 +697,32 @@ int HDF4Dataset::Identify( GDALOpenInfo * poOpenInfo )
 }
 
 /************************************************************************/
+/*                            QuoteIfNeeded()                           */
+/************************************************************************/
+
+static CPLString QuoteIfNeeded( const CPLString& osStr )
+{
+    if( osStr.find(' ') != std::string::npos ||
+        osStr.find(':') != std::string::npos ||
+        osStr.find('"') != std::string::npos ||
+        osStr.find('\\') != std::string::npos )
+    {
+        CPLString osRet;
+        for( size_t i = 0; i < osStr.size(); i++ )
+        {
+            if( osStr[i] == '"' )
+                osRet += "\\\"";
+            else if( osStr[i] == '\\' )
+                osRet += "\\\\";
+            else
+                osRet += osStr[i];
+        }
+        return '"' + osRet + '"';
+    }
+    return osStr;
+}
+
+/************************************************************************/
 /*                                Open()                                */
 /************************************************************************/
 
@@ -951,7 +977,8 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
                         CSLSetNameValue( poDS->papszSubDatasets, szTemp,
                                 CPLSPrintf("HDF4_EOS:EOS_SWATH:\"%s\":%s:%s",
                                            poOpenInfo->pszFilename,
-                                           papszSwaths[i], papszFields[j]) );
+                                           QuoteIfNeeded(papszSwaths[i]).c_str(),
+                                           QuoteIfNeeded(papszFields[j]).c_str()) );
 
                     snprintf( szTemp, sizeof(szTemp),
                               "SUBDATASET_%d_DESC", nCount + 1 );
@@ -1067,7 +1094,8 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
                         CSLSetNameValue(poDS->papszSubDatasets, szTemp,
                                 CPLSPrintf( "HDF4_EOS:EOS_GRID:\"%s\":%s:%s",
                                             poOpenInfo->pszFilename,
-                                            papszGrids[i], papszFields[j]));
+                                            QuoteIfNeeded(papszGrids[i]).c_str(),
+                                            QuoteIfNeeded(papszFields[j]).c_str()));
 
                     snprintf( szTemp, sizeof(szTemp),
                               "SUBDATASET_%d_DESC", nCount + 1 );

@@ -37,7 +37,7 @@
 #include "cpl_vsi.h"
 #include "hfa.h"
 
-CPL_CVSID("$Id: hfacompress.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: hfacompress.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 HFACompress::HFACompress( void *pData, GUInt32 nBlockSize, EPTType eDataType ) :
     m_pData(pData),
@@ -133,7 +133,7 @@ GUInt32 HFACompress::valueAsUInt32( GUInt32 iPixel )
     else
     {
         // Should not get to here.  Check in compressBlock() should return false
-        // if we can't compress this blcok because we don't know about the type.
+        // if we can't compress this block because we don't know about the type.
         CPLError(CE_Failure, CPLE_FileIO,
                  "Imagine Datatype 0x%x (0x%x bits) not supported",
                  m_eDataType,

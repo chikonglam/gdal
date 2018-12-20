@@ -36,7 +36,7 @@
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpgtablelayer.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrpgtablelayer.cpp 1439dfd01ac6dfcbb4f4f0c267c8db2b15c98461 2018-09-09 15:02:14 +0200 Even Rouault $")
 
 #define USE_COPY_UNSET  -10
 
@@ -156,7 +156,8 @@ OGRPGTableLayer::OGRPGTableLayer( OGRPGDataSource *poDSIn,
     papszOverrideColumnTypes(nullptr),
     nForcedSRSId(UNDETERMINED_SRID),
     nForcedGeometryTypeFlags(-1),
-    bCreateSpatialIndexFlag(TRUE),
+    bCreateSpatialIndexFlag(true),
+    osSpatialIndexType("GIST"),
     bInResetReading(FALSE),
     bAutoFIDOnCreateViaCopy(FALSE),
     bUseCopyByDefault(FALSE),
@@ -2266,10 +2267,11 @@ OGRErr OGRPGTableLayer::RunCreateSpatialIndex( OGRPGGeomFieldDefn *poGeomField )
     PGconn *hPGConn = poDS->GetPGConn();
     CPLString osCommand;
 
-    osCommand.Printf("CREATE INDEX %s ON %s USING GIST (%s)",
+    osCommand.Printf("CREATE INDEX %s ON %s USING %s (%s)",
                     OGRPGEscapeColumnName(
                         CPLSPrintf("%s_%s_geom_idx", pszTableName, poGeomField->GetNameRef())).c_str(),
                     pszSqlTableName,
+                    osSpatialIndexType.c_str(),
                     OGRPGEscapeColumnName(poGeomField->GetNameRef()).c_str());
 
     PGresult *hResult = OGRPG_PQexec(hPGConn, osCommand.c_str());
