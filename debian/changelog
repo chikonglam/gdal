@@ -3,6 +3,10 @@ gdal (2.4.0~rc1+dfsg-1) UNRELEASED; urgency=medium
   * New upstream release candidate.
   * Update watch file for 2.4.0 pre-releases.
   * Refresh patches.
+  * Update copyright file, changes:
+    - Update copyright years for copyright holders
+    - Add copyright holders
+    - Add license & copyright for LercLib
 
  -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Dec 2018 16:52:47 +0100
 

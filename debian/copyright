@@ -18,24 +18,29 @@ Files-Excluded: data/cubewerx_extra.wkt
 
 Files: *
 Copyright:               2007-2018, Even Rouault <even dot rouault at spatialys dot com>
+                         2009-2018, Martin Landa <landa.martin gmail.com>
                          2013-2018, NextGIS <info@nextgis.ru>
+                        2014, 2018, Oslandia <info at oslandia dot com>
+                         2015-2018, Planet Labs
                          2016-2018, Dmitry Baryshnikov
-                         2015-2017, Planet Labs
+                        2016, 2018, Andrew Sudorgin
+       2006-2008, 2010, 2015, 2018, Ivan Lucena <ivan dot lucena at oracle dot com>
+                              2018, Azavea
+                              2018, Dr. James McClain <james.mcclain@gmail.com>
+                              2018, Liu Yimin
+                              2018, Paul Austin <paul.austin@revolsys.com>
                   2005, 2007, 2017, Ari Jolma
                               2017, Alan Thomas <alant@outlook.com.au>
                               2017, DigitalGlobe
                               2017, Finnish Environment Institute
                               2017, Hobu Inc
-                         2009-2016, Martin Landa <landa.martin gmail.com>
                               2016, Alexandr Borzykh
-                              2016, Andrew Sudorgin
                               2016, Avyav Kumar Singh <avyavkumar at gmail dot com>
                               2016, Julien Michel <julien dot michel at cnes dot fr>
                               2016, Lucian Plesea
                               2016, Piers Titus van der Torren <pierstitus@gmail.com>
                               2016, SatCen - European Union Satellite Centre
  2005, 2007-2008, 2010, 2013, 2015, Tamas Szekeres
-             2006-2008, 2010, 2015, Ivan Lucena <ivan dot lucena at oracle dot com>
                               2015, Airbus DS Geo SA
                               2015, European Union (European Environment Agency)
                               2015, European Union Satellite Centre
@@ -49,7 +54,6 @@ Copyright:               2007-2018, Even Rouault <even dot rouault at spatialys 
                               2014, Matthieu Volat <matthieu.volat@ujf-grenoble.fr>
                               2014, Mikhail Gusev
                               2014, Norman Barker <norman at cloudant com>
-                              2014, Oslandia <info at oslandia dot com>
                               2014, Sebastian Walter <sebastian dot walter at fu-berlin dot de>
                          1998-2013, Frank Warmerdam <warmerdam@pobox.com>
                          2009-2013, Jorge Arevalo <jorge.arevalo@deimos-space.com>
@@ -270,6 +274,7 @@ Files: frmts/gtiff/libtiff/t4.h
  frmts/gtiff/libtiff/tif_tile.c
  frmts/gtiff/libtiff/tif_version.c
  frmts/gtiff/libtiff/tif_warning.c
+ frmts/gtiff/libtiff/tif_webp.c
  frmts/gtiff/libtiff/tif_write.c
  frmts/gtiff/libtiff/tif_zip.c
  frmts/gtiff/libtiff/tif_zstd.c
@@ -278,6 +283,7 @@ Copyright: 1988-1997, Sam Leffler
           1990, 1995, Frank D. Cringle.
                 2010, Andrey Kiselev <dron@ak4719.spb.edu>
                 2017, Planet Labs
+                2018, Mapbox
 License: HPND-sl-sgi
 
 Files: frmts/gtiff/libtiff/tif_luv.c
@@ -307,6 +313,11 @@ Files: frmts/gtiff/libtiff/tif_pixarlog.c
 Copyright: 1996-1997, Sam Leffler
                 1996, Pixar
 License: HPND-p-sl-sgi
+
+Files: frmts/gtiff/tif_lerc.c
+ frmts/gtiff/tif_lerc.h
+Copyright: 2018, Even Rouault
+License: HPND-sl-sgi
 
 Files: frmts/hdf4/hdf-eos/EHapi.c
  frmts/hdf4/hdf-eos/GDapi.c
@@ -697,6 +708,10 @@ Copyright: 2000, Atlantis Scientific Inc. (www.atlsci.com)
            2005, Gabriel Ebner <ge@gabrielebner.at>
       2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: LGPL-2+
+
+Files: third_party/LercLib/*
+Copyright: 2015-2018, Esri
+License: Apache-2.0
 
 License: Apache-2.0
  Licensed under the Apache License, Version 2.0 (the "License");
