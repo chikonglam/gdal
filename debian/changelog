@@ -7,6 +7,7 @@ gdal (2.4.0~rc1+dfsg-1) UNRELEASED; urgency=medium
     - Update copyright years for copyright holders
     - Add copyright holders
     - Add license & copyright for LercLib
+  * Override dh_installdocs to install NOTICE file in all packages.
 
  -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Dec 2018 16:52:47 +0100
 
