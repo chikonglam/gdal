@@ -51,7 +51,7 @@
 #include "ogrsf_frmts.h"
 #include "swq.h"
 
-CPL_CVSID("$Id: ogropenfilegdbdatasource.cpp f8e953156027f2de1b4f4be10a4c7ee7442ada95 2018-11-10 09:49:04 +0100 Even Rouault $")
+CPL_CVSID("$Id: ogropenfilegdbdatasource.cpp a5343ed6a8af2495681940a9d1cc57c074bddbf9 2018-11-10 09:49:04 +0100 Even Rouault $")
 
 /************************************************************************/
 /*                      OGROpenFileGDBDataSource()                      */

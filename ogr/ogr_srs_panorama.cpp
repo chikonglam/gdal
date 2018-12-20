@@ -33,7 +33,7 @@
 #include "cpl_csv.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogr_srs_panorama.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr_srs_panorama.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 constexpr double TO_DEGREES = 57.2957795130823208766;
 constexpr double TO_RADIANS = 0.017453292519943295769;
@@ -818,7 +818,7 @@ OGRErr OGRSpatialReference::exportToPanorama( long *piProjSys, long *piDatum,
         {
 #ifdef DEBUG
             CPLDebug( "OSR_Panorama",
-                      "Ellipsoid \"%s\" unsupported by \"Panorama\" GIS.",
+                      R"(Ellipsoid "%s" unsupported by "Panorama" GIS.)",
                       pszDatum );
 #endif
             *piDatum = PAN_DATUM_NONE;

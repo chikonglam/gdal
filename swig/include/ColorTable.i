@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ColorTable.i a2d4bcda7874bbc6de9942874f8d549219e9403d 2016-01-08 21:00:50Z Kurt Schwehr $
+ * $Id: ColorTable.i 03ae1801b0e36769e546740af0e08eff08357c52 2018-05-03 08:03:25 +0200 Juergen E. Fischer $
  *
  * Name:     ColorTable.i
  * Project:  GDAL Python Interface
@@ -63,11 +63,7 @@ public:
         return GDALGetPaletteInterpretation(self);
     }
 
-#ifdef SWIGRUBY
-%rename (get_count) GetColorEntryCount;
-#else
 %rename (GetCount) GetColorEntryCount;
-#endif
 
     int GetColorEntryCount() {
         return GDALGetColorEntryCount(self);

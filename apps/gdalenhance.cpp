@@ -37,7 +37,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: gdalenhance.cpp 5da1c4d1b6c7e38f7f5917fff3ddbc8ad42af7aa 2018-03-30 21:59:13 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalenhance.cpp f007ad4c08eba374ffefc0cdcacf8c820ed9e422 2018-07-16 10:39:27 +0200 Even Rouault $")
 
 static int
 ComputeEqualizationLUTs( GDALDatasetH hDataset,  int nLUTBins,
@@ -90,7 +90,7 @@ MAIN_START(argc, argv)
     GDALDatasetH        hDataset, hOutDS;
     int                 i;
     const char          *pszSource=nullptr, *pszDest=nullptr, *pszFormat = nullptr;
-    GDALDriverH         hDriver;
+    GDALDriverH         hDriver = nullptr;
     GDALDataType        eOutputType = GDT_Unknown;
     char                **papszCreateOptions = nullptr;
     GDALProgressFunc    pfnProgress = GDALTermProgress;
@@ -239,7 +239,7 @@ MAIN_START(argc, argv)
 /*      Find the output driver.                                         */
 /* -------------------------------------------------------------------- */
     CPLString osFormat;
-    if( pszFormat == nullptr )
+    if( pszFormat == nullptr && pszDest != nullptr )
     {
         osFormat = GetOutputDriverForRaster(pszDest);
         if( osFormat.empty() )
@@ -248,33 +248,36 @@ MAIN_START(argc, argv)
             exit( 1 );
         }
     }
-    else
+    else if( pszFormat != nullptr )
     {
         osFormat = pszFormat;
     }
 
-    hDriver = GDALGetDriverByName( osFormat );
-    if( hDriver == nullptr )
+    if( !osFormat.empty() )
     {
-        int iDr;
-
-        printf( "Output driver `%s' not recognised.\n", osFormat.c_str() );
-        printf( "The following format drivers are configured and support output:\n" );
-        for( iDr = 0; iDr < GDALGetDriverCount(); iDr++ )
+        hDriver = GDALGetDriverByName( osFormat );
+        if( hDriver == nullptr )
         {
-            hDriver = GDALGetDriver(iDr);
+            int iDr;
 
-            if( GDALGetMetadataItem( hDriver, GDAL_DCAP_RASTER, nullptr) != nullptr &&
-                (GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATE, nullptr ) != nullptr
-                || GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATECOPY, nullptr ) != nullptr) )
+            printf( "Output driver `%s' not recognised.\n", osFormat.c_str() );
+            printf( "The following format drivers are configured and support output:\n" );
+            for( iDr = 0; iDr < GDALGetDriverCount(); iDr++ )
             {
-                printf( "  %s: %s\n",
-                        GDALGetDriverShortName( hDriver  ),
-                        GDALGetDriverLongName( hDriver ) );
+                hDriver = GDALGetDriver(iDr);
+
+                if( GDALGetMetadataItem( hDriver, GDAL_DCAP_RASTER, nullptr) != nullptr &&
+                    (GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATE, nullptr ) != nullptr
+                    || GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATECOPY, nullptr ) != nullptr) )
+                {
+                    printf( "  %s: %s\n",
+                            GDALGetDriverShortName( hDriver  ),
+                            GDALGetDriverLongName( hDriver ) );
+                }
             }
+            printf( "\n" );
+            Usage();
         }
-        printf( "\n" );
-        Usage();
     }
 
 /* -------------------------------------------------------------------- */

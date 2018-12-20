@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmutexedlayer.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: ogrmutexedlayer.h 10e54d45fee8229428eb8ab22949aa46eb9da150 2018-05-06 11:07:25 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRLMutexedLayer class
@@ -44,6 +44,8 @@
  */
 class CPL_DLL OGRMutexedLayer : public OGRLayerDecorator
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRMutexedLayer)
+
   protected:
         CPLMutex          *m_hMutex;
 

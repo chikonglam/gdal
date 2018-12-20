@@ -52,7 +52,7 @@
 #include "cpl_worker_thread_pool.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: gdalgrid.cpp 949d180a26e40650413703b2b73b213137b171e4 2018-06-25 13:43:52 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalgrid.cpp 134b9c4e437e347aac48c459a18a933ed526be5b 2018-06-25 13:43:52 +0200 Even Rouault $")
 
 constexpr double TO_RADIANS = M_PI / 180.0;
 

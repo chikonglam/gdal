@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nasreaderp.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: nasreaderp.h 365a72f2b5a94946e92323060b68f9963cd2dbd5 2018-05-06 22:14:36 +0200 Even Rouault $
  *
  * Project:  NAS Reader
  * Purpose:  Private Declarations for OGR NAS Reader code.
@@ -54,7 +54,7 @@ CPL_C_END
 /************************************************************************/
 /*                              NASHandler                              */
 /************************************************************************/
-class NASHandler : public DefaultHandler
+class NASHandler final: public DefaultHandler
 {
     NASReader  *m_poReader;
 
@@ -154,7 +154,7 @@ public:
 /*                              NASReader                               */
 /************************************************************************/
 
-class NASReader : public IGMLReader
+class NASReader final: public IGMLReader
 {
 private:
     bool         m_bClassListLocked;

@@ -34,7 +34,7 @@
 #include "gdal_pam.h"
 #include "gifabstractdataset.h"
 
-CPL_CVSID("$Id: biggifdataset.cpp 01037e400d90e8bc4a74f8d886ea5a27ecce02c5 2018-01-12 23:49:31Z Kurt Schwehr $")
+CPL_CVSID("$Id: biggifdataset.cpp 1dd8a744bbfec8b849371abec5cd44f729eecb03 2018-05-06 21:11:29 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -44,7 +44,7 @@ CPL_CVSID("$Id: biggifdataset.cpp 01037e400d90e8bc4a74f8d886ea5a27ecce02c5 2018-
 
 class BIGGifRasterBand;
 
-class BIGGIFDataset : public GIFAbstractDataset
+class BIGGIFDataset final: public GIFAbstractDataset
 {
     friend class BIGGifRasterBand;
 
@@ -70,7 +70,7 @@ class BIGGIFDataset : public GIFAbstractDataset
 /* ==================================================================== */
 /************************************************************************/
 
-class BIGGifRasterBand : public GIFAbstractRasterBand
+class BIGGifRasterBand final: public GIFAbstractRasterBand
 {
     friend class BIGGIFDataset;
 
@@ -175,9 +175,9 @@ BIGGIFDataset::BIGGIFDataset() :
 BIGGIFDataset::~BIGGIFDataset()
 
 {
-    FlushCache();
+    BIGGIFDataset::FlushCache();
 
-    CloseDependentDatasets();
+    BIGGIFDataset::CloseDependentDatasets();
 }
 
 /************************************************************************/

@@ -29,7 +29,7 @@
 #include "ogr_pgdump.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrpgdumpdriver.cpp efa2b50f96a33d250a43ce851e2314232cef1795 2017-12-12 07:57:09Z Even Rouault $")
+CPL_CVSID("$Id: ogrpgdumpdriver.cpp 1439dfd01ac6dfcbb4f4f0c267c8db2b15c98461 2018-09-09 15:02:14 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                         OGRPGDumpDriverCreate()                      */
@@ -97,7 +97,12 @@ void RegisterOGRPGDump()
     "  <Option name='GEOMETRY_NAME' type='string' description='Name of geometry column. Defaults to wkb_geometry for GEOM_TYPE=geometry or the_geog for GEOM_TYPE=geography'/>"
     "  <Option name='SCHEMA' type='string' description='Name of schema into which to create the new table'/>"
     "  <Option name='CREATE_SCHEMA' type='boolean' description='Whether to explicitly emit the CREATE SCHEMA statement to create the specified schema' default='YES'/>"
-    "  <Option name='SPATIAL_INDEX' type='boolean' description='Whether to create a spatial index' default='YES'/>"
+    "  <Option name='SPATIAL_INDEX' type='string-select' description='Type of spatial index to create' default='GIST'>"
+    "    <Value>NONE</Value>"
+    "    <Value>GIST</Value>"
+    "    <Value>SPGIST</Value>"
+    "    <Value>BRIN</Value>"
+    "  </Option>"
     "  <Option name='TEMPORARY' type='boolean' description='Whether to a temporary table instead of a permanent one' default='NO'/>"
     "  <Option name='UNLOGGED' type='boolean' description='Whether to create the table as a unlogged one' default='NO'/>"
     "  <Option name='WRITE_EWKT_GEOM' type='boolean' description='Whether to write EWKT geometries instead of HEX geometry' default='NO'/>"

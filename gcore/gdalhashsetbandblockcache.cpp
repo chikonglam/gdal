@@ -39,7 +39,7 @@
 #include "cpl_error.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdalhashsetbandblockcache.cpp 1bffff2fa520d625ab7b649d007da770c937a56a 2018-04-08 19:18:09 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalhashsetbandblockcache.cpp e37e476c4cf8f4b0df8995e0d95d5d672fca1a9b 2018-05-05 16:54:18 +0200 Even Rouault $")
 
 //! @cond Doxygen_Suppress
 
@@ -65,8 +65,10 @@ class GDALHashSetBandBlockCache final : public GDALAbstractBandBlockCache
         }
     };
 
-    std::set<GDALRasterBlock*, BlockComparator> m_oSet;
-    CPLLock        *hLock;
+    std::set<GDALRasterBlock*, BlockComparator> m_oSet{};
+    CPLLock        *hLock = nullptr;
+
+    CPL_DISALLOW_COPY_ASSIGN(GDALHashSetBandBlockCache)
 
   public:
     explicit GDALHashSetBandBlockCache( GDALRasterBand* poBand );

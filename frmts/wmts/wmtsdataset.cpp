@@ -50,7 +50,7 @@ extern "C" void GDALRegister_WMTS();
 
 #define WMTS_WGS84_DEG_PER_METER    (180 / M_PI / SRS_WGS84_SEMIMAJOR)
 
-CPL_CVSID("$Id: wmtsdataset.cpp ea050867fc0a88105edcb943eb33d36d3270ae98 2018-11-26 12:36:59 +0100 Even Rouault $")
+CPL_CVSID("$Id: wmtsdataset.cpp f56afe87c7c487dd85eff46eec1d16a229693466 2018-11-26 12:36:59 +0100 Even Rouault $")
 
 typedef enum
 {

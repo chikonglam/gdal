@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: val_at_coord.py ac171f5b0fe544a6c1ff7400249f6ce362e9ace0 2018-04-16 06:32:36 +1000 Ben Elliston $
+# $Id: val_at_coord.py 12e021243b6412f39c13e7bf287087359f91c6af 2018-05-06 20:19:59 +1000 Ben Elliston $
 #
 # Project:  GDAL Python samples
 # Purpose:  Outputs the value of the raster bands at a given
@@ -29,10 +29,10 @@
 # DEALINGS IN THE SOFTWARE.
 ###############################################################################
 
+import sys
+
 from osgeo import gdal
 from osgeo import osr
-
-import sys
 
 # =============================================================================
 

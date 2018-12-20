@@ -39,7 +39,7 @@
 #include <map>
 #include <string>
 
-CPL_CVSID("$Id: ogrsxfdatasource.cpp 1dcdb5c8f617002a6e034d4d98dfdf080f709325 2018-01-14 01:50:09Z Kurt Schwehr $")
+CPL_CVSID("$Id: ogrsxfdatasource.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 constexpr long aoVCS[] =
 {
@@ -907,7 +907,7 @@ void OGRSXFDataSource::FillLayers()
         bool bHasSemantic = CHECK_BIT(buff[5], 9);
         if (bHasSemantic) //check has attributes
         {
-            //we have already 24 byte readed
+            //we have already 24 byte read
             vsi_l_offset nOffsetSemantic = 8 + buff[2];
             VSIFSeekL(fpSXF, nOffsetSemantic, SEEK_CUR);
         }

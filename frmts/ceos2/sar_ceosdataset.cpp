@@ -34,7 +34,7 @@
 #include "rawdataset.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: sar_ceosdataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: sar_ceosdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 static GInt16 CastToGInt16(float val)
 {
@@ -2004,7 +2004,7 @@ GDALDataset *SAR_CEOSDataset::Open( GDALOpenInfo * poOpenInfo )
                     new RawRasterBand(
                         poDS, poDS->nBands+1, fp,
                         nStartData, nPixelOffset, nLineOffset,
-                        eType, bNative, TRUE ) );
+                        eType, bNative, RawRasterBand::OwnFP::NO ) );
         }
     }
 

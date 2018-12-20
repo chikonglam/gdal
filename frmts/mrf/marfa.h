@@ -34,7 +34,7 @@
 */
 
 /******************************************************************************
- * $Id: marfa.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
+ * $Id: marfa.h 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $
  *
  * Project:  Meta Raster Format
  * Purpose:  MRF structures
@@ -173,7 +173,7 @@ typedef struct ILImage {
     GDALColorInterp ci;
 } ILImage;
 
-// Delarations of utility functions
+// Declarations of utility functions
 
 /**
  *
@@ -514,6 +514,9 @@ public:
     virtual ~GDALMRFRasterBand();
     virtual CPLErr IReadBlock(int xblk, int yblk, void *buffer) override;
     virtual CPLErr IWriteBlock(int xblk, int yblk, void *buffer) override;
+
+    // Check that the respective block has data, without reading it
+    virtual bool TestBlock(int xblk, int yblk);
 
     virtual GDALColorTable *GetColorTable() override { return poDS->poColorTable; }
 

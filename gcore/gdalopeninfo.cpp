@@ -48,7 +48,7 @@
 #include "cpl_vsi.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: gdalopeninfo.cpp 3bc98ac2e895141cb38924f83d1182b59d711148 2018-06-14 16:22:26 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalopeninfo.cpp a0845a051c0cd1cc7dfbeebb776dc325af262cac 2018-06-14 16:22:26 +0200 Even Rouault $")
 
 // Keep in sync prototype of those 2 functions between gdalopeninfo.cpp,
 // ogrsqlitedatasource.cpp and ogrgeopackagedatasource.cpp

@@ -37,7 +37,7 @@
 #include "cpl_vsi.h"
 
 
-CPL_CVSID("$Id: cpl_worker_thread_pool.cpp 0f654dda9faabf9d86a44293f0f89903a8e97dd7 2018-04-15 20:18:32 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_worker_thread_pool.cpp 9b93d5aaef0e512d52da849390cb72856db540b6 2018-07-01 22:10:36 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                         CPLWorkerThreadPool()                        */
@@ -49,14 +49,8 @@ CPL_CVSID("$Id: cpl_worker_thread_pool.cpp 0f654dda9faabf9d86a44293f0f89903a8e97
  * must be called.
  */
 CPLWorkerThreadPool::CPLWorkerThreadPool() :
-    hCond(nullptr),
-    eState(CPLWTS_OK),
-    psJobQueue(nullptr),
-    nPendingJobs(0),
-    psWaitingWorkerThreadsList(nullptr),
-    nWaitingWorkerThreads(0)
+    hMutex( CPLCreateMutexEx(CPL_MUTEX_REGULAR) )
 {
-    hMutex = CPLCreateMutexEx(CPL_MUTEX_REGULAR);
     CPLReleaseMutex(hMutex);
 }
 
@@ -323,16 +317,41 @@ void CPLWorkerThreadPool::WaitCompletion(int nMaxRemainingJobs)
 {
     if( nMaxRemainingJobs < 0 )
         nMaxRemainingJobs = 0;
+    CPLAcquireMutex(hMutex, 1000.0);
     while( true )
     {
-        CPLAcquireMutex(hMutex, 1000.0);
         int nPendingJobsLocal = nPendingJobs;
         if( nPendingJobsLocal > nMaxRemainingJobs )
             CPLCondWait(hCond, hMutex);
-        CPLReleaseMutex(hMutex);
         if( nPendingJobsLocal <= nMaxRemainingJobs )
             break;
     }
+    CPLReleaseMutex(hMutex);
+}
+
+/************************************************************************/
+/*                            WaitEvent()                               */
+/************************************************************************/
+
+/** Wait for completion of at least one job, if there are any remaining
+ */
+void CPLWorkerThreadPool::WaitEvent()
+{
+    CPLAcquireMutex(hMutex, 1000.0);
+    while( true )
+    {
+        int nPendingJobsLocal = nPendingJobs;
+        if( nPendingJobsLocal == 0 )
+        {
+            break;
+        }
+        CPLCondWait(hCond, hMutex);
+        if( nPendingJobs < nPendingJobsLocal )
+        {
+            break;
+        }
+    }
+    CPLReleaseMutex(hMutex);
 }
 
 /************************************************************************/
@@ -350,6 +369,23 @@ void CPLWorkerThreadPool::WaitCompletion(int nMaxRemainingJobs)
 bool CPLWorkerThreadPool::Setup(int nThreads,
                             CPLThreadFunc pfnInitFunc,
                             void** pasInitData)
+{
+    return Setup(nThreads, pfnInitFunc, pasInitData, true);
+}
+
+/** Setup the pool.
+ *
+ * @param nThreads Number of threads to launch
+ * @param pfnInitFunc Initialization function to run in each thread. May be NULL
+ * @param pasInitData Array of initialization data. Its length must be nThreads,
+ *                    or it should be NULL.
+ * @param bWaitallStarted Whether to wait for all threads to be fully started.
+ * @return true if initialization was successful.
+ */
+bool CPLWorkerThreadPool::Setup(int nThreads,
+                            CPLThreadFunc pfnInitFunc,
+                            void** pasInitData,
+                            bool bWaitallStarted)
 {
     CPLAssert( nThreads > 0 );
 
@@ -398,16 +434,19 @@ bool CPLWorkerThreadPool::Setup(int nThreads,
         }
     }
 
-    // Wait all threads to be started
-    while( true )
+    if( bWaitallStarted )
     {
-        CPLAcquireMutex(hMutex, 1000.0);
-        int nWaitingWorkerThreadsLocal = nWaitingWorkerThreads;
-        if( nWaitingWorkerThreadsLocal < nThreads )
-            CPLCondWait(hCond, hMutex);
-        CPLReleaseMutex(hMutex);
-        if( nWaitingWorkerThreadsLocal == nThreads )
-            break;
+        // Wait all threads to be started
+        while( true )
+        {
+            CPLAcquireMutex(hMutex, 1000.0);
+            int nWaitingWorkerThreadsLocal = nWaitingWorkerThreads;
+            if( nWaitingWorkerThreadsLocal < nThreads )
+                CPLCondWait(hCond, hMutex);
+            CPLReleaseMutex(hMutex);
+            if( nWaitingWorkerThreadsLocal == nThreads )
+                break;
+        }
     }
 
     if( eState == CPLWTS_ERROR )

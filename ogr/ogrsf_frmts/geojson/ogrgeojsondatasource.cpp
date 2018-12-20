@@ -57,7 +57,7 @@
 // #include "symbol_renames.h"
 
 
-CPL_CVSID("$Id: ogrgeojsondatasource.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeojsondatasource.cpp 287413caabcca722a41a2f74f819e5b03e44ed21 2018-09-16 15:01:08 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           OGRGeoJSONDataSource()                     */
@@ -705,7 +705,9 @@ int OGRGeoJSONDataSource::ReadFromService( GDALOpenInfo* poOpenInfo,
     {
         if( !GeoJSONIsObject(pszGeoData_) )
         {
-            if( ESRIJSONIsObject(pszGeoData_) || TopoJSONIsObject(pszGeoData_) )
+            if( ESRIJSONIsObject(pszGeoData_) ||
+                TopoJSONIsObject(pszGeoData_) ||
+                GeoJSONSeqIsObject(pszGeoData_) )
             {
                 OGRGeoJSONDriverStoreContent( pszSource, pszGeoData_ );
                 pszGeoData_ = nullptr;

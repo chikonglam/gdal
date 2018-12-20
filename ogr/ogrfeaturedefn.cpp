@@ -41,7 +41,7 @@
 #include "ogr_p.h"
 #include "ograpispy.h"
 
-CPL_CVSID("$Id: ogrfeaturedefn.cpp 555e540bc97e0201cd3ed57f7906323d476c13fb 2018-04-04 19:43:04 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrfeaturedefn.cpp 03663aa9cc098380fe5420faa4f424c3dac45a08 2018-10-29 23:18:12 +0100 Even Rouault $")
 
 /************************************************************************/
 /*                           OGRFeatureDefn()                           */
@@ -1223,6 +1223,37 @@ int OGRFeatureDefn::GetFieldIndex( const char * pszFieldName ) const
         const OGRFieldDefn* poFDefn = GetFieldDefn(i);
         if( poFDefn != nullptr && EQUAL(pszFieldName, poFDefn->GetNameRef() ) )
             return i;
+    }
+
+    return -1;
+}
+
+/************************************************************************/
+/*                      GetFieldIndexCaseSensitive()                    */
+/************************************************************************/
+
+/**
+ * \brief Find field by name, in a case sensitive way.
+ *
+ * The field index of the first field matching the passed field name is returned.
+ *
+ * @param pszFieldName the field name to search for.
+ *
+ * @return the field index, or -1 if no match found.
+ */
+
+int OGRFeatureDefn::GetFieldIndexCaseSensitive( const char * pszFieldName ) const
+
+{
+    GetFieldCount();
+    for( int i = 0; i < nFieldCount; i++ )
+    {
+        const OGRFieldDefn* poFDefn = GetFieldDefn(i);
+        if( poFDefn != nullptr &&
+            strcmp(pszFieldName, poFDefn->GetNameRef() ) == 0 )
+        {
+            return i;
+        }
     }
 
     return -1;

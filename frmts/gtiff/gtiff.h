@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gtiff.h 55f3ce20ead46bd15cf0134563ec40f83db7f00b 2018-11-12 10:29:24 +0100 Even Rouault $
+ * $Id: gtiff.h c4b4dfe1b5b03622575bd88104977ea52d08ddb7 2018-11-10 16:21:34 +0100 Even Rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  GDAL GeoTIFF support.
@@ -96,13 +96,28 @@ uint16 GTiffGetAlphaValue(const char* pszValue, uint16 nDefault);
 #define TIFFTAG_LZMAPRESET      65562   /* LZMA2 preset (compression level) */
 #endif
 
-#if !defined(COMPRESSION_ZSTD_OLD)
-#define     COMPRESSION_ZSTD_OLD        34926   /* ZSTD */
-#define     COMPRESSION_ZSTD_NEW        50000   /* ZSTD */
+#if !defined(COMPRESSION_ZSTD)
+#define     COMPRESSION_ZSTD        50000   /* ZSTD */
 #endif
 
 #if !defined(TIFFTAG_ZSTD_LEVEL)
 #define TIFFTAG_ZSTD_LEVEL      65564    /* ZSTD compression level */
+#endif
+ 
+#if !defined(COMPRESSION_LERC)
+#define     COMPRESSION_LERC        34887   /* LERC */
+#endif
+
+#if !defined(COMPRESSION_WEBP)
+#define     COMPRESSION_WEBP        50001   /* WebP */
+#endif
+
+#if !defined(TIFFTAG_WEBP_LEVEL)
+#define     TIFFTAG_WEBP_LEVEL        65568   /* WebP compression level */
+#endif
+
+#if !defined(TIFFTAG_WEBP_LOSSLESS)
+#define     TIFFTAG_WEBP_LOSSLESS     65569 /* WebP lossless/lossy */
 #endif
 
 #endif // GTIFF_H_INCLUDED

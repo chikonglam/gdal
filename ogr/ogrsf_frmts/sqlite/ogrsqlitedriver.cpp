@@ -49,7 +49,7 @@
 #include "ogr_core.h"
 #include "sqlite3.h"
 
-CPL_CVSID("$Id: ogrsqlitedriver.cpp 2559c3e67f5f66f559bede6be8f843e0f2843bc2 2018-09-22 15:56:48 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrsqlitedriver.cpp 52ab63f8c20bb2ccc0a5b378a29fdc11768a09c0 2018-09-22 15:56:48 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                     OGRSQLiteDriverIdentify()                        */

@@ -42,7 +42,7 @@
 #include "ogr_sfcgal.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrpolygon.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrpolygon.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                             OGRPolygon()                             */
@@ -52,7 +52,7 @@ CPL_CVSID("$Id: ogrpolygon.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-
  * \brief Create an empty polygon.
  */
 
-OGRPolygon::OGRPolygon() {}
+OGRPolygon::OGRPolygon() = default;
 
 /************************************************************************/
 /*                     OGRPolygon( const OGRPolygon& )                  */
@@ -67,15 +67,13 @@ OGRPolygon::OGRPolygon() {}
  * @since GDAL 2.1
  */
 
-OGRPolygon::OGRPolygon( const OGRPolygon& other ) :
-    OGRCurvePolygon(other)
-{}
+OGRPolygon::OGRPolygon( const OGRPolygon& ) = default;
 
 /************************************************************************/
 /*                            ~OGRPolygon()                             */
 /************************************************************************/
 
-OGRPolygon::~OGRPolygon() {}
+OGRPolygon::~OGRPolygon() = default;
 
 /************************************************************************/
 /*                     operator=( const OGRPolygon&)                    */

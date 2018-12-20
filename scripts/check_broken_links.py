@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: check_broken_links.py 74acee3f54d28a04e4c8c89f72be43ad15d9f36d 2018-04-14 00:39:31 +1000 Ben Elliston $
+# $Id: check_broken_links.py 12e021243b6412f39c13e7bf287087359f91c6af 2018-05-06 20:19:59 +1000 Ben Elliston $
 #
 #  Project:  GDAL
 #  Purpose:  Check validity of <a href="XXXX"> links
@@ -30,8 +30,8 @@
 ###############################################################################
 
 import os
-import requests
 import sys
+import requests
 
 ok_set = dict()
 broken_set = {}
@@ -41,8 +41,8 @@ def check(filename):
     f = open(filename, 'r')
     lines = f.readlines()
 
-    for i in range(len(lines)):
-        line = lines[i].strip('\n')
+    for i, line in enumerate(lines):
+        line = line.strip('\n')
         pos = line.find('<a href="')
         if pos >= 0:
             pos += len('<a href="')

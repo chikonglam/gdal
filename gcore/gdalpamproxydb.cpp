@@ -53,7 +53,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gdalpamproxydb.cpp 16925d183fdba6f31179d0dd3a9d793411f11070 2018-04-08 19:19:45 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalpamproxydb.cpp e37e476c4cf8f4b0df8995e0d95d5d672fca1a9b 2018-05-05 16:54:18 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -64,14 +64,12 @@ CPL_CVSID("$Id: gdalpamproxydb.cpp 16925d183fdba6f31179d0dd3a9d793411f11070 2018
 class GDALPamProxyDB
 {
   public:
-    GDALPamProxyDB() { nUpdateCounter = -1; }
+    CPLString   osProxyDBDir{};
 
-    CPLString   osProxyDBDir;
+    int         nUpdateCounter = -1;
 
-    int         nUpdateCounter;
-
-    std::vector<CPLString> aosOriginalFiles;
-    std::vector<CPLString> aosProxyFiles;
+    std::vector<CPLString> aosOriginalFiles{};
+    std::vector<CPLString> aosProxyFiles{};
 
     void        CheckLoadDB();
     void        LoadDB();

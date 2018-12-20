@@ -39,7 +39,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ntv2dataset.cpp f946b03da9b425043fed0a0c58a329295240840f 2017-12-15 13:36:23Z Kurt Schwehr $")
+CPL_CVSID("$Id: ntv2dataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /**
  * The header for the file, and each grid consists of 11 16byte records.
@@ -86,7 +86,7 @@ these both in the more conventional orientation.
 /* ==================================================================== */
 /************************************************************************/
 
-class NTv2Dataset : public RawDataset
+class NTv2Dataset final: public RawDataset
 {
   public:
     bool        m_bMustSwap;
@@ -100,6 +100,8 @@ class NTv2Dataset : public RawDataset
     void        CaptureMetadataItem( char *pszItem );
 
     int         OpenGrid( char *pachGridHeader, vsi_l_offset nDataStart );
+
+    CPL_DISALLOW_COPY_ASSIGN(NTv2Dataset)
 
   public:
     NTv2Dataset();
@@ -148,7 +150,7 @@ NTv2Dataset::NTv2Dataset() :
 NTv2Dataset::~NTv2Dataset()
 
 {
-    FlushCache();
+    NTv2Dataset::FlushCache();
 
     if( fpImage != nullptr )
     {
@@ -616,7 +618,8 @@ int NTv2Dataset::OpenGrid( char *pachHeader, vsi_l_offset nGridOffsetIn )
                                + (nRasterXSize-1) * 16
                                + static_cast<vsi_l_offset>(nRasterYSize-1) * 16 * nRasterXSize,
                                -16, -16 * nRasterXSize,
-                               GDT_Float32, !m_bMustSwap, TRUE, FALSE );
+                               GDT_Float32, !m_bMustSwap,
+                               RawRasterBand::OwnFP::NO );
         SetBand( iBand+1, poBand );
     }
 

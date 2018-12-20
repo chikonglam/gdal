@@ -34,7 +34,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrpdslayer.cpp 55eaf7f8b355ecaec6ec54ee15f135b99371de56 2018-05-04 14:28:56 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrpdslayer.cpp b1488a47a4334ae9a19c75888fb84beda047c286 2018-06-28 01:42:24 +0200 Even Rouault $")
 
 namespace OGRPDS {
 
@@ -187,8 +187,10 @@ void OGRPDSLayer::ReadStructure(CPLString osStructureFilename)
                 pasFieldDesc[nFields].nByteCount = atoi(osColumnBytes);
                 if (pasFieldDesc[nFields].nStartByte >= 0 &&
                     pasFieldDesc[nFields].nByteCount > 0 &&
+                    pasFieldDesc[nFields].nStartByte < INT_MAX -
+                                    pasFieldDesc[nFields].nByteCount &&
                     pasFieldDesc[nFields].nStartByte +
-                    pasFieldDesc[nFields].nByteCount <= nRecordSize)
+                        pasFieldDesc[nFields].nByteCount <= nRecordSize)
                 {
                     OGRFieldType eFieldType = OFTString;
                     OGRFieldSubType eSubType = OFSTNone;

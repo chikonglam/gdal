@@ -32,7 +32,7 @@
 #include "wmsdriver.h"
 #include <algorithm>
 
-CPL_CVSID("$Id: gdalhttp.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: gdalhttp.cpp 15748d502551e341d73d0e388eb9f2e5209aa902 2018-10-06 19:05:17 +0200 Denis Rykov $")
 
 /* CURLINFO_RESPONSE_CODE was known as CURLINFO_HTTP_CODE in libcurl 7.10.7 and earlier */
 #if LIBCURL_VERSION_NUM < 0x070a07
@@ -84,7 +84,6 @@ void WMSHTTPInitializeRequest(WMSHTTPRequest *psRequest) {
     if (!psRequest->Range.empty())
         curl_easy_setopt(psRequest->m_curl_handle, CURLOPT_RANGE, psRequest->Range.c_str());
 
-    curl_easy_setopt(psRequest->m_curl_handle, CURLOPT_URL, psRequest->URL.c_str());
     curl_easy_setopt(psRequest->m_curl_handle, CURLOPT_WRITEDATA, psRequest);
     curl_easy_setopt(psRequest->m_curl_handle, CURLOPT_WRITEFUNCTION, CPLHTTPWriteFunc);
 
@@ -92,7 +91,7 @@ void WMSHTTPInitializeRequest(WMSHTTPRequest *psRequest) {
     curl_easy_setopt(psRequest->m_curl_handle, CURLOPT_ERRORBUFFER, &psRequest->m_curl_error[0]);
 
     psRequest->m_headers = static_cast<struct curl_slist*>(
-            CPLHTTPSetOptions(psRequest->m_curl_handle, psRequest->options));
+            CPLHTTPSetOptions(psRequest->m_curl_handle, psRequest->URL.c_str(), psRequest->options));
     if( psRequest->m_headers != nullptr )
         curl_easy_setopt(psRequest->m_curl_handle, CURLOPT_HTTPHEADER,
                          psRequest->m_headers);

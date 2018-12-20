@@ -30,7 +30,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ctgdataset.cpp c110ff1ae189c96166f9d82a9d7873a265806d59 2018-04-29 23:11:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ctgdataset.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 constexpr int HEADER_LINE_COUNT = 5;
 
@@ -376,7 +376,7 @@ int CTGDataset::Identify( GDALOpenInfo * poOpenInfo )
     }
 
 /* -------------------------------------------------------------------- */
-/*      Chech that it looks roughly as a CTG dataset                    */
+/*      Check that it looks roughly as a CTG dataset                    */
 /* -------------------------------------------------------------------- */
     const char* pszData = (const char*)poOpenInfo->pabyHeader;
     for(int i=0;i<4 * 80;i++)

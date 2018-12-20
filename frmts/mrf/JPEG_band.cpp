@@ -66,7 +66,7 @@ CPL_C_END
 #include "BitMask2D.h"
 #include "Packer_RLE.h"
 
-CPL_CVSID("$Id: JPEG_band.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: JPEG_band.cpp 71d76bef344fbf58e14e5817d80230acefc78e30 2018-11-07 03:00:41 +0100 Even Rouault $")
 
 NAMESPACE_MRF_START
 
@@ -164,7 +164,7 @@ static boolean empty_output_buffer(j_compress_ptr /*cinfo*/) {
 }
 
 // Returns the number of zero pixels in the page, as well as clearing those bits in the mask
-template<typename T> int update_mask(BitMask &mask, T *src, int nc) {
+template<typename T> static int update_mask(BitMask &mask, T *src, int nc) {
     int zeros = 0;
     int h = mask.getHeight();
     int w = mask.getWidth();
@@ -379,7 +379,7 @@ static void ProgressMonitor(j_common_ptr cinfo)
 }
 
 // Returns the number of zero pixels, as well as clearing those bits int the mask
-template<typename T> void apply_mask(MRFJPEGStruct &sJ, T *s, int nc) {
+template<typename T> static void apply_mask(MRFJPEGStruct &sJ, T *s, int nc) {
     if (NO_MASK == sJ.mask_state)
         return;
 

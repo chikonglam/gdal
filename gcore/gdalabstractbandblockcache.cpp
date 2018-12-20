@@ -38,7 +38,7 @@
 
 //! @cond Doxygen_Suppress
 
-CPL_CVSID("$Id: gdalabstractbandblockcache.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: gdalabstractbandblockcache.cpp e37e476c4cf8f4b0df8995e0d95d5d672fca1a9b 2018-05-05 16:54:18 +0200 Even Rouault $")
 
 #ifdef DEBUG_VERBOSE_ABBC
 static int nAllBandsKeptAlivedBlocks = 0;
@@ -51,12 +51,10 @@ static int nAllBandsKeptAlivedBlocks = 0;
 GDALAbstractBandBlockCache::GDALAbstractBandBlockCache(
     GDALRasterBand* poBandIn ) :
     hSpinLock(CPLCreateLock(LOCK_SPIN)),
-    psListBlocksToFree(nullptr),
     hCond(CPLCreateCond()),
     hCondMutex(CPLCreateMutex()),
-    nKeepAliveCounter(0)
+    poBand(poBandIn)
 {
-    poBand = poBandIn;
     if( hCondMutex )
         CPLReleaseMutex(hCondMutex);
 }

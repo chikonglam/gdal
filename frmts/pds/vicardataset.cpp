@@ -40,7 +40,7 @@ constexpr double NULL3 = -32768.0;
 
 #include <string>
 
-CPL_CVSID("$Id: vicardataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: vicardataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -610,7 +610,7 @@ GDALDataset *VICARDataset::Open( GDALOpenInfo * poOpenInfo )
 #else
                                    chByteOrder == 'M',
 #endif
-                                   TRUE );
+                                   RawRasterBand::OwnFP::NO );
 
         poDS->SetBand( i+1, poBand );
         //only set NoData if instrument is supported

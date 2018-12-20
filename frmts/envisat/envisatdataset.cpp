@@ -34,7 +34,7 @@
 #include "ogr_srs_api.h"
 #include "timedelta.hpp"
 
-CPL_CVSID("$Id: envisatdataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: envisatdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 CPL_C_START
 #include "EnvisatFile.h"
@@ -1019,7 +1019,8 @@ GDALDataset *EnvisatDataset::Open( GDALOpenInfo * poOpenInfo )
                                           ds_offset + nPrefixBytes,
                                           GDALGetDataTypeSize(eDataType) / 8,
                                           dsr_size,
-                                          eDataType, bNative, TRUE ) );
+                                          eDataType, bNative,
+                                          RawRasterBand::OwnFP::NO ) );
             iBand++;
 
             poDS->GetRasterBand(iBand)->SetDescription( pszDSName );
@@ -1037,7 +1038,8 @@ GDALDataset *EnvisatDataset::Open( GDALOpenInfo * poOpenInfo )
                 poDS->SetBand( iBand+1,
                            new RawRasterBand( poDS, iBand+1, poDS->fpImage,
                                               ds_offset + nPrefixBytes, 3,
-                                              dsr_size, GDT_Byte, bNative, TRUE ) );
+                                              dsr_size, GDT_Byte, bNative,
+                                              RawRasterBand::OwnFP::NO ) );
                 iBand++;
 
                 poDS->GetRasterBand(iBand)->SetDescription( pszDSName );
@@ -1047,7 +1049,8 @@ GDALDataset *EnvisatDataset::Open( GDALOpenInfo * poOpenInfo )
                            new RawRasterBand( poDS, iBand+1, poDS->fpImage,
                                               ds_offset + nPrefixBytes + 1,
                                               3, dsr_size, GDT_Int16,
-                                              bNative, TRUE ) );
+                                              bNative,
+                                              RawRasterBand::OwnFP::NO ) );
                 iBand++;
 
                 const char *pszSuffix = strstr( pszDSName, "MDS" );
@@ -1092,7 +1095,8 @@ GDALDataset *EnvisatDataset::Open( GDALOpenInfo * poOpenInfo )
                         new RawRasterBand( poDS, iBand+1, poDS->fpImage,
                                            nSubBandOffset,
                                            nPixelSize * nSubBands,
-                                           dsr_size2, eDataType2, bNative, TRUE ) );
+                                           dsr_size2, eDataType2, bNative,
+                                           RawRasterBand::OwnFP::NO ) );
                 iBand++;
 
                 if (nSubBands > 1)

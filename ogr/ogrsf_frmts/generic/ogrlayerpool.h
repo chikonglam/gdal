@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlayerpool.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: ogrlayerpool.h 10e54d45fee8229428eb8ab22949aa46eb9da150 2018-05-06 11:07:25 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRLayerPool and OGRProxiedLayer class
@@ -45,6 +45,8 @@ class OGRLayerPool;
 
 class OGRAbstractProxiedLayer : public OGRLayer
 {
+        CPL_DISALLOW_COPY_ASSIGN(OGRAbstractProxiedLayer)
+
         friend class OGRLayerPool;
 
         OGRAbstractProxiedLayer   *poPrevLayer; /* Chain to a layer that was used more recently */
@@ -66,6 +68,8 @@ class OGRAbstractProxiedLayer : public OGRLayer
 
 class OGRLayerPool
 {
+        CPL_DISALLOW_COPY_ASSIGN(OGRLayerPool)
+
     protected:
         OGRAbstractProxiedLayer *poMRULayer; /* the most recently used layer */
         OGRAbstractProxiedLayer *poLRULayer; /* the least recently used layer (still opened) */
@@ -89,6 +93,8 @@ class OGRLayerPool
 
 class OGRProxiedLayer : public OGRAbstractProxiedLayer
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRProxiedLayer)
+
     OpenLayerFunc       pfnOpenLayer;
     FreeUserDataFunc    pfnFreeUserData;
     void               *pUserData;

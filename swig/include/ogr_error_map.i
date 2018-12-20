@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_error_map.i a2d4bcda7874bbc6de9942874f8d549219e9403d 2016-01-08 21:00:50Z Kurt Schwehr $
+ * $Id: ogr_error_map.i 03ae1801b0e36769e546740af0e08eff08357c52 2018-05-03 08:03:25 +0200 Juergen E. Fischer $
  *
  * Project:  GDAL SWIG Interfaces.
  * Purpose:  OGRErr handling typemap.
@@ -27,11 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  *****************************************************************************/
 
-#ifdef SWIGRUBY
-%header
-#else
 %fragment("OGRErrMessages","header")
-#endif
+
 %{
 
 #include "ogr_core.h"

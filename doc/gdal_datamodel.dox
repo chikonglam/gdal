@@ -1,4 +1,4 @@
-/* $Id: gdal_datamodel.dox 4acd10754e950208aeca32134bd83b6df4aa6805 2017-12-20 11:30:20Z Dmitry Baryshnikov $ */
+/* $Id: gdal_datamodel.dox 77ec73e49423d707d3d49d975906cee55282e8e5 2018-09-11 18:51:40 +0800 Tim Bowden $ */
 
 /*!
 \page gdal_datamodel GDAL Data Model
@@ -40,7 +40,7 @@ from authorities such as EPSG.
 </ul>
 
 For more information on OpenGIS WKT coordinate system definitions, and
-mechanisms to manipulate them, refer to the <a href="ogr/osr_tutorial.html">
+mechanisms to manipulate them, refer to the <a href="osr_tutorial.html">
 osr_tutorial</a> document and/or the OGRSpatialReference class documentation.
 
 The coordinate system returned by GDALDataset::GetProjectionRef()
@@ -314,6 +314,18 @@ Masks</a> and documented in \ref GDALRasterBand::GetMaskBand().
 thematic image).
 
 <li> An optional minimum and maximum value.
+
+<li> Optional statistics stored in metadata:
+
+  <ul>
+  <li> STATISTICS_MEAN: mean
+  <li> STATISTICS_MINIMUM: minimum
+  <li> STATISTICS_MAXIMUM: maximum
+  <li> STATISTICS_STDDEV: standard deviation
+  <li> STATISTICS_APPROXIMATE: only present if GDAL has computed 
+  approximate statistics
+  <li> STATISTICS_VALID_PERCENT: percentage of valid (not nodata) pixel
+  </ul>
 
 <li> An optional offset and scale for transforming raster values into meaning
 full values (i.e. translate height to meters).

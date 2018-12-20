@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ******************************************************************************
-#  $Id: epsg_tr.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
+#  $Id: epsg_tr.py 8e263710cb425c4a8b76b1f363b98be41ea0a983 2018-04-30 19:40:20 +1000 Ben Elliston $
 #
 #  Project:  CFS OGC MapServer
 #  Purpose:  Script to create WKT and PROJ.4 dictionaries for EPSG GCS/PCS
@@ -31,7 +31,6 @@
 #  DEALINGS IN THE SOFTWARE.
 # ******************************************************************************
 
-import string
 import sys
 
 from osgeo import osr
@@ -211,13 +210,13 @@ if __name__ == '__main__':
 
         list_fd = open(list_file)
         line = list_fd.readline()
-        while len(line) > 0:
+        while line:
             try:
                 c_offset = line.find(',')
                 if c_offset > 0:
                     line = line[:c_offset]
 
-                code = string.atoi(line)
+                code = int(line)
             except:
                 code = -1
 

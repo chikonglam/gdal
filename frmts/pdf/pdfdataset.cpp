@@ -56,7 +56,7 @@
 
 /* g++ -fPIC -g -Wall frmts/pdf/pdfdataset.cpp -shared -o gdal_PDF.so -Iport -Igcore -Iogr -L. -lgdal -lpoppler -I/usr/include/poppler */
 
-CPL_CVSID("$Id: pdfdataset.cpp 4cc0215b8f2cef3582265cdfaf16589390697706 2018-11-28 11:59:15 +0100 Even Rouault $")
+CPL_CVSID("$Id: pdfdataset.cpp 5a215e5c6b75f6d1d51dc4dea40c33d9e0e41dcd 2018-11-28 11:59:15 +0100 Even Rouault $")
 
 #if defined(HAVE_POPPLER) || defined(HAVE_PODOFO) || defined(HAVE_PDFIUM)
 

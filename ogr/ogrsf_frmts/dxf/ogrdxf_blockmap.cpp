@@ -34,7 +34,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrdxf_blockmap.cpp dd789e8ed6a46241e21ee763a02908442d6e355a 2018-01-09 11:21:16Z Alan Thomas $")
+CPL_CVSID("$Id: ogrdxf_blockmap.cpp 6b6607358c2c280f54ea0922536a27a8e12930b5 2018-07-14 16:23:19 +1000 Alan Thomas $")
 
 /************************************************************************/
 /*                          ReadBlockSection()                          */
@@ -51,7 +51,8 @@ bool OGRDXFDataSource::ReadBlocksSection()
     OGRDXFLayer *poReaderLayer = static_cast<OGRDXFLayer *>(
         GetLayerByName( "Entities" ));
 
-    iEntitiesSectionOffset = oReader.iSrcBufferFileOffset + oReader.iSrcBufferOffset;
+    iEntitiesOffset = oReader.iSrcBufferFileOffset + oReader.iSrcBufferOffset;
+    iEntitiesLineNumber = oReader.nLineNumber;
 
     char szLineBuf[257];
     int nCode = 0;

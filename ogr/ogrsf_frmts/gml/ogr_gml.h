@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gml.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: ogr_gml.h 365a72f2b5a94946e92323060b68f9963cd2dbd5 2018-05-06 22:14:36 +0200 Even Rouault $
  *
  * Project:  GML Reader
  * Purpose:  Declarations for OGR wrapper classes for GML, and GML<->OGR
@@ -49,7 +49,7 @@ typedef enum
 /*                            OGRGMLLayer                               */
 /************************************************************************/
 
-class OGRGMLLayer : public OGRLayer
+class OGRGMLLayer final: public OGRLayer
 {
     OGRFeatureDefn     *poFeatureDefn;
 
@@ -101,7 +101,7 @@ class OGRGMLLayer : public OGRLayer
 /*                           OGRGMLDataSource                           */
 /************************************************************************/
 
-class OGRGMLDataSource : public OGRDataSource
+class OGRGMLDataSource final: public OGRDataSource
 {
     OGRGMLLayer     **papoLayers;
     int                 nLayers;

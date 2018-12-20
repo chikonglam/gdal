@@ -37,7 +37,7 @@
 #include <algorithm>
 #include <sstream>
 
-CPL_CVSID("$Id: irisdataset.cpp 06f19ec3f62ff59e09e592d12dd9112a5216e464 2018-11-17 22:33:22 +0100 Even Rouault $")
+CPL_CVSID("$Id: irisdataset.cpp 38da35099ddca0ea7a8aa61a2be6462926dc4154 2018-11-17 22:33:22 +0100 Even Rouault $")
 
 static double DEG2RAD = M_PI / 180.0;
 static double RAD2DEG = 180.0 / M_PI;
@@ -461,16 +461,16 @@ void IRISDataset::LoadProjection()
         }
     }
 
-    // TODO(schwehr): Document 4294967295.
+    constexpr GUInt32 knUINT32_MAX = 0xFFFFFFFFU;
     const float fCenterLon =
-        static_cast<float>(CPL_LSBUINT32PTR(abyHeader+112+320+12) * 360.0 / 4294967295UL);
+        static_cast<float>(CPL_LSBUINT32PTR(abyHeader+112+320+12) * 360.0 / knUINT32_MAX);
     const float fCenterLat =
-        static_cast<float>(CPL_LSBUINT32PTR(abyHeader+108+320+12) * 360.0 / 4294967295UL);
+        static_cast<float>(CPL_LSBUINT32PTR(abyHeader+108+320+12) * 360.0 / knUINT32_MAX);
 
     const float fProjRefLon =
-        static_cast<float>(CPL_LSBUINT32PTR(abyHeader+244+320+12) * 360.0 / 4294967295UL);
+        static_cast<float>(CPL_LSBUINT32PTR(abyHeader+244+320+12) * 360.0 / knUINT32_MAX);
     const float fProjRefLat =
-        static_cast<float>(CPL_LSBUINT32PTR(abyHeader+240+320+12) * 360.0 / 4294967295UL);
+        static_cast<float>(CPL_LSBUINT32PTR(abyHeader+240+320+12) * 360.0 / knUINT32_MAX);
 
     const float fRadarLocX = CPL_LSBSINT32PTR(abyHeader + 112 + 12 ) / 1000.0f;
     const float fRadarLocY = CPL_LSBSINT32PTR(abyHeader + 116 + 12 ) / 1000.0f;

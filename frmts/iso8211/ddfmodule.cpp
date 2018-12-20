@@ -40,7 +40,7 @@
 #include "cpl_error.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: ddfmodule.cpp 80814c6b7f169f8a57ab2fb430803e2793b2c686 2018-05-03 17:22:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: ddfmodule.cpp 6383eae265b6c57bbffde01a0dfda37b8150ce50 2018-05-03 17:22:05 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                             DDFModule()                              */

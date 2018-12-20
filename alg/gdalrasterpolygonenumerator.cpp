@@ -35,7 +35,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: gdalrasterpolygonenumerator.cpp 9ef400e8849f3477878b34c0851382dc05969f12 2018-01-14 15:42:42Z Kurt Schwehr $")
+CPL_CVSID("$Id: gdalrasterpolygonenumerator.cpp fe2d81c8819bf9794bce0210098e637565728350 2018-05-06 00:49:51 +0200 Even Rouault $")
 
 /*! @cond Doxygen_Suppress */
 
@@ -46,14 +46,10 @@ CPL_CVSID("$Id: gdalrasterpolygonenumerator.cpp 9ef400e8849f3477878b34c0851382dc
 template<class DataType, class EqualityTest>
 GDALRasterPolygonEnumeratorT<DataType,
                              EqualityTest>::GDALRasterPolygonEnumeratorT(
-    int nConnectednessIn )
+    int nConnectednessIn ) :
+    nConnectedness( nConnectednessIn )
 
 {
-    panPolyIdMap = nullptr;
-    panPolyValue = nullptr;
-    nNextPolygonId = 0;
-    nPolyAlloc = 0;
-    nConnectedness = nConnectednessIn;
     CPLAssert( nConnectedness == 4 || nConnectedness == 8 );
 }
 

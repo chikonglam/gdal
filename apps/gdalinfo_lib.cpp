@@ -61,7 +61,7 @@
 
 using std::vector;
 
-CPL_CVSID("$Id: gdalinfo_lib.cpp 5da1c4d1b6c7e38f7f5917fff3ddbc8ad42af7aa 2018-03-30 21:59:13 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalinfo_lib.cpp ee6581953a7041956a6655c1656830f35a6739e5 2018-08-08 23:38:59 +0200 Even Rouault $")
 
 /*! output format */
 typedef enum {
@@ -625,7 +625,7 @@ char *GDALInfo( GDALDatasetH hDataset, const GDALInfoOptions *psOptions )
 /* -------------------------------------------------------------------- */
 /*      Report corners.                                                 */
 /* -------------------------------------------------------------------- */
-    if( bJson )
+    if( bJson && GDALGetRasterXSize(hDataset) )
     {
         json_object *poLinearRing = json_object_new_array();
         json_object *poCornerCoordinates = json_object_new_object();
@@ -672,7 +672,7 @@ char *GDALInfo( GDALDatasetH hDataset, const GDALInfoOptions *psOptions )
         json_object_object_add( poJsonObject,
                 bTransformToWGS84 ? "wgs84Extent": "extent", poLongLatExtent );
     }
-    else
+    else if( GDALGetRasterXSize(hDataset) )
     {
         Concat(osStr, psOptions->bStdoutOutput, "Corner Coordinates:\n" );
         GDALInfoReportCorner( psOptions, hDataset, hTransform,

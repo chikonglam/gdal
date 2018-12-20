@@ -29,7 +29,7 @@
 
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrregisterall.cpp 6e4db6d2ec34bb829b4bec8ca6bf26daf0de1aef 2018-03-06 19:43:29Z Even Rouault $")
+CPL_CVSID("$Id: ogrregisterall.cpp 4db9ec884a59751d80c7482f9f3d621ef3c640f6 2018-12-13 11:54:36 +0300 Dmitry Baryshnikov $")
 
 /************************************************************************/
 /*                           OGRRegisterAll()                           */
@@ -95,6 +95,7 @@ void OGRRegisterAllInternal()
 #endif
 #ifdef GEOJSON_ENABLED
     RegisterOGRGeoJSON();
+    RegisterOGRGeoJSONSeq();
     RegisterOGRESRIJSON();
     RegisterOGRTopoJSON();
 #endif
@@ -254,7 +255,7 @@ void OGRRegisterAllInternal()
 #ifdef SEGY_ENABLED
     RegisterOGRSEGY();
 #endif
-#ifdef FREEXL_ENABLED
+#ifdef XLS_ENABLED
     RegisterOGRXLS();
 #endif
 #ifdef ODS_ENABLED
@@ -311,5 +312,9 @@ void OGRRegisterAllInternal()
     RegisterOGRAVCBin();
     RegisterOGRAVCE00();
 #endif
+
+#ifdef NGW_ENABLED
+    RegisterOGRNGW();
+#endif // NGW_ENABLED
 
 } /* OGRRegisterAll */

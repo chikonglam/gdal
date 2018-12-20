@@ -29,10 +29,11 @@
 #include "cpl_vsi.h"
 #include "cpl_conv.h"
 #include "cpl_string.h"
+#include "gdal_version"
 #include "gdal_priv.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gdalasyncread.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: gdalasyncread.cpp 2809cd757416b752b5c316c2a72dfa2d923e9e81 2018-07-19 10:58:35 +0900 Hiroshi Miura $")
 
 /* ******************************************************************** */
 /*                               Usage()                                */

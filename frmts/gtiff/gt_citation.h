@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_citation.h 81a008b84e9f8d2594e30aa06f9fd08cc1c6e624 2018-05-23 17:44:17 +0200 Even Rouault $
+ * $Id: gt_citation.h 028edae15c93a64d26d691b7c3b45bf141baee2f 2018-05-23 17:44:17 +0200 Even Rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements special parsing of Imagine citation strings, and

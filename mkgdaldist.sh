@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: mkgdaldist.sh 02522231caae3b42c4ede9c56f0601d557e0e5d8 2018-06-22 10:35:28 +0200 Even Rouault $
+# $Id: mkgdaldist.sh ed89c6d75ce36c0528a80e59d46766736ec93818 2018-06-22 10:35:28 +0200 Even Rouault $
 #
 # mkgdaldist.sh - prepares GDAL source distribution package
 

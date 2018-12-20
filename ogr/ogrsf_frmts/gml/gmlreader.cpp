@@ -44,7 +44,7 @@
 #include "gmlutils.h"
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: gmlreader.cpp 1398568b34b36256a98108fcbdc32bae6d73d84f 2018-03-13 10:22:19Z Even Rouault $")
+CPL_CVSID("$Id: gmlreader.cpp 7063b8664855306154d97a05b35c968c8d8b81d0 2018-05-09 21:24:13 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            ~IGMLReader()                             */
@@ -1417,6 +1417,11 @@ bool GMLReader::PrescanForSchema( bool bGetExtents,
 
         if (m_bCanUseGlobalSRSName)
             pszSRSName = m_pszGlobalSRSName;
+
+        if( pszSRSName != nullptr && !GML_IsLegitSRSName(pszSRSName) )
+        {
+            continue;
+        }
 
         OGRSpatialReference oSRS;
         if (m_bInvertAxisOrderIfLatLong && GML_IsSRSLatLongOrder(pszSRSName) &&

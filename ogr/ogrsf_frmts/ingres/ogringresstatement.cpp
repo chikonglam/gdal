@@ -29,31 +29,17 @@
 #include "ogr_ingres.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogringresstatement.cpp ff8146d84de7cba8e09d212d5481ea7d2ede3e98 2017-06-27 20:47:31Z Even Rouault $")
+CPL_CVSID("$Id: ogringresstatement.cpp d14a537a4324399712f4b822656d374341773cd3 2018-07-29 23:14:54 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                         OGRIngresStatement()                         */
 /************************************************************************/
 
-OGRIngresStatement::OGRIngresStatement( II_PTR hConn )
+OGRIngresStatement::OGRIngresStatement( II_PTR hConnIn ): hConn(hConnIn)
 
 {
-    this->hConn = hConn;
-
-    pabyWrkBuffer = NULL;
-    papszFields = NULL;
-    pasDataBuffer = NULL;
-    hStmt = NULL;
-    hTransaction = NULL;
-
     memset( &getDescrParm, 0, sizeof(getDescrParm) );
     memset( &queryInfo, 0, sizeof(queryInfo) );
-    bDebug = TRUE;
-
-    bHaveParm = FALSE;
-    nParmLen = 0;
-    pabyParmData = NULL;
-
 //    CPLDebug( "INGRES", "Create Statement %p", this );
 }
 

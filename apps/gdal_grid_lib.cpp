@@ -54,7 +54,7 @@
 #include "ogr_srs_api.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: gdal_grid_lib.cpp 59e6a908f2fc92acde477446d99e8d694025e35a 2018-12-07 11:58:04 +0100 Even Rouault $")
+CPL_CVSID("$Id: gdal_grid_lib.cpp 241ddd6210cbfad84dd2e83fa061c64ae0a8560d 2018-12-07 11:58:04 +0100 Even Rouault $")
 
 /************************************************************************/
 /*                          GDALGridOptions                             */

@@ -36,7 +36,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: fitdataset.cpp 69f2846db255856d25c55547ad26dffee7ac5fef 2018-05-15 12:22:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: fitdataset.cpp e95252e59b9c28a7dba655ff759ad45687a21413 2018-05-19 13:38:55 +0200 Even Rouault $")
 
 constexpr size_t FIT_PAGE_SIZE = 128;
 
@@ -1250,8 +1250,13 @@ static GDALDataset *FITCreateCopy(const char * pszFilename,
                                       bytesPerPixel, // nPixelSpace
                                       bytesPerPixel * blockX, nullptr); // nLineSpace
                 if (eErr != CE_None)
+                {
                     CPLError(CE_Failure, CPLE_FileIO,
                              "FIT write - CreateCopy got read error %i", eErr);
+                    CPL_IGNORE_RET_VAL(VSIFCloseL( fpImage ));
+                    VSIUnlink( pszFilename );
+                    return nullptr;
+                }
             } // for iBand
 
 #ifdef swapping

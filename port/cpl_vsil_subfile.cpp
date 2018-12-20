@@ -42,7 +42,7 @@
 #include "cpl_string.h"
 #include "cpl_vsi_virtual.h"
 
-CPL_CVSID("$Id: cpl_vsil_subfile.cpp 0f654dda9faabf9d86a44293f0f89903a8e97dd7 2018-04-15 20:18:32 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_vsil_subfile.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -52,15 +52,16 @@ CPL_CVSID("$Id: cpl_vsil_subfile.cpp 0f654dda9faabf9d86a44293f0f89903a8e97dd7 20
 
 class VSISubFileHandle : public VSIVirtualHandle
 {
-  public:
-    VSILFILE     *fp;
-    vsi_l_offset  nSubregionOffset;
-    vsi_l_offset  nSubregionSize;
-    bool          bAtEOF;
+    CPL_DISALLOW_COPY_ASSIGN(VSISubFileHandle)
 
-    VSISubFileHandle() : fp(nullptr), nSubregionOffset(0),
-                         nSubregionSize(0), bAtEOF(false) {}
-    ~VSISubFileHandle() override {}
+  public:
+    VSILFILE     *fp = nullptr;
+    vsi_l_offset  nSubregionOffset = 0;
+    vsi_l_offset  nSubregionSize = 0;
+    bool          bAtEOF = false;
+
+    VSISubFileHandle() = default;
+    ~VSISubFileHandle() override = default;
 
     int Seek( vsi_l_offset nOffset, int nWhence ) override;
     vsi_l_offset Tell() override;
@@ -78,9 +79,11 @@ class VSISubFileHandle : public VSIVirtualHandle
 
 class VSISubFileFilesystemHandler : public VSIFilesystemHandler
 {
+    CPL_DISALLOW_COPY_ASSIGN(VSISubFileFilesystemHandler)
+
   public:
-    VSISubFileFilesystemHandler();
-    ~VSISubFileFilesystemHandler() override;
+    VSISubFileFilesystemHandler() = default;
+    ~VSISubFileFilesystemHandler() override = default;
 
     static int              DecomposePath( const char *pszPath,
                                     CPLString &osFilename,
@@ -260,18 +263,6 @@ int VSISubFileHandle::Eof()
 /************************************************************************/
 
 /************************************************************************/
-/*                      VSISubFileFilesystemHandler()                   */
-/************************************************************************/
-
-VSISubFileFilesystemHandler::VSISubFileFilesystemHandler() {}
-
-/************************************************************************/
-/*                      ~VSISubFileFilesystemHandler()                  */
-/************************************************************************/
-
-VSISubFileFilesystemHandler::~VSISubFileFilesystemHandler() {}
-
-/************************************************************************/
 /*                           DecomposePath()                            */
 /*                                                                      */
 /*      Parse a path like /vsisubfile/1000_2000,data/abc.tif into an    */
@@ -352,8 +343,8 @@ VSISubFileFilesystemHandler::Open( const char *pszFilename,
     }
 
 /* -------------------------------------------------------------------- */
-/*      We can't open the containing file with "w" access, so if tht    */
-/*      is requested use "r+" instead to update in place.               */
+/*      We can't open the containing file with "w" access, so if        */
+/*      that is requested use "r+" instead to update in place.          */
 /* -------------------------------------------------------------------- */
     if( pszAccess[0] == 'w' )
         pszAccess = "r+";

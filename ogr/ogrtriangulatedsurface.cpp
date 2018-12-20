@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrtriangulatedsurface.cpp 10afc23e01f3be129f23d6f2c87d698cdac34ce3 2018-03-31 03:15:04 +0200 Even Rouault $
+ * $Id: ogrtriangulatedsurface.cpp e7a90bdc58142dd21dfe6d7bf960e96b3f79de5d 2018-05-10 22:33:56 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRTriangulatedSurface geometry class.
@@ -32,7 +32,7 @@
 #include "ogr_p.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: ogrtriangulatedsurface.cpp 10afc23e01f3be129f23d6f2c87d698cdac34ce3 2018-03-31 03:15:04 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrtriangulatedsurface.cpp e7a90bdc58142dd21dfe6d7bf960e96b3f79de5d 2018-05-10 22:33:56 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                        OGRTriangulatedSurface()                      */
@@ -43,9 +43,7 @@ CPL_CVSID("$Id: ogrtriangulatedsurface.cpp 10afc23e01f3be129f23d6f2c87d698cdac34
  *
  */
 
-OGRTriangulatedSurface::OGRTriangulatedSurface()
-
-{ }
+OGRTriangulatedSurface::OGRTriangulatedSurface() = default;
 
 /************************************************************************/
 /*        OGRTriangulatedSurface( const OGRTriangulatedSurface& )       */
@@ -72,9 +70,7 @@ OGRTriangulatedSurface::OGRTriangulatedSurface(
  *
  */
 
-OGRTriangulatedSurface::~OGRTriangulatedSurface()
-
-{ }
+OGRTriangulatedSurface::~OGRTriangulatedSurface() = default;
 
 /************************************************************************/
 /*                 operator=( const OGRTriangulatedSurface&)            */
@@ -100,7 +96,7 @@ OGRTriangulatedSurface& OGRTriangulatedSurface::operator=(
         assignSpatialReference( other.getSpatialReference() );
         for(int i=0;i<other.oMP.nGeomCount;i++)
         {
-            addGeometry( other.oMP.getGeometryRef(i) );
+            OGRTriangulatedSurface::addGeometry( other.oMP.getGeometryRef(i) );
         }
     }
     return *this;

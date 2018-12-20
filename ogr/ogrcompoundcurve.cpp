@@ -38,7 +38,7 @@
 #include "ogr_p.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ogrcompoundcurve.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 2018-04-10 15:04:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrcompoundcurve.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                         OGRCompoundCurve()                           */
@@ -48,7 +48,7 @@ CPL_CVSID("$Id: ogrcompoundcurve.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 20
  * \brief Create an empty compound curve.
  */
 
-OGRCompoundCurve::OGRCompoundCurve() {}
+OGRCompoundCurve::OGRCompoundCurve() = default;
 
 /************************************************************************/
 /*             OGRCompoundCurve( const OGRCompoundCurve& )              */
@@ -63,16 +63,13 @@ OGRCompoundCurve::OGRCompoundCurve() {}
  * @since GDAL 2.1
  */
 
-OGRCompoundCurve::OGRCompoundCurve( const OGRCompoundCurve& other ) :
-    OGRCurve(other),
-    oCC(other.oCC)
-{}
+OGRCompoundCurve::OGRCompoundCurve( const OGRCompoundCurve& ) = default;
 
 /************************************************************************/
 /*                         ~OGRCompoundCurve()                          */
 /************************************************************************/
 
-OGRCompoundCurve::~OGRCompoundCurve() {}
+OGRCompoundCurve::~OGRCompoundCurve() = default;
 
 /************************************************************************/
 /*                 operator=( const OGRCompoundCurve&)                  */
@@ -705,16 +702,18 @@ int OGRCompoundCurve::getNumPoints() const
 
 class OGRCompoundCurvePointIterator final: public OGRPointIterator
 {
-        const OGRCompoundCurve *poCC;
-        int                     iCurCurve;
-        OGRPointIterator       *poCurveIter;
+        CPL_DISALLOW_COPY_ASSIGN(OGRCompoundCurvePointIterator)
+
+        const OGRCompoundCurve *poCC = nullptr;
+        int                     iCurCurve = 0;
+        OGRPointIterator       *poCurveIter = nullptr;
 
     public:
         explicit OGRCompoundCurvePointIterator( const OGRCompoundCurve* poCCIn ) :
-            poCC(poCCIn), iCurCurve(0), poCurveIter(nullptr) {}
-        virtual ~OGRCompoundCurvePointIterator() { delete poCurveIter; }
+            poCC(poCCIn) {}
+        ~OGRCompoundCurvePointIterator() override { delete poCurveIter; }
 
-        virtual OGRBoolean getNextPoint( OGRPoint* p ) override;
+        OGRBoolean getNextPoint( OGRPoint* p ) override;
 };
 
 /************************************************************************/

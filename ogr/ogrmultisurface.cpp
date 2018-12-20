@@ -37,7 +37,7 @@
 #include "ogr_core.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrmultisurface.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 2018-04-10 15:04:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrmultisurface.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                          OGRMultiSurface()                           */
@@ -47,13 +47,13 @@ CPL_CVSID("$Id: ogrmultisurface.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 201
  * \brief Create an empty multi surface collection.
  */
 
-OGRMultiSurface::OGRMultiSurface() {}
+OGRMultiSurface::OGRMultiSurface() = default;
 
 /************************************************************************/
 /*                         ~OGRMultiSurface()                           */
 /************************************************************************/
 
-OGRMultiSurface::~OGRMultiSurface() {}
+OGRMultiSurface::~OGRMultiSurface() = default;
 
 /************************************************************************/
 /*              OGRMultiSurface( const OGRMultiSurface& )               */
@@ -68,9 +68,7 @@ OGRMultiSurface::~OGRMultiSurface() {}
  * @since GDAL 2.1
  */
 
-OGRMultiSurface::OGRMultiSurface( const OGRMultiSurface& other ) :
-    OGRGeometryCollection(other)
-{}
+OGRMultiSurface::OGRMultiSurface( const OGRMultiSurface& ) = default;
 
 /************************************************************************/
 /*                  operator=( const OGRMultiCurve&)                    */

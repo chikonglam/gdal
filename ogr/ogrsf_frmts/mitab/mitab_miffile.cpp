@@ -51,7 +51,7 @@
 #include "ogr_spatialref.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: mitab_miffile.cpp 18203f88afa680a5fe0c2dfa787ad8df822e74d9 2018-04-21 17:44:53 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_miffile.cpp 43b6061a355c4bce2283b787b28d5f3ae6b9e2af 2018-05-06 14:19:59 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class MIFFile
@@ -1231,7 +1231,7 @@ TABFeature *MIFFile::GetFeatureRef(GIntBig nFeatureId)
         return nullptr;
     }
 
-    if ( !CPL_INT64_FITS_ON_INT32(nFeatureId) || GotoFeature((int)nFeatureId)!= 0 )
+    if ( !CPL_INT64_FITS_ON_INT32(nFeatureId) || GotoFeature(static_cast<int>(nFeatureId))!= 0 )
     {
         CPLError(CE_Failure, CPLE_IllegalArg,
                  "GetFeatureRef() failed: invalid feature id " CPL_FRMT_GIB,
@@ -1391,7 +1391,7 @@ TABFeature *MIFFile::GetFeatureRef(GIntBig nFeatureId)
        it to a geometry none */
     if (m_poCurFeature->GetFeatureClass() == TABFCText)
     {
-       TABText *poTextFeature = (TABText*)m_poCurFeature;
+       TABText *poTextFeature = cpl::down_cast<TABText*>(m_poCurFeature);
        if (strlen(poTextFeature->GetTextString()) == 0)
        {
            TABFeature *poTmpFeature = new TABFeature(m_poDefn);
@@ -1798,20 +1798,20 @@ int MIFFile::AddFieldNative(const char *pszName, TABFieldType eMapInfoType,
     /*-----------------------------------------------------------------
      * Keep track of native field type
      *----------------------------------------------------------------*/
-    m_paeFieldType = (TABFieldType *)CPLRealloc(m_paeFieldType,
+    m_paeFieldType = static_cast<TABFieldType *>(CPLRealloc(m_paeFieldType,
                                                 m_poDefn->GetFieldCount()*
-                                                sizeof(TABFieldType));
+                                                sizeof(TABFieldType)));
     m_paeFieldType[m_poDefn->GetFieldCount()-1] = eMapInfoType;
 
     /*-----------------------------------------------------------------
      * Extend array of Indexed/Unique flags
      *----------------------------------------------------------------*/
-    m_pabFieldIndexed = (GBool *)CPLRealloc(m_pabFieldIndexed,
+    m_pabFieldIndexed = static_cast<GBool *>(CPLRealloc(m_pabFieldIndexed,
                                             m_poDefn->GetFieldCount()*
-                                            sizeof(GBool));
-    m_pabFieldUnique  = (GBool *)CPLRealloc(m_pabFieldUnique,
+                                            sizeof(GBool)));
+    m_pabFieldUnique  = static_cast<GBool *>(CPLRealloc(m_pabFieldUnique,
                                             m_poDefn->GetFieldCount()*
-                                            sizeof(GBool));
+                                            sizeof(GBool)));
     m_pabFieldIndexed[m_poDefn->GetFieldCount()-1] = bIndexed;
     m_pabFieldUnique[m_poDefn->GetFieldCount()-1] = bUnique;
 

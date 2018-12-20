@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geopackage.h 05a25fb391048ccd916ab41b4c0c1e3084a44753 2018-10-04 13:47:44 +0200 Andrea Giudiceandrea $
+ * $Id: ogr_geopackage.h 14787d4dc99b60b85c305b08e4424a51abb27f9a 2018-11-21 19:44:02 +0100 Even Rouault $
  *
  * Project:  GeoPackage Translator
  * Purpose:  Definition of classes for OGR GeoPackage driver.
@@ -205,7 +205,7 @@ class GDALGeoPackageDataset final : public OGRSQLiteBaseDataSource, public GDALG
         bool                    m_bMapTableToExtensionsBuilt;
         std::map< CPLString, std::vector<GPKGExtensionDesc> > m_oMapTableToExtensions;
         const std::map< CPLString, std::vector<GPKGExtensionDesc> > &
-                                        GetExtensions();
+                                        GetUnknownExtensionsTableSpecific();
 
         bool                    m_bMapTableToContentsBuilt;
         std::map< CPLString, GPKGContentsDesc > m_oMapTableToContents;
@@ -276,8 +276,10 @@ class GDALGeoPackageDataset final : public OGRSQLiteBaseDataSource, public GDALG
         OGRErr              CreateExtensionsTableIfNecessary();
         bool                HasExtensionsTable();
         OGRErr              CreateGDALAspatialExtension();
-        bool                HasDataColumnsTable();
         void                SetMetadataDirty() { m_bMetadataDirty = true; }
+
+        bool                    HasDataColumnsTable();
+        bool                    HasDataColumnConstraintsTable();
 
         const char*         GetGeometryTypeString(OGRwkbGeometryType eType);
 
@@ -450,6 +452,8 @@ class OGRGeoPackageTableLayer final : public OGRGeoPackageLayer
     OGRErr              ReadTableDefinition();
     void                InitView();
 
+    bool                DoSpecialProcessingForColumnCreation(OGRFieldDefn* poField);
+
     public:
                         OGRGeoPackageTableLayer( GDALGeoPackageDataset *poDS,
                                                  const char * pszTableName );
@@ -513,6 +517,8 @@ class OGRGeoPackageTableLayer final : public OGRGeoPackageLayer
     void                CreateSpatialIndexIfNecessary();
     bool                CreateSpatialIndex(const char* pszTableName = nullptr);
     bool                DropSpatialIndex(bool bCalledFromSQLFunction = false);
+    CPLString           ReturnSQLCreateSpatialIndexTriggers(const char* pszTableName);
+    CPLString           ReturnSQLDropSpatialIndexTriggers();
 
     virtual char **     GetMetadata( const char *pszDomain = nullptr ) override;
     virtual const char *GetMetadataItem( const char * pszName,
@@ -566,6 +572,7 @@ class OGRGeoPackageTableLayer final : public OGRGeoPackageLayer
     OGRErr              FeatureBindUpdateParameters( OGRFeature *poFeature, sqlite3_stmt *poStmt );
     OGRErr              FeatureBindInsertParameters( OGRFeature *poFeature, sqlite3_stmt *poStmt, bool bAddFID, bool bBindUnsetFields );
     OGRErr              FeatureBindParameters( OGRFeature *poFeature, sqlite3_stmt *poStmt, int *pnColCount, bool bAddFID, bool bBindUnsetFields );
+    void                UpdateContentsToNullExtent();
 
     void                CheckUnknownExtensions();
     bool                CreateGeometryExtensionIfNecessary(const OGRGeometry* poGeom);
@@ -578,6 +585,8 @@ class OGRGeoPackageTableLayer final : public OGRGeoPackageLayer
 
 class OGRGeoPackageSelectLayer final : public OGRGeoPackageLayer, public IOGRSQLiteSelectLayer
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRGeoPackageSelectLayer)
+
     OGRSQLiteSelectLayerCommonBehaviour* poBehaviour;
 
     virtual OGRErr      ResetStatement() override;

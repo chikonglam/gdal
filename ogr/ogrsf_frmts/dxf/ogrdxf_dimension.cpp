@@ -34,7 +34,7 @@
 
 #include <stdexcept>
 
-CPL_CVSID("$Id: ogrdxf_dimension.cpp 3746b122f665aff6d6991677da8a0a5cd94b0f71 2018-05-03 12:31:28 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrdxf_dimension.cpp 73707b32a2b6b1a5c36b202f541bfb65b8cb404a 2018-05-03 12:31:28 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                             PointDist()                              */

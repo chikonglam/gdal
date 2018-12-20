@@ -7,7 +7,7 @@
  *
  * Author:   David Zwarg, dzwarg@azavea.com
  *
- * Last changes: $Id: postgisraster.h 92990f981ec79f5af2b8cf47b9b7772d9dac1df1 2018-05-18 15:11:24 +0200 Even Rouault $
+ * Last changes: $Id: postgisraster.h a10ee3ab7614aeaaf7b485fbfbdb4464a0be5513 2018-05-18 15:11:24 +0200 Even Rouault $
  *
  ***********************************************************************
  * Copyright (c) 2009 - 2013, Jorge Arevalo, David Zwarg

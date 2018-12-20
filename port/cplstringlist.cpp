@@ -41,19 +41,13 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: cplstringlist.cpp 07238f4cbcdc1a56c9db7e8dc3a5727346194074 2018-04-02 14:34:13 +0200 Even Rouault $")
+CPL_CVSID("$Id: cplstringlist.cpp c39d156816d937c3139360b11786c769aeabd21e 2018-05-05 19:48:08 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           CPLStringList()                            */
 /************************************************************************/
 
-CPLStringList::CPLStringList() :
-    papszList(nullptr),
-    nCount(0),
-    nAllocation(0),
-    bOwnList(false),
-    bIsSorted(false)
-{}
+CPLStringList::CPLStringList() = default;
 
 /************************************************************************/
 /*                           CPLStringList()                            */
@@ -67,10 +61,10 @@ CPLStringList::CPLStringList() :
  * of the list of strings which implies responsibility to free them.
  */
 
-CPLStringList::CPLStringList( char **papszListIn, int bTakeOwnership )
+CPLStringList::CPLStringList( char **papszListIn, int bTakeOwnership ):
+    CPLStringList()
 
 {
-    Initialize();
     Assign( papszListIn, bTakeOwnership );
 }
 
@@ -86,10 +80,10 @@ CPLStringList::CPLStringList( char **papszListIn, int bTakeOwnership )
  * @param papszListIn the NULL terminated list of strings to ingest.
  */
 
-CPLStringList::CPLStringList( CSLConstList papszListIn )
+CPLStringList::CPLStringList( CSLConstList papszListIn ):
+    CPLStringList()
 
 {
-    Initialize();
     Assign( CSLDuplicate(papszListIn) );
 }
 
@@ -98,10 +92,10 @@ CPLStringList::CPLStringList( CSLConstList papszListIn )
 /************************************************************************/
 
 //! Copy constructor
-CPLStringList::CPLStringList( const CPLStringList &oOther )
+CPLStringList::CPLStringList( const CPLStringList &oOther ):
+    CPLStringList()
 
 {
-    Initialize();
     Assign( oOther.papszList, FALSE );
 
     // We don't want to just retain a reference to the others list
@@ -144,20 +138,6 @@ CPLStringList &CPLStringList::operator=( CSLConstList papszListIn )
     }
 
     return *this;
-}
-
-/************************************************************************/
-/*                             Initialize()                             */
-/************************************************************************/
-
-void CPLStringList::Initialize()
-
-{
-    papszList = nullptr;
-    nCount = 0;
-    nAllocation = 0;
-    bOwnList = false;
-    bIsSorted = false;
 }
 
 /************************************************************************/

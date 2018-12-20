@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: gdal_rmdir.py 1c4c31920cab399201233778e0962abc445e4221 2018-04-15 13:25:48 +1000 Ben Elliston $
+# $Id: gdal_rmdir.py ca5d0820bd60c7e33031b99a61dfe01573ab5ec1 2018-04-25 18:43:11 +1000 Ben Elliston $
 #
 #  Project:  GDAL samples
 #  Purpose:  Delete a virtual directory
@@ -39,6 +39,7 @@ def Usage():
 
 
 def gdal_rm(argv, progress=None):
+    # pylint: disable=unused-argument
     filename = None
 
     argv = gdal.GeneralCmdLineProcessor(argv)

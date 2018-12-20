@@ -41,7 +41,7 @@
 #include "cpl_error.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: ddfrecord.cpp 18fa8695ec708dfe094a8ce864781dba2e5c59f4 2018-08-11 12:21:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ddfrecord.cpp d502cdff1e78065fc25eb395cc8a9d7be7e2c586 2018-08-11 12:21:43 +0200 Even Rouault $")
 
 constexpr int nLeaderSize = 24;
 

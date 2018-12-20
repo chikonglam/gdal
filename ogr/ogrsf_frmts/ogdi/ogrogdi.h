@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrogdi.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: ogrogdi.h db7b8a03d90637c2f6ba5cbdb087e2819d8ec8dd 2018-05-12 22:34:30 +0200 Even Rouault $
  *
  * Project:  OGDI Bridge
  * Purpose:  Private definitions within the OGDI driver to implement
@@ -34,7 +34,11 @@
 
 #include <math.h>
 extern "C" {
+/* Older versions of OGDI have register keywords as qualifier for arguments
+ * of functions, which is illegal in C++17 */
+#define register
 #include "ecs.h"
+#undef register
 }
 #include "ogrsf_frmts.h"
 
@@ -43,7 +47,7 @@ extern "C" {
 /************************************************************************/
 class OGROGDIDataSource;
 
-class OGROGDILayer : public OGRLayer
+class OGROGDILayer final: public OGRLayer
 {
     OGROGDIDataSource  *m_poODS;
     int                 m_nClientID;
@@ -89,7 +93,7 @@ class OGROGDILayer : public OGRLayer
 /*                          OGROGDIDataSource                           */
 /************************************************************************/
 
-class OGROGDIDataSource : public OGRDataSource
+class OGROGDIDataSource final: public OGRDataSource
 {
     OGROGDILayer      **m_papoLayers;
     int                 m_nLayers;
@@ -134,7 +138,7 @@ class OGROGDIDataSource : public OGRDataSource
 /*                            OGROGDIDriver                             */
 /************************************************************************/
 
-class OGROGDIDriver : public OGRSFDriver
+class OGROGDIDriver final: public OGRSFDriver
 {
   public:
                 ~OGROGDIDriver();

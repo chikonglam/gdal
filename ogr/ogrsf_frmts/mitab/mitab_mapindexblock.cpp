@@ -44,7 +44,7 @@
 #include "cpl_vsi.h"
 #include "mitab_priv.h"
 
-CPL_CVSID("$Id: mitab_mapindexblock.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_mapindexblock.cpp fd5a52b3fb25239d417f2daed64aa6f8cbe38da9 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABMAPIndexBlock
@@ -190,7 +190,7 @@ int     TABMAPIndexBlock::CommitToFile()
     GotoByteInBlock(0x000);
 
     WriteInt16(TABMAP_INDEX_BLOCK);    // Block type code
-    WriteInt16((GInt16)m_numEntries);
+    WriteInt16(static_cast<GInt16>(m_numEntries));
 
     int nStatus = CPLGetLastErrorType() == CE_Failure ? -1 : 0;
 
@@ -599,7 +599,7 @@ GInt32  TABMAPIndexBlock::ChooseLeafForInsert(GInt32 nXMin, GInt32 nYMin,
                                     m_nBlockSize, TRUE, TABReadWrite);
     if (poBlock != nullptr && poBlock->GetBlockClass() == TABMAP_INDEX_BLOCK)
     {
-        m_poCurChild = (TABMAPIndexBlock*)poBlock;
+        m_poCurChild = cpl::down_cast<TABMAPIndexBlock*>(poBlock);
         poBlock = nullptr;
         m_nCurChildIndex = nBestCandidate;
         m_poCurChild->SetParentRef(this);
@@ -800,7 +800,7 @@ int     TABMAPIndexBlock::AddEntry(GInt32 nXMin, GInt32 nYMin,
                                        m_nBlockSize, TRUE, TABReadWrite);
             if (poBlock != nullptr && poBlock->GetBlockClass() == TABMAP_INDEX_BLOCK)
             {
-                m_poCurChild = (TABMAPIndexBlock*)poBlock;
+                m_poCurChild = cpl::down_cast<TABMAPIndexBlock*>(poBlock);
                 poBlock = nullptr;
                 m_nCurChildIndex = nBestCandidate;
                 m_poCurChild->SetParentRef(this);
@@ -1127,7 +1127,7 @@ int     TABMAPIndexBlock::SplitNode(GInt32 nNewEntryXMin, GInt32 nNewEntryYMin,
      * Make a temporary copy of the entries in current node
      *----------------------------------------------------------------*/
     int nSrcEntries = m_numEntries;
-    TABMAPIndexEntry *pasSrcEntries = (TABMAPIndexEntry*)CPLMalloc(m_numEntries*sizeof(TABMAPIndexEntry));
+    TABMAPIndexEntry *pasSrcEntries = static_cast<TABMAPIndexEntry*>(CPLMalloc(m_numEntries*sizeof(TABMAPIndexEntry)));
     memcpy(pasSrcEntries, &m_asEntries, m_numEntries*sizeof(TABMAPIndexEntry));
 
     int nSrcCurChildIndex = m_nCurChildIndex;

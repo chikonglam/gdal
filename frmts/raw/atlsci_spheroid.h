@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: atlsci_spheroid.h bf6b5c8b11f1f68626ba312fa7a994ebf08c7327 2016-04-17 19:01:27Z Kurt Schwehr $
+ * $Id: atlsci_spheroid.h 3306314ab0bbe9cb81863893197abed26f6bcb2b 2018-05-10 19:43:57 +0200 Even Rouault $
  *
  * Project:  Spheroid classes
  * Purpose:  Provide spheroid lookup table base classes.
@@ -27,6 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#include "cpl_port.h"
+
 /**********************************************************************/
 /* ================================================================== */
 /*          Spheroid definitions                                      */
@@ -35,6 +37,8 @@
 
 class SpheroidItem
 {
+    CPL_DISALLOW_COPY_ASSIGN(SpheroidItem)
+
  public:
    SpheroidItem();
    ~SpheroidItem();
@@ -53,6 +57,8 @@ class SpheroidItem
 
 class SpheroidList
 {
+    CPL_DISALLOW_COPY_ASSIGN(SpheroidList)
+
  public:
   int num_spheroids;
   // Acceptable errors for radii, inverse flattening.

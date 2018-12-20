@@ -32,7 +32,7 @@
 #include "ogrsqliteutility.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgeopackagelayer.cpp 85cc62e40607cf41aee12b371271ec570fc85c83 2018-07-24 19:46:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeopackagelayer.cpp 6c78501419a048320fea4e6bc86ac3c97bc54450 2018-07-24 19:46:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                      OGRGeoPackageLayer()                            */

@@ -34,7 +34,7 @@
 #include "cpl_string.h"
 #include "cpl_minixml.h"
 
-CPL_CVSID("$Id: georaster_wrapper.cpp 79c519fae99c9d29d132402579a7e3723b457ee0 2018-10-19 11:35:28 -0700 Fengting Chen $")
+CPL_CVSID("$Id: georaster_wrapper.cpp 499f2eb9c7e58d30cb5a11ce5d88589a44a4df7b 2018-10-19 11:35:28 -0700 Fengting Chen $")
 
 //  ---------------------------------------------------------------------------
 //                                                           GeoRasterWrapper()
@@ -1741,7 +1741,7 @@ bool GeoRasterWrapper::InitializeIO( void )
         if( nXSize <= nXBlock && nYSize <= nYBlock )
         {
             // ------------------------------------------------------------
-            // Calculate the size of the singe small blocks
+            // Calculate the size of the single small blocks
             // ------------------------------------------------------------
 
             nCBS = nXSize;

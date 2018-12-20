@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: gdalfilter.py d7e898f6034a9c6c0f83cfbff921434dfc2082be 2018-04-18 23:07:52 +1000 Ben Elliston $
+# $Id: gdalfilter.py 0abc380ee2dbc2ba4357969826ad0f9b9801b0d7 2018-05-08 22:24:06 +1000 Ben Elliston $
 #
 # Project:  OGR Python samples
 # Purpose:  Filter an input file, producing an output file.
@@ -28,11 +28,10 @@
 # DEALINGS IN THE SOFTWARE.
 ###############################################################################
 
-from osgeo import gdal
-gdal.TermProgress = gdal.TermProgress_nocb
-
 import sys
-import string
+from osgeo import gdal
+
+gdal.TermProgress = gdal.TermProgress_nocb
 
 
 def Usage():
@@ -102,7 +101,7 @@ while i < len(sys.argv):
 if dstfile is None:
     Usage()
 
-if out_format is None and string.lower(dstfile[-4:]) == '.vrt':
+if out_format is None and dstfile[-4:].lower() == '.vrt':
     out_format = 'VRT'
 else:
     out_format = 'GTiff'

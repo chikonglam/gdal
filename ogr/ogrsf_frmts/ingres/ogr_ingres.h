@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_ingres.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: ogr_ingres.h d14a537a4324399712f4b822656d374341773cd3 2018-07-29 23:14:54 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Declarations for Ingres OGR Driver Classes.
@@ -42,24 +42,24 @@ class OGRIngresDataSource;
 class OGRIngresStatement
 {
 public:
-    II_PTR            hConn;
-    II_PTR            hStmt;
-    II_PTR            hTransaction;
+    II_PTR            hConn = nullptr;
+    II_PTR            hStmt = nullptr;
+    II_PTR            hTransaction = nullptr;
 
     IIAPI_GETDESCRPARM  getDescrParm;
     IIAPI_GETCOLPARM    getColParm;
-    IIAPI_DATAVALUE     *pasDataBuffer;
+    IIAPI_DATAVALUE     *pasDataBuffer = nullptr;
     IIAPI_GETQINFOPARM  queryInfo;
 
-    GByte             *pabyWrkBuffer;
-    char              **papszFields;
+    GByte             *pabyWrkBuffer = nullptr;
+    char              **papszFields = nullptr;
 
-    int               bDebug;
+    int               bDebug = TRUE;
 
-    int               bHaveParm;
+    int               bHaveParm = FALSE;
     IIAPI_DT_ID       eParmType;
-    int               nParmLen;
-    GByte            *pabyParmData;
+    int               nParmLen = 0;
+    GByte            *pabyParmData = nullptr;
 
     explicit OGRIngresStatement( II_PTR hConn );
     ~OGRIngresStatement();
@@ -219,26 +219,26 @@ class OGRIngresResultLayer : public OGRIngresLayer
 
 class OGRIngresDataSource : public OGRDataSource
 {
-    OGRIngresLayer    **papoLayers;
-    int                 nLayers;
+    OGRIngresLayer    **papoLayers = nullptr;
+    int                 nLayers = 0;
 
-    char               *pszName;
+    char               *pszName = nullptr;
 
-    int                 bDSUpdate;
+    int                 bDSUpdate = FALSE;
 
-    II_PTR              hConn;
+    II_PTR              hConn = nullptr;
 
     int                 DeleteLayer( int iLayer ) override;
 
     // We maintain a list of known SRID to reduce the number of trips to
     // the database to get SRSes.
-    int                 nKnownSRID;
-    int                *panSRID;
-    OGRSpatialReference **papoSRS;
+    int                 nKnownSRID = 0;
+    int                *panSRID = nullptr;
+    OGRSpatialReference **papoSRS = nullptr;
 
-    OGRIngresLayer     *poActiveLayer; /* this layer has active transaction */
+    OGRIngresLayer     *poActiveLayer = nullptr; /* this layer has active transaction */
 
-    int                 bNewIngres; /* TRUE if new spatial library */
+    int                 bNewIngres = FALSE; /* TRUE if new spatial library */
 
   public:
                         OGRIngresDataSource();

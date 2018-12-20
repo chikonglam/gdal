@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: tigerpoly.py d7e898f6034a9c6c0f83cfbff921434dfc2082be 2018-04-18 23:07:52 +1000 Ben Elliston $
+# $Id: tigerpoly.py c040b1b6de0393a47c70cd5b8f8b2b692d43a3f4 2018-05-09 02:30:58 +1000 Ben Elliston $
 #
 # Project:  OGR Python samples
 # Purpose:  Assemble TIGER Polygons.
@@ -36,7 +36,7 @@ from osgeo import osr
 
 
 #############################################################################
-class Module:
+class Module(object):
 
     def __init__(self):
         self.lines = {}
@@ -128,7 +128,7 @@ while feat is not None:
 
     try:
         module = modules_hash[tile_ref]
-    except:
+    except KeyError:
         module = Module()
         modules_hash[tile_ref] = module
 
@@ -170,12 +170,12 @@ while feat is not None:
 
     try:
         module.poly_line_links[lpoly_id].append(tlid)
-    except:
+    except KeyError:
         module.poly_line_links[lpoly_id] = [tlid]
 
     try:
         module.poly_line_links[rpoly_id].append(tlid)
-    except:
+    except KeyError:
         module.poly_line_links[rpoly_id] = [tlid]
 
     link_count = link_count + 1

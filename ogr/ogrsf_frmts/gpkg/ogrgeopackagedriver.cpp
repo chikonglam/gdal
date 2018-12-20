@@ -28,7 +28,7 @@
 
 #include "ogr_geopackage.h"
 
-CPL_CVSID("$Id: ogrgeopackagedriver.cpp 3bc98ac2e895141cb38924f83d1182b59d711148 2018-06-14 16:22:26 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeopackagedriver.cpp a0845a051c0cd1cc7dfbeebb776dc325af262cac 2018-06-14 16:22:26 +0200 Even Rouault $")
 
 // g++ -g -Wall -fPIC -shared -o ogr_geopackage.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/gpkg ogr/ogrsf_frmts/gpkg/*.c* -L. -lgdal
 

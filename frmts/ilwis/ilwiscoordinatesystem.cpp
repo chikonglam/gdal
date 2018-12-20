@@ -30,7 +30,7 @@
 
 #include <string>
 
-CPL_CVSID("$Id: ilwiscoordinatesystem.cpp 6574497e5ddfd7c08c094a76756a0ef477cef6a1 2018-04-04 22:15:20 +0200 Even Rouault $")
+CPL_CVSID("$Id: ilwiscoordinatesystem.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 namespace GDAL {
 
@@ -561,14 +561,14 @@ CPLErr ILWISDataset::ReadProjection( const std::string& csyFileName )
              STARTS_WITH_CI(pszProj.c_str(), "Plate Rectangle"))
     {
         // set 0.0 for CenterLat for Plate Carree projection
-        // skipp Latitude_Of_True_Scale for Plate Rectangle projection definition
+        // skip Latitude_Of_True_Scale for Plate Rectangle projection definition
         oSRS.SetProjCS(pszProj.c_str());
         oSRS.SetEquirectangular( padfPrjParams[5], padfPrjParams[6],
                                  padfPrjParams[3], padfPrjParams[4] );
     }
     else if( STARTS_WITH_CI(pszProj.c_str(), "PolyConic") )
     {
-        // skipp scale factor
+        // skip scale factor
         oSRS.SetProjCS("PolyConic");
         oSRS.SetPolyconic( padfPrjParams[5], padfPrjParams[6],
                            padfPrjParams[3], padfPrjParams[4] );

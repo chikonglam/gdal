@@ -36,7 +36,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: swq_op_registrar.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: swq_op_registrar.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 //! @cond Doxygen_Suppress
 static swq_field_type SWQColumnFuncChecker(
@@ -76,8 +76,6 @@ static const swq_operation swq_apsOperations[] =
     { "CAST", SWQ_CAST, SWQCastEvaluator, SWQCastChecker }
 };
 
-#define N_OPERATIONS (sizeof(swq_apsOperations) / sizeof(swq_apsOperations[0]))
-
 /************************************************************************/
 /*                            GetOperator()                             */
 /************************************************************************/
@@ -85,10 +83,10 @@ static const swq_operation swq_apsOperations[] =
 const swq_operation *swq_op_registrar::GetOperator( const char *pszName )
 
 {
-    for( unsigned int i = 0; i < N_OPERATIONS; ++i )
+    for( const auto& op: swq_apsOperations )
     {
-        if( EQUAL(pszName, swq_apsOperations[i].pszName) )
-            return &(swq_apsOperations[i]);
+        if( EQUAL(pszName, op.pszName) )
+            return &op;
     }
 
     return nullptr;
@@ -101,10 +99,10 @@ const swq_operation *swq_op_registrar::GetOperator( const char *pszName )
 const swq_operation *swq_op_registrar::GetOperator( swq_op eOperator )
 
 {
-    for( unsigned int i = 0; i < N_OPERATIONS; ++i )
+    for( const auto& op: swq_apsOperations )
     {
-        if( eOperator == swq_apsOperations[i].eOperation )
-            return &(swq_apsOperations[i]);
+        if( eOperator == op.eOperation )
+            return &op;
     }
 
     return nullptr;

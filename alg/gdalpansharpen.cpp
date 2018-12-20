@@ -30,6 +30,7 @@
 #include "cpl_port.h"
 #include "gdalpansharpen.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
@@ -50,7 +51,7 @@
 // Limit types to practical use cases.
 #define LIMIT_TYPES 1
 
-CPL_CVSID("$Id: gdalpansharpen.cpp 80bae6ae660f1b7509c5c7a1ce7c825eacbc905f 2018-05-25 08:13:12 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalpansharpen.cpp 9f0bbc321e11d7f88ee59af5ccdfb58204ec04f6 2018-11-22 11:25:14 +0100 Even Rouault $")
 
 /************************************************************************/
 /*                     GDALCreatePansharpenOptions()                    */
@@ -161,12 +162,7 @@ GDALPansharpenOptions* GDALClonePansharpenOptions(
  *
  * The object is ready to be used after Initialize() has been called.
  */
-GDALPansharpenOperation::GDALPansharpenOperation() :
-    psOptions(nullptr),
-    bPositiveWeights(TRUE),
-    poThreadPool(nullptr),
-    nKernelRadius(0)
-{}
+GDALPansharpenOperation::GDALPansharpenOperation() = default;
 
 /************************************************************************/
 /*                       ~GDALPansharpenOperation()                     */
@@ -258,7 +254,7 @@ GDALPansharpenOperation::Initialize( const GDALPansharpenOptions* psOptionsIn )
         {
             CPLError(CE_Failure, CPLE_AppDefined,
                      "Invalid value panOutPansharpenedBands[%d] = %d",
-                     psOptionsIn->panOutPansharpenedBands[i], i);
+                     i, psOptionsIn->panOutPansharpenedBands[i]);
             return CE_Failure;
         }
     }
@@ -378,7 +374,7 @@ GDALPansharpenOperation::Initialize( const GDALPansharpenOptions* psOptionsIn )
             if( EQUAL(pszNumThreads, "ALL_CPUS") )
                 nThreads = CPLGetNumCPUs();
             else
-                nThreads = atoi(pszNumThreads);
+                nThreads = std::max(0, std::min(128, atoi(pszNumThreads)));
         }
     }
     if( nThreads > 1 )

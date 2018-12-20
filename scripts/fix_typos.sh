@@ -1,7 +1,7 @@
 #!/bin/sh
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: fix_typos.sh 879b6716d0f11509a8dcbe47fdd5e003cca30407 2018-04-11 20:54:43 +1000 Ben Elliston $
+# $Id: fix_typos.sh 02b4fdb53f5d56b64e49fae31a72252b2795d4a6 2018-05-14 17:31:32 +1000 Ben Elliston $
 #
 #  Project:  GDAL
 #  Purpose:  (Interactive) script to identify and fix typos
@@ -48,20 +48,18 @@ cd "$GDAL_ROOT"
 if ! test -d fix_typos; then
     # Get our fork of codespell that adds --words-white-list and full filename support for -S option
     mkdir fix_typos
-    cd fix_typos
-    git clone https://github.com/rouault/codespell
-    cd codespell
-    git checkout gdal_improvements
-    cd ..
-    # Aggregate base dictionary + QGIS one + Debian Lintian one
-    curl https://raw.githubusercontent.com/qgis/QGIS/master/scripts/spelling.dat | sed "s/:/->/" | grep -v "colour->" | grep -v "colours->" > qgis.txt
-    curl https://anonscm.debian.org/cgit/lintian/lintian.git/plain/data/spelling/corrections| grep "||" | grep -v "#" | sed "s/||/->/" > debian.txt
-    cat codespell/data/dictionary.txt qgis.txt debian.txt | awk 'NF' > gdal_dict.txt
-    echo "difered->deferred" >> gdal_dict.txt
-    echo "differed->deferred" >> gdal_dict.txt
-    grep -v 404 < gdal_dict.txt > gdal_dict.txt.tmp
-    mv gdal_dict.txt.tmp gdal_dict.txt
-    cd ..
+    (cd fix_typos
+     git clone https://github.com/rouault/codespell
+     (cd codespell && git checkout gdal_improvements)
+     # Aggregate base dictionary + QGIS one + Debian Lintian one
+     curl https://raw.githubusercontent.com/qgis/QGIS/master/scripts/spelling.dat | sed "s/:/->/" | grep -v "colour->" | grep -v "colours->" > qgis.txt
+     curl https://anonscm.debian.org/cgit/lintian/lintian.git/plain/data/spelling/corrections| grep "||" | grep -v "#" | sed "s/||/->/" > debian.txt
+     cat codespell/data/dictionary.txt qgis.txt debian.txt | awk 'NF' > gdal_dict.txt
+     echo "difered->deferred" >> gdal_dict.txt
+     echo "differed->deferred" >> gdal_dict.txt
+     grep -v 404 < gdal_dict.txt > gdal_dict.txt.tmp
+     mv gdal_dict.txt.tmp gdal_dict.txt
+    )
 fi
 
 EXCLUDED_FILES="*/.svn*,configure,config.status,config.sub,*/autom4te.cache/*"

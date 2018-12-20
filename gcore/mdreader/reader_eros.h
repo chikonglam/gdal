@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: reader_eros.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: reader_eros.h e37e476c4cf8f4b0df8995e0d95d5d672fca1a9b 2018-05-05 16:54:18 +0200 Even Rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Read metadata from EROS imagery.
@@ -56,8 +56,8 @@ protected:
     char** LoadImdTxtFile();
     virtual time_t GetAcquisitionTimeFromString(const char* pszDateTime) override;
 protected:
-    CPLString m_osIMDSourceFilename;
-    CPLString m_osRPBSourceFilename;
+    CPLString m_osIMDSourceFilename{};
+    CPLString m_osRPBSourceFilename{};
 };
 
 #endif // READER_EROS_H_INCLUDED

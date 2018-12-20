@@ -52,7 +52,7 @@
 #include "ogr_feature.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: mitab_datfile.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_datfile.cpp fd5a52b3fb25239d417f2daed64aa6f8cbe38da9 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABDATFile
@@ -1301,6 +1301,9 @@ int TABDATFile::AlterFieldDefn( int iField, OGRFieldDefn *poNewFieldDefn,
     int nRecordSizeBefore = 0;
     int nRecordSizeAfter = 0;
     TABDATFieldDef sFieldDef;
+    sFieldDef.eTABType = TABFUnknown;
+    sFieldDef.byLength = 0;
+    sFieldDef.byDecimals = 0;
     TABDATFileSetFieldDefinition(&sFieldDef,
                                  m_pasFieldDef[iField].szName,
                                  eTABType,

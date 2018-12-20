@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmutexeddatasource.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: ogrmutexeddatasource.h 10e54d45fee8229428eb8ab22949aa46eb9da150 2018-05-06 11:07:25 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRLMutexedDataSource class
@@ -46,13 +46,15 @@
  */
 class CPL_DLL OGRMutexedDataSource : public OGRDataSource
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRMutexedDataSource)
+
   protected:
     OGRDataSource *m_poBaseDataSource;
     int            m_bHasOwnership;
     CPLMutex      *m_hGlobalMutex;
     int            m_bWrapLayersInMutexedLayer;
-    std::map<OGRLayer*, OGRMutexedLayer* > m_oMapLayers;
-    std::map<OGRMutexedLayer*, OGRLayer* > m_oReverseMapLayers;
+    std::map<OGRLayer*, OGRMutexedLayer* > m_oMapLayers{};
+    std::map<OGRMutexedLayer*, OGRLayer* > m_oReverseMapLayers{};
 
     OGRLayer*           WrapLayerIfNecessary(OGRLayer* poLayer);
 

@@ -38,7 +38,7 @@
 #include <algorithm>
 #include <limits>
 
-CPL_CVSID("$Id: test_ogrsf.cpp 7d078e0357d2998edfa713422e607cbadf77f9ff 2018-04-08 22:11:28 +0200 Even Rouault $")
+CPL_CVSID("$Id: test_ogrsf.cpp 9d70906d6f4b8b1a395212e5032daf5488fa29ad 2018-08-15 15:03:51 +0200 Even Rouault $")
 
 bool bReadOnly = false;
 bool bVerbose = true;
@@ -2315,7 +2315,18 @@ static int TestAttributeFilter( CPL_UNUSED GDALDataset* poDS,
         poTargetFeature->GetFieldDefnRef(i)->GetNameRef();
     CPLString osValue = poTargetFeature->GetFieldAsString(i);
     if( eType == OFTReal )
-        osValue.Printf("%.18g", poTargetFeature->GetFieldAsDouble(i));
+    {
+        int nWidth = poTargetFeature->GetFieldDefnRef(i)->GetWidth();
+        int nPrecision = poTargetFeature->GetFieldDefnRef(i)->GetPrecision();
+        if( nWidth > 0 )
+        {
+            char szFormat[32];
+            snprintf(szFormat, sizeof(szFormat), "%%%d.%df", nWidth, nPrecision);
+            osValue.Printf(szFormat, poTargetFeature->GetFieldAsDouble(i));
+        }
+        else
+            osValue.Printf("%.18g", poTargetFeature->GetFieldAsDouble(i));
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Construct inclusive filter.                                     */

@@ -52,7 +52,7 @@
 #include "ogr_expat.h"
 #endif
 
-CPL_CVSID("$Id: osm_parser.cpp 3498b6abaa295028c06aff321c224bec8503745a 2018-08-14 09:04:46 +0200 Even Rouault $")
+CPL_CVSID("$Id: osm_parser.cpp 5e0679e815c088f3dae50f701da355e74a96f0a1 2018-08-14 09:04:46 +0200 Even Rouault $")
 
 // The buffer that are passed to GPB decoding are extended with 0's
 // to be sure that we will be able to read a single 64bit value without
@@ -2756,7 +2756,7 @@ OSMContext* OSM_Open( const char* pszFilename,
                 CPLGetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS");
     int nNumCPUs = CPLGetNumCPUs();
     if( pszNumThreads && !EQUAL(pszNumThreads, "ALL_CPUS") )
-        nNumCPUs = std::min(2 * nNumCPUs, atoi(pszNumThreads));
+        nNumCPUs = std::max(0, std::min(2 * nNumCPUs, atoi(pszNumThreads)));
     if( nNumCPUs > 1 )
     {
         psCtxt->poWTP = new CPLWorkerThreadPool();

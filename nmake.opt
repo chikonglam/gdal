@@ -57,22 +57,22 @@ MSVC_VER=1900
 GDAL_HOME = "C:\warmerda\bld"
 !ENDIF
 !IFNDEF BINDIR
-BINDIR = $(GDAL_HOME)\bin
+BINDIR = "$(GDAL_HOME)\bin"
 !ENDIF
 !IFNDEF PLUGINDIR
-PLUGINDIR = $(BINDIR)\gdalplugins
+PLUGINDIR = "$(BINDIR)\gdalplugins"
 !ENDIF
 !IFNDEF LIBDIR
-LIBDIR = $(GDAL_HOME)\lib
+LIBDIR = "$(GDAL_HOME)\lib"
 !ENDIF
 !IFNDEF INCDIR
-INCDIR = $(GDAL_HOME)\include
+INCDIR = "$(GDAL_HOME)\include"
 !ENDIF
 !IFNDEF DATADIR
-DATADIR = $(GDAL_HOME)\data
+DATADIR = "$(GDAL_HOME)\data"
 !ENDIF
 !IFNDEF HTMLDIR
-HTMLDIR = $(GDAL_HOME)\html
+HTMLDIR = "$(GDAL_HOME)\html"
 !ENDIF
 
 # Set this to the installed directory containing python.  If you don't
@@ -109,9 +109,16 @@ CXX_ANALYZE_FLAGS=/analyze
 CXX_ANALYZE_FLAGS=
 !ENDIF
 
+# Set DEBUG=1 to create a debug build
+!IFNDEF DEBUG
+DEBUG=0
+!ENDIF
+
 # Force PDB output for DEBUG mode
-!IFDEF DEBUG
+!IF "$(DEBUG)" == "1"
 WITH_PDB=1
+!ELSE IF "$(DEBUG)" != "0"
+!ERROR DEBUG should be set to 0 or 1
 !ENDIF
 
 !IFNDEF GDAL_PDB
@@ -125,7 +132,7 @@ CXX_PDB_FLAGS=
 !ENDIF
 
 !IFNDEF OPTFLAGS
-!IFNDEF DEBUG
+!IF "$(DEBUG)" == "0"
 OPTFLAGS= $(CXX_ANALYZE_FLAGS) $(CXX_PDB_FLAGS) /nologo /MP /MD /EHsc /Ox /FC /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DNDEBUG
 !ELSE
 OPTFLAGS= $(CXX_ANALYZE_FLAGS) $(CXX_PDB_FLAGS) /nologo /MP /MDd /EHsc /FC /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DDEBUG
@@ -171,7 +178,7 @@ SOFTWARNFLAGS= /wd4244 /wd4702 /wd4701 /wd4013 /wd4706 /wd4057 /wd4210 /wd4305
 !ENDIF
 
 # Linker debug options
-!IFDEF DEBUG
+!IF "$(DEBUG)" == "1"
 LDEBUG= /debug
 !ELSEIFDEF WITH_PDB
 # Ensures that PDB is included in release DLL if so requested
@@ -197,7 +204,7 @@ STDCALL=YES
 # Version number embedded in DLL name. 
 # If GDAL version is X.Y.Z, VERSION = X * 100 + Y
 !IFNDEF VERSION
-VERSION =	203
+VERSION =	204
 !ENDIF
 
 # Comment the following out if you want PAM supported disabled
@@ -255,6 +262,12 @@ ODBC_SUPPORTED = 1
 #SQLNCLI_DIR = C:\Program Files (x86)\Microsoft SQL Server\$(SQLNCLI_VERSION)0\SDK
 #SQLNCLI_LIB = "$(SQLNCLI_DIR)\Lib\x86\sqlncli$(SQLNCLI_VERSION).lib"
 #SQLNCLI_INCLUDE = "-I$(SQLNCLI_DIR)\Include" -DSQLNCLI_VERSION=$(SQLNCLI_VERSION) -DMSSQL_BCP_SUPPORTED=1
+
+# Uncomment out the following to enable plugin with Microsoft ODBC Driver 17 for SQL Server support for MSSQL Bulk Copy.
+#MSODBCSQL_VERSION = 17
+#MSODBCSQL_DIR = C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\$(MSODBCSQL_VERSION)0\SDK
+#MSODBCSQL_LIB = "$(MSODBCSQL_DIR)\Lib\x86\msodbcsql$(SQLNCLI_VERSION).lib"
+#MSODBCSQL_INCLUDE = "-I$(MSODBCSQL_DIR)\Include" -DMSODBCSQL_VERSION=$(MSODBCSQL_VERSION) -DMSSQL_BCP_SUPPORTED=1
 
 # Comment out the following to disable JPEG support.
 
@@ -773,6 +786,17 @@ ADD_LIBS	=
 # bindings. 
 #HAVE_NUMPY=1
 
+# Set HAVE_LERC=0 to disable LERC support
+!IFNDEF HAVE_LERC
+HAVE_LERC=1
+!ENDIF
+
+# Comment out the following if you want to build JPEGLS with CHARLS support
+#CHARLS_INC=-IE:\work\GIS\gdal\supportlibs\charls\include\
+#CHARLS_LIB=e:\work\GIS\gdal\supportlibs\charls\bin\Release\x86\CharLS.lib
+# Comment out for API 2.x:
+#CHARLS_FLAGS = -DCHARLS_2
+
 ########### END OF STUFF THAT NORMALLY NEEDS TO BE UPDATED ##################
 
 
@@ -804,10 +828,6 @@ LINKER_FLAGS = $(EXTRA_LINKER_FLAGS) $(MSVC_VLD_LIB) $(LDEBUG)
 
 
 CFLAGS	=	$(OPTFLAGS) $(WARNFLAGS) $(USER_DEFS) $(SSEFLAGS) $(SSSE3FLAGS) $(INC) $(AVXFLAGS) $(EXTRAFLAGS) $(OGR_FLAG) $(GNM_FLAG) $(MSVC_VLD_FLAGS) -DGDAL_COMPILATION
-!IF "$(DLLBUILD)" != "1"
-CFLAGS	=	$(CFLAGS) -DCPL_DISABLE_DLL
-!ENDIF
-
 CPPFLAGS = $(CFLAGS) -DNOMINMAX
 MAKE	=	nmake /nologo
 
@@ -971,5 +991,5 @@ EXTERNAL_LIBS =	$(OGDILIB) $(XERCES_LIB) $(EXPAT_LIB) $(OCI_LIB) $(PG_LIB) \
 	$(ODBCLIB) $(JASPER_LIB) $(PNG_LIB) $(ZLIB_LIB) $(ADD_LIBS) $(OPENJPEG_LIB) \
 	$(MRSID_LIDAR_LIB) $(LIBKML_LIBS) $(SOSI_LIBS) $(PDF_LIB_LINK) $(LZMA_LIBS) $(ZSTD_LIBS) \
 	$(LIBICONV_LIBRARY) $(WEBP_LIBS) $(FGDB_LIB_LINK) $(FREEXL_LIBS) $(GTA_LIBS) \
-	$(INGRES_LIB) $(LIBXML2_LIB) $(PCRE_LIB) $(MONGODB_LIB_LINK) $(CRYPTOPP_LIB) $(OPENSSL_LIB) ws2_32.lib \
+	$(INGRES_LIB) $(LIBXML2_LIB) $(PCRE_LIB) $(MONGODB_LIB_LINK) $(CRYPTOPP_LIB) $(OPENSSL_LIB) $(CHARLS_LIB) ws2_32.lib \
     kernel32.lib psapi.lib

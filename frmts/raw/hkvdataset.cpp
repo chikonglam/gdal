@@ -39,7 +39,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: hkvdataset.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: hkvdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -152,7 +152,7 @@ CPLErr SaveHKVAttribFile( const char *pszFilenameIn,
 /* ==================================================================== */
 /************************************************************************/
 
-class HKVDataset : public RawDataset
+class HKVDataset final: public RawDataset
 {
     friend class HKVRasterBand;
 
@@ -194,6 +194,8 @@ class HKVDataset : public RawDataset
     bool        bNoDataSet;
     bool        bNoDataChanged;
     double      dfNoDataValue;
+
+    CPL_DISALLOW_COPY_ASSIGN(HKVDataset)
 
   public:
     HKVDataset();
@@ -238,7 +240,7 @@ HKVRasterBand::HKVRasterBand( HKVDataset *poDSIn, int nBandIn, VSILFILE * fpRawI
                               GDALDataType eDataTypeIn, int bNativeOrderIn ) :
     RawRasterBand( reinterpret_cast<GDALDataset *>( poDSIn ), nBandIn, fpRawIn,
                    nImgOffsetIn, nPixelOffsetIn, nLineOffsetIn, eDataTypeIn,
-                   bNativeOrderIn, TRUE )
+                   bNativeOrderIn, RawRasterBand::OwnFP::NO )
 
 {
     poDS = poDSIn;

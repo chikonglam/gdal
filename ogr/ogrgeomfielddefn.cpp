@@ -40,7 +40,7 @@
 #include "ogr_srs_api.h"
 #include "ograpispy.h"
 
-CPL_CVSID("$Id: ogrgeomfielddefn.cpp 555e540bc97e0201cd3ed57f7906323d476c13fb 2018-04-04 19:43:04 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeomfielddefn.cpp a8d30b37682544123e5e24d69cb33041d544c465 2018-05-06 01:37:21 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                         OGRGeomFieldDefn()                           */
@@ -119,9 +119,6 @@ void OGRGeomFieldDefn::Initialize( const char * pszNameIn,
 {
     pszName = CPLStrdup( pszNameIn );
     eGeomType = eTypeIn;
-    poSRS = nullptr;
-    bIgnore = FALSE;
-    bNullable = TRUE;
 }
 //! @endcond
 

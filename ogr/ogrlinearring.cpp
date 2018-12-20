@@ -39,14 +39,14 @@
 #include "ogr_geometry.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrlinearring.cpp 99132fd3803311ecc233f6d375b94f8c7a016aef 2018-03-28 01:33:40 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrlinearring.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           OGRLinearRing()                            */
 /************************************************************************/
 
 /** Constructor */
-OGRLinearRing::OGRLinearRing() {}
+OGRLinearRing::OGRLinearRing() = default;
 
 /************************************************************************/
 /*                  OGRLinearRing( const OGRLinearRing& )               */
@@ -61,15 +61,13 @@ OGRLinearRing::OGRLinearRing() {}
  * @since GDAL 2.1
  */
 
-OGRLinearRing::OGRLinearRing( const OGRLinearRing& other ) :
-    OGRLineString( other )
-{}
+OGRLinearRing::OGRLinearRing( const OGRLinearRing& ) = default;
 
 /************************************************************************/
 /*                          ~OGRLinearRing()                            */
 /************************************************************************/
 
-OGRLinearRing::~OGRLinearRing() {}
+OGRLinearRing::~OGRLinearRing() = default;
 
 /************************************************************************/
 /*                           OGRLinearRing()                            */

@@ -31,7 +31,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: ace2dataset.cpp f946b03da9b425043fed0a0c58a329295240840f 2017-12-15 13:36:23Z Kurt Schwehr $")
+CPL_CVSID("$Id: ace2dataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 static const char * const apszCategorySource[] =
 {
@@ -176,7 +176,7 @@ ACE2RasterBand::ACE2RasterBand( VSILFILE* fpRawIn,
                                 int nXSize, int nYSize) :
     RawRasterBand( fpRawIn, 0, GDALGetDataTypeSizeBytes(eDataTypeIn),
                    nXSize * GDALGetDataTypeSizeBytes(eDataTypeIn), eDataTypeIn,
-                   CPL_IS_LSB, nXSize, nYSize, TRUE, TRUE )
+                   CPL_IS_LSB, nXSize, nYSize, RawRasterBand::OwnFP::YES )
 {}
 
 /************************************************************************/

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_nas.h 1b4e15dad36adf19db7a18b05f14f71d37a4a329 2017-08-17 15:42:36Z Jürgen Fischer $
+ * $Id: ogr_nas.h 365a72f2b5a94946e92323060b68f9963cd2dbd5 2018-05-06 22:14:36 +0200 Even Rouault $
  *
  * Project:  NAS Reader
  * Purpose:  Declarations for OGR wrapper classes for NAS, and NAS<->OGR
@@ -42,7 +42,7 @@ class OGRNASDataSource;
 /*                            OGRNASLayer                               */
 /************************************************************************/
 
-class OGRNASLayer : public OGRLayer
+class OGRNASLayer final: public OGRLayer
 {
     OGRFeatureDefn      *poFeatureDefn;
 
@@ -75,7 +75,7 @@ class OGRNASLayer : public OGRLayer
 /*                         OGRNASRelationLayer                          */
 /************************************************************************/
 
-class OGRNASRelationLayer : public OGRLayer
+class OGRNASRelationLayer final: public OGRLayer
 {
     OGRFeatureDefn     *poFeatureDefn;
     OGRNASDataSource    *poDS;
@@ -106,7 +106,7 @@ class OGRNASRelationLayer : public OGRLayer
 /*                           OGRNASDataSource                           */
 /************************************************************************/
 
-class OGRNASDataSource : public OGRDataSource
+class OGRNASDataSource final: public OGRDataSource
 {
     OGRLayer          **papoLayers;
     int                 nLayers;

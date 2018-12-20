@@ -39,7 +39,7 @@
 
 #include "ogr_core.h"
 
-CPL_CVSID("$Id: mitab_geometry.cpp 4ca59c588ec9ea0917ab09798a11f13d81dfea22 2018-03-25 00:27:44 +0100 Even Rouault $")
+CPL_CVSID("$Id: mitab_geometry.cpp 43b6061a355c4bce2283b787b28d5f3ae6b9e2af 2018-05-06 14:19:59 +0200 Even Rouault $")
 
 #define OGR_NUM_RINGS(poly)   (poly->getNumInteriorRings()+1)
 #define OGR_GET_RING(poly, i) (i==0?poly->getExteriorRing():poly->getInteriorRing(i-1))
@@ -157,7 +157,7 @@ int OGRPolygonLabelPoint(OGRPolygon *poPoly, OGRPoint *poLabelPoint)
     if( n == 0 )
         return OGRERR_FAILURE;
 
-    double *xintersect = (double *)calloc(n, sizeof(double));
+    double *xintersect = static_cast<double *>(calloc(n, sizeof(double)));
     if( xintersect == nullptr )
         return OGRERR_FAILURE;
 

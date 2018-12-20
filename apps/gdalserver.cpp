@@ -82,13 +82,13 @@
 
 CPL_C_START
 int CPL_DLL GDALServerLoop(CPL_FILE_HANDLE fin, CPL_FILE_HANDLE fout);
-int CPL_DLL GDALServerLoopSocket(CPL_SOCKET nSocket);
-void CPL_DLL* GDALServerLoopInstanceCreateFromSocket(CPL_SOCKET nSocket);
+int CPL_DLL GDALServerLoopSocket(const CPL_SOCKET& nSocket);
+void CPL_DLL* GDALServerLoopInstanceCreateFromSocket(const CPL_SOCKET& nSocket);
 int  CPL_DLL  GDALServerLoopInstanceRunIteration(void* pInstance);
 void CPL_DLL  GDALServerLoopInstanceDestroy(void* pInstance);
 CPL_C_END
 
-CPL_CVSID("$Id: gdalserver.cpp 5da1c4d1b6c7e38f7f5917fff3ddbc8ad42af7aa 2018-03-30 21:59:13 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalserver.cpp 279125b5bbeb0125be65c40c2577151e36a89fa9 2018-05-10 22:08:21 +0200 Even Rouault $")
 
 static int bVerbose = FALSE;
 

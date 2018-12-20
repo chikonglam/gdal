@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: Dataset.i 637961e9df5633b77d011c8e5f53dcab7a58c497 2018-04-20 13:59:35 +0200 Even Rouault $
+ * $Id: Dataset.i 52e369f88d60ede5ff9a01dd46cd1a0139d58ed1 2018-04-20 13:59:35 +0200 Even Rouault $
  *
  * Name:     Dataset.i
  * Project:  GDAL Python Interface

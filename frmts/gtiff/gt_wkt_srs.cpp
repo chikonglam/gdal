@@ -61,7 +61,7 @@
 #include "tifvsi.h"
 #include "xtiffio.h"
 
-CPL_CVSID("$Id: gt_wkt_srs.cpp 81a008b84e9f8d2594e30aa06f9fd08cc1c6e624 2018-05-23 17:44:17 +0200 Even Rouault $")
+CPL_CVSID("$Id: gt_wkt_srs.cpp 06f3b061a9a2f0a89c71e4806817fd2680e3537d 2018-12-01 14:51:42 +0100 Even Rouault $")
 
 static const geokey_t ProjLinearUnitsInterpCorrectGeoKey =
     static_cast<geokey_t>(3059);
@@ -1209,7 +1209,7 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
                                         szSearchKey, CC_Integer,
                                         "datum_code" );
                 if( pszValue != nullptr )
-                    verticalDatum = (short) atoi(pszValue);
+                    verticalDatum = static_cast<short>(atoi(pszValue));
             }
 
             if( EQUAL(citation,"unknown") )
@@ -1236,7 +1236,7 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
                                             pszValue, CC_Integer,
                                             "uom_code" );
                     if( pszValue != nullptr )
-                        verticalUnits = (short) atoi(pszValue);
+                        verticalUnits = static_cast<short>(atoi(pszValue));
                 }
             }
         }
@@ -2333,7 +2333,7 @@ int GTIFSetFromOGISDefnEx( GTIF * psGTIF, const char *pszOGCWKT,
     {
         // Anything we can't map, store as an ESRI PE string with a citation key.
         char *pszPEString = nullptr;
-        // We shit a bit, but if we have a custom_proj4, do not morph to ESRI
+        // We cheat a bit, but if we have a custom_proj4, do not morph to ESRI
         // so as to keep the EXTENSION PROJ4 node
         if( !(bUnknownProjection &&
               poSRS->GetExtension("PROJCS", "PROJ4", nullptr) != nullptr) )
@@ -3006,7 +3006,7 @@ CPLErr GTIFMemBufFromWktEx( const char *pszWKT, const double *padfGeoTransform,
 /* -------------------------------------------------------------------- */
     GByte bySmallImage = 0;
 
-    TIFFWriteEncodedStrip( hTIFF, 0, (char *) &bySmallImage, 1 );
+    TIFFWriteEncodedStrip( hTIFF, 0, reinterpret_cast<char *>(&bySmallImage), 1 );
     TIFFWriteCheck( hTIFF, TIFFIsTiled(hTIFF), "GTIFMemBufFromWkt");
     TIFFWriteDirectory( hTIFF );
 

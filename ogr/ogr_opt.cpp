@@ -35,7 +35,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogr_opt.cpp 450e6353f240095073c8e21a1efc5906ef997e72 2018-05-06 20:12:16 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr_opt.cpp 82bd5a1323fdb712eb5f052b3f5ea56440e4307f 2018-05-06 20:12:16 +0200 Even Rouault $")
 
 static const char * const papszParameterDefinitions[] = {
     SRS_PP_CENTRAL_MERIDIAN,    "Central Meridian",     "Long",  "0.0",

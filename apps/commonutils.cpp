@@ -37,7 +37,7 @@
 #include "cpl_string.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: commonutils.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: commonutils.cpp 10d2cf3c7944c209da6b9bfa391b0ea0b6222ed8 2018-09-11 08:31:42 +0200 Even Rouault $")
 
 /* -------------------------------------------------------------------- */
 /*                   DoesDriverHandleExtension()                        */
@@ -164,11 +164,7 @@ void EarlySetConfigOptions( int argc, char ** argv )
     // registered for the --format or --formats options.
     for( int i = 1; i < argc; i++ )
     {
-        if( EQUAL(argv[i],"--config") && i + 2 < argc &&
-            (EQUAL(argv[i + 1], "GDAL_SKIP") ||
-             EQUAL(argv[i + 1], "GDAL_DRIVER_PATH") ||
-             EQUAL(argv[i + 1], "OGR_SKIP") ||
-             EQUAL(argv[i + 1], "OGR_DRIVER_PATH")) )
+        if( EQUAL(argv[i],"--config") && i + 2 < argc )
         {
             CPLSetConfigOption( argv[i+1], argv[i+2] );
 

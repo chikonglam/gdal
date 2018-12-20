@@ -49,7 +49,7 @@
 #include "gdal_priv.h"
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: vrtsourcedrasterband.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: vrtsourcedrasterband.cpp 006778828dd45134436297e3c6d4aabef0652ae4 2018-08-07 22:14:13 +0200 Even Rouault $")
 
 /*! @cond Doxygen_Suppress */
 
@@ -730,11 +730,20 @@ VRTSourcedRasterBand::ComputeStatistics( int bApproxOK,
                                          void *pProgressData )
 
 {
-    if( nSources != 1 || m_bNoDataValueSet )
+    int bHasNoData = FALSE;
+    if( nSources != 1 ||
+        (m_bNoDataValueSet && !(
+            papoSources[0]->IsSimpleSource() &
+            EQUAL(cpl::down_cast<VRTSimpleSource*>(papoSources[0])->GetType(),
+                  "SimpleSource") &&
+            m_dfNoDataValue == cpl::down_cast<VRTSimpleSource*>(papoSources[0])->GetBand()->GetNoDataValue(&bHasNoData) &&
+            bHasNoData)) )
+    {
         return GDALRasterBand::ComputeStatistics(  bApproxOK,
                                               pdfMin, pdfMax,
                                               pdfMean, pdfStdDev,
                                               pfnProgress, pProgressData );
+    }
 
     if( pfnProgress == nullptr )
         pfnProgress = GDALDummyProgress;

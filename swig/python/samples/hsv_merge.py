@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ******************************************************************************
-#  $Id: hsv_merge.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
+#  $Id: hsv_merge.py b26ef46ec91bcbc37db03a7023972732ff52d2f9 2018-04-24 16:10:04 +1000 Ben Elliston $
 #
 #  Project:  GDAL Python Interface
 #  Purpose:  Script to merge greyscale as intensity into an RGB(A) image, for
@@ -129,7 +129,7 @@ argv = gdal.GeneralCmdLineProcessor(sys.argv)
 if argv is None:
     sys.exit(0)
 
-format = 'GTiff'
+frmt = 'GTiff'
 src_color_filename = None
 src_greyscale_filename = None
 dst_color_filename = None
@@ -142,7 +142,7 @@ while i < len(argv):
 
     if arg == '-of':
         i = i + 1
-        format = argv[i]
+        frmt = argv[i]
 
     elif arg == '-q' or arg == '-quiet':
         quiet = True
@@ -174,7 +174,7 @@ if (colordataset.RasterCount != 3 and colordataset.RasterCount != 4):
     sys.exit(1)
 
 # define output format, name, size, type and set projection
-out_driver = gdal.GetDriverByName(format)
+out_driver = gdal.GetDriverByName(frmt)
 outdataset = out_driver.Create(dst_color_filename, colordataset.RasterXSize,
                                colordataset.RasterYSize, colordataset.RasterCount, datatype)
 outdataset.SetProjection(hilldataset.GetProjection())

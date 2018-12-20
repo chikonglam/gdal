@@ -58,7 +58,7 @@
 static const char UNSUPPORTED_OP_READ_ONLY[] =
   "%s : unsupported operation on a read-only datasource.";
 
-CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 1b132b40204d500e99c91f6a7986b44b6a065de8 2018-04-10 15:04:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 2501852a6d9feaf4523baa76453d28bb52e891fa 2018-10-03 21:05:50 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                        OGRSQLiteTableLayer()                         */
@@ -2408,8 +2408,6 @@ OGRErr OGRSQLiteTableLayer::ISetFeature( OGRFeature *poFeature )
     sqlite3 *hDB = poDS->GetDB();
     int            bNeedComma = FALSE;
 
-    ResetReading();
-
 /* -------------------------------------------------------------------- */
 /*      Form the UPDATE command.                                        */
 /* -------------------------------------------------------------------- */
@@ -2468,7 +2466,7 @@ OGRErr OGRSQLiteTableLayer::ISetFeature( OGRFeature *poFeature )
 /* -------------------------------------------------------------------- */
 /*      Prepare the statement.                                          */
 /* -------------------------------------------------------------------- */
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
     CPLDebug( "OGR_SQLITE", "prepare_v2(%s)", osCommand.c_str() );
 #endif
 

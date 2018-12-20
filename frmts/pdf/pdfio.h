@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdfio.h 4cc0215b8f2cef3582265cdfaf16589390697706 2018-11-28 11:59:15 +0100 Even Rouault $
+ * $Id: pdfio.h 5a215e5c6b75f6d1d51dc4dea40c33d9e0e41dcd 2018-11-28 11:59:15 +0100 Even Rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
@@ -67,7 +67,7 @@
 #endif
 #endif
 
-class VSIPDFFileStream: public BaseStream
+class VSIPDFFileStream final: public BaseStream
 {
     public:
         VSIPDFFileStream(VSILFILE* f, const char* pszFilename,

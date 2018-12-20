@@ -47,7 +47,7 @@
 #include "ogr_core.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gdalpamdataset.cpp c177435f4370e56575870773ffc107c4bc44942e 2018-07-12 15:26:22 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalpamdataset.cpp aa6a7c2b18d9d679a349bb7d5683347d0caa9566 2018-07-12 15:26:22 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           GDALPamDataset()                           */
@@ -140,9 +140,7 @@ CPL_CVSID("$Id: gdalpamdataset.cpp c177435f4370e56575870773ffc107c4bc44942e 2018
  */
 class GDALPamDataset;
 
-GDALPamDataset::GDALPamDataset() :
-    nPamFlags(0),
-    psPam(nullptr)
+GDALPamDataset::GDALPamDataset()
 {
     SetMOFlags( GetMOFlags() | GMO_PAM_CLASS );
 }
@@ -157,7 +155,7 @@ GDALPamDataset::~GDALPamDataset()
     if( nPamFlags & GPF_DIRTY )
     {
         CPLDebug( "GDALPamDataset", "In destructor with dirty metadata." );
-        FlushCache();
+        GDALPamDataset::TrySaveXML();
     }
 
     PamClear();
@@ -312,14 +310,6 @@ void GDALPamDataset::PamInitialize()
         nPamFlags |= GPF_AUXMODE;
 
     psPam = new GDALDatasetPamInfo;
-    psPam->pszPamFilename = nullptr;
-    psPam->pszProjection = nullptr;
-    psPam->bHaveGeoTransform = FALSE;
-    psPam->nGCPCount = 0;
-    psPam->pasGCPList = nullptr;
-    psPam->pszGCPProjection = nullptr;
-    psPam->bHasMetadata = FALSE;
-
     for( int iBand = 0; iBand < GetRasterCount(); iBand++ )
     {
         GDALRasterBand *poBand = GetRasterBand(iBand+1);

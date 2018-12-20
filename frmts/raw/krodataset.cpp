@@ -31,7 +31,7 @@
 #include "gdal_frmts.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: krodataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: krodataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 // http://www.autopano.net/wiki-en/Format_KRO
 
@@ -41,10 +41,11 @@ CPL_CVSID("$Id: krodataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-
 /* ==================================================================== */
 /************************************************************************/
 
-class KRODataset : public RawDataset
+class KRODataset final: public RawDataset
 {
-  public:
     VSILFILE    *fpImage;  // image data file.
+
+    CPL_DISALLOW_COPY_ASSIGN(KRODataset)
 
   public:
                     KRODataset() : fpImage(nullptr) {}
@@ -202,10 +203,10 @@ GDALDataset *KRODataset::Open( GDALOpenInfo * poOpenInfo )
                                20 + nDataTypeSize * iBand,
                                nComp * nDataTypeSize,
                                poDS->nRasterXSize * nComp * nDataTypeSize,
-                               eDT, !CPL_IS_LSB, TRUE, FALSE );
+                               eDT, !CPL_IS_LSB, RawRasterBand::OwnFP::NO );
         if( nComp == 3 || nComp == 4 )
         {
-            poBand->SetColorInterpretation( (GDALColorInterp) (GCI_RedBand + iBand) );
+            poBand->SetColorInterpretation( static_cast<GDALColorInterp>(GCI_RedBand + iBand) );
         }
         poDS->SetBand( iBand+1, poBand );
         if( CPLGetLastErrorType() != CE_None )

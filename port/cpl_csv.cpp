@@ -42,7 +42,7 @@
 #include "cpl_multiproc.h"
 #include "gdal_csv.h"
 
-CPL_CVSID("$Id: cpl_csv.cpp 090ecb96506b67d811929bf888e6192d4a02f1b1 2018-02-11 20:01:07Z Even Rouault $")
+CPL_CVSID("$Id: cpl_csv.cpp 73308f342a9bdb6163f66b13c5249dfa9736a3f0 2018-06-14 21:00:53 -0700 Kurt Schwehr $")
 
 /* ==================================================================== */
 /*      The CSVTable is a persistent set of info about an open CSV      */
@@ -1405,22 +1405,21 @@ const char * GDALDefaultCSVFilename( const char *pszBasename )
               "Failed to find file in GDALDefaultCSVFilename.  "
               "Returning original basename: %s",
               pszBasename );
-    strcpy( pTLSData->szPath, pszBasename );
+    CPLStrlcpy(pTLSData->szPath, pszBasename, sizeof(pTLSData->szPath));
     return pTLSData->szPath;
 #else
 
 #ifdef GDAL_PREFIX
   #ifdef MACOSX_FRAMEWORK
     strcpy( pTLSData->szPath, GDAL_PREFIX "/Resources/epsg_csv/" );
-    CPLStrlcat( pTLSData->szPath, pszBasename, sizeof(pTLSData->szPath) );
   #else
     strcpy( pTLSData->szPath, GDAL_PREFIX "/share/epsg_csv/" );
-    CPLStrlcat( pTLSData->szPath, pszBasename, sizeof(pTLSData->szPath) );
   #endif
 #else
     strcpy( pTLSData->szPath, "/usr/local/share/epsg_csv/" );
-    CPLStrlcat( pTLSData->szPath, pszBasename, sizeof(pTLSData->szPath) );
 #endif  // GDAL_PREFIX
+
+    CPLStrlcat( pTLSData->szPath, pszBasename, sizeof(pTLSData->szPath) );
 
     VSILFILE *fp = VSIFOpenL( pTLSData->szPath, "rt" );
     if( fp == nullptr )

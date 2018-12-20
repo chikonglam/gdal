@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_jpeg_copy.h 13238770e2e4a1a9fbe64f6356626ac2a769f82c 2016-04-26 14:48:21Z Kurt Schwehr $
+ * $Id: gt_jpeg_copy.h d14a537a4324399712f4b822656d374341773cd3 2018-07-29 23:14:54 +0200 Even Rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Specialized copy of JPEG content into TIFF.
@@ -42,7 +42,7 @@ int GTIFF_CanDirectCopyFromJPEG( GDALDataset* poSrcDS,
 CPLErr GTIFF_DirectCopyFromJPEG( GDALDataset* poDS, GDALDataset* poSrcDS,
                                  GDALProgressFunc pfnProgress,
                                  void * pProgressData,
-                                 int& bShouldFallbackToNormalCopyIfFail );
+                                 bool& bShouldFallbackToNormalCopyIfFail );
 
 #endif // JPEG_DIRECT_COPY
 
@@ -57,7 +57,7 @@ CPLErr GTIFF_CopyFromJPEG_WriteAdditionalTags( TIFF* hTIFF,
 
 CPLErr GTIFF_CopyFromJPEG( GDALDataset* poDS, GDALDataset* poSrcDS,
                            GDALProgressFunc pfnProgress, void * pProgressData,
-                           int& bShouldFallbackToNormalCopyIfFail );
+                           bool& bShouldFallbackToNormalCopyIfFail );
 
 #endif // HAVE_LIBJPEG
 

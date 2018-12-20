@@ -42,7 +42,7 @@
 #include "cpl_string.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: cplkeywordparser.cpp 0f654dda9faabf9d86a44293f0f89903a8e97dd7 2018-04-15 20:18:32 +0200 Even Rouault $")
+CPL_CVSID("$Id: cplkeywordparser.cpp c39d156816d937c3139360b11786c769aeabd21e 2018-05-05 19:48:08 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -54,9 +54,7 @@ CPL_CVSID("$Id: cplkeywordparser.cpp 0f654dda9faabf9d86a44293f0f89903a8e97dd7 20
 /*                         CPLKeywordParser()                          */
 /************************************************************************/
 
-CPLKeywordParser::CPLKeywordParser() :
-    papszKeywordList(nullptr), pszHeaderNext(nullptr)
-{ }
+CPLKeywordParser::CPLKeywordParser() = default;
 
 /************************************************************************/
 /*                        ~CPLKeywordParser()                          */

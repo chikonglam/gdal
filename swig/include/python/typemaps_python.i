@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_python.i f7c9e1790b33db930745bd72a4a211e506ac8f78 2018-04-08 15:25:13 +0200 Even Rouault $
+ * $Id: typemaps_python.i fc81f28ae04b97bc3a14e30ecf53a105eb1065fe 2018-07-13 10:37:06 +0300 tzickel $
  *
  * Name:     typemaps_python.i
  * Project:  GDAL Python Interface
@@ -487,6 +487,21 @@ CreateTupleFromDoubleArray( int *first, unsigned int size ) {
 %typemap(in,numinputs=1) (int nLen, char *pBuf ) (int alloc = 0)
 {
   /* %typemap(in,numinputs=1) (int nLen, char *pBuf ) */
+  {
+    Py_ssize_t safeLen = 0;
+    const void *safeBuf = 0;
+    int res = PyObject_AsReadBuffer($input, &safeBuf, &safeLen);
+    if (res == 0) {
+      if( safeLen > INT_MAX ) {
+        SWIG_exception( SWIG_RuntimeError, "too large buffer (>2GB)" );
+      }
+      $1 = (int) safeLen;
+      $2 = ($2_ltype) safeBuf;
+      goto ok;
+    } else {
+      PyErr_Clear();
+    }
+  }
 %#if PY_VERSION_HEX>=0x03000000
   if (PyUnicode_Check($input))
   {
@@ -532,6 +547,7 @@ CreateTupleFromDoubleArray( int *first, unsigned int size ) {
     SWIG_fail;
   }
 %#endif
+  ok: ;
 }
 
 %typemap(freearg) (int nLen, char *pBuf )
@@ -1801,7 +1817,7 @@ DecomposeSequenceOfCoordinates( PyObject *seq, int nCount, double *x, double *y,
 
 
 /***************************************************
- * Typemaps for Gemetry.GetPoints()
+ * Typemaps for Geometry.GetPoints()
  ***************************************************/
 %typemap(in,numinputs=0) (int* pnCount, double** ppadfXY, double** ppadfZ) ( int nPoints = 0, double* padfXY = NULL, double* padfZ = NULL )
 {

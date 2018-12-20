@@ -53,7 +53,7 @@
 #include "ogr_p.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogr2ogr_bin.cpp 9bae05435e199592be48a2a6c8ef5f649fa5d113 2018-03-26 14:16:35 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogr2ogr_bin.cpp 7f4574d89c07e14ef8fad0074480e4e6d1ffd4d7 2018-07-11 19:23:55 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -97,7 +97,7 @@ static void Usage( const char* pszAdditionalMsg = nullptr, bool bShort = true )
         "               [-fieldmap identity | index1[,index2]*]\n"
         "               [-splitlistfields] [-maxsubfields val]\n"
         "               [-explodecollections] [-zfield field_name]\n"
-        "               [-gcp pixel line easting northing [elevation]]* [-order n | -tps]\n"
+        "               [-gcp ungeoref_x ungeoref_y georef_x georef_y [elevation]]* [-order n | -tps]\n"
         "               [-nomd] [-mo \"META-TAG=VALUE\"]* [-noNativeData]\n");
 
     if( bShort )

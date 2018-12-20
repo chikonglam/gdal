@@ -61,7 +61,7 @@
 // FIXME: Disabled following code as it crashed on OSX CI test.
 // #include <mutex>
 
-CPL_CVSID("$Id: gdaldrivermanager.cpp ec7b85e6bb8f9737693a31f0bf7166e31e10992e 2018-04-16 00:08:36 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdaldrivermanager.cpp dca024c6230a7d7f29afd2818afdc23313a18542 2018-05-06 18:08:36 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -114,9 +114,7 @@ GDALDriverManager * GetGDALDriverManager()
 /*                         GDALDriverManager()                          */
 /************************************************************************/
 
-GDALDriverManager::GDALDriverManager() :
-    nDrivers(0),
-    papoDrivers(nullptr)
+GDALDriverManager::GDALDriverManager()
 {
     CPLAssert( poDM == nullptr );
 
@@ -658,7 +656,7 @@ void GDALDriverManager::AutoSkipDrivers()
         apapszList[1] = CSLTokenizeStringComplex(pszOGR_SKIP, ",", FALSE, FALSE);
     }
 
-    for( int j = 0; j < 2; ++j )
+    for( auto j: {0, 1} )
     {
         for( int i = 0; apapszList[j] != nullptr && apapszList[j][i] != nullptr; ++i )
         {

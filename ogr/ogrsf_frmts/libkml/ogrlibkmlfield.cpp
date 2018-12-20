@@ -36,7 +36,7 @@
 #include "ogr_p.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrlibkmlfield.cpp a1751d77d34c65c736bd985bb4e2153ae9ecf518 2017-12-13 19:08:01Z Even Rouault $")
+CPL_CVSID("$Id: ogrlibkmlfield.cpp a4652d3daf2b2735f2976540e22c795deb5bbc62 2018-08-02 22:49:27 +0200 Even Rouault $")
 
 using kmldom::CameraPtr;
 using kmldom::DataPtr;
@@ -1681,31 +1681,33 @@ void kml2FeatureDef(
         {
             osName = poKmlSimpleField->get_name();
         }
-
-        if( EQUAL( pszType, "bool" ) ||
-            EQUAL( pszType, "boolean" ) ||
-            EQUAL( pszType, "int" ) ||
-            EQUAL( pszType, "short" ) ||
-            EQUAL( pszType, "ushort" ) )
+        if( poOgrFeatureDefn->GetFieldIndex(osName.c_str()) < 0 )
         {
-            OGRFieldDefn oOgrFieldName( osName.c_str(), OFTInteger );
-            poOgrFeatureDefn->AddFieldDefn( &oOgrFieldName );
-        }
-        else if( EQUAL( pszType, "uint" ) )
-        {
-            OGRFieldDefn oOgrFieldName( osName.c_str(), OFTInteger64 );
-            poOgrFeatureDefn->AddFieldDefn( &oOgrFieldName );
-        }
-        else if( EQUAL( pszType, "float" ) ||
-                 EQUAL( pszType, "double" ) )
-        {
-            OGRFieldDefn oOgrFieldName( osName.c_str(), OFTReal );
-            poOgrFeatureDefn->AddFieldDefn( &oOgrFieldName );
-        }
-        else  // string, or any other unrecognized type.
-        {
-            OGRFieldDefn oOgrFieldName( osName.c_str(), OFTString );
-            poOgrFeatureDefn->AddFieldDefn( &oOgrFieldName );
+            if( EQUAL( pszType, "bool" ) ||
+                EQUAL( pszType, "boolean" ) ||
+                EQUAL( pszType, "int" ) ||
+                EQUAL( pszType, "short" ) ||
+                EQUAL( pszType, "ushort" ) )
+            {
+                OGRFieldDefn oOgrFieldName( osName.c_str(), OFTInteger );
+                poOgrFeatureDefn->AddFieldDefn( &oOgrFieldName );
+            }
+            else if( EQUAL( pszType, "uint" ) )
+            {
+                OGRFieldDefn oOgrFieldName( osName.c_str(), OFTInteger64 );
+                poOgrFeatureDefn->AddFieldDefn( &oOgrFieldName );
+            }
+            else if( EQUAL( pszType, "float" ) ||
+                    EQUAL( pszType, "double" ) )
+            {
+                OGRFieldDefn oOgrFieldName( osName.c_str(), OFTReal );
+                poOgrFeatureDefn->AddFieldDefn( &oOgrFieldName );
+            }
+            else  // string, or any other unrecognized type.
+            {
+                OGRFieldDefn oOgrFieldName( osName.c_str(), OFTString );
+                poOgrFeatureDefn->AddFieldDefn( &oOgrFieldName );
+            }
         }
     }
 }

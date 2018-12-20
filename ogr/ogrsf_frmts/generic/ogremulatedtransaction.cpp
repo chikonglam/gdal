@@ -31,12 +31,14 @@
 #include <map>
 #include <set>
 
-CPL_CVSID("$Id: ogremulatedtransaction.cpp 29fae798a89ef1aa4367ca4af670559c561816d1 2018-04-02 16:50:56 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogremulatedtransaction.cpp 10e54d45fee8229428eb8ab22949aa46eb9da150 2018-05-06 11:07:25 +0200 Even Rouault $")
 
 class OGRDataSourceWithTransaction;
 
 class OGRLayerWithTransaction final: public OGRLayerDecorator
 {
+        CPL_DISALLOW_COPY_ASSIGN(OGRLayerWithTransaction)
+
     protected:
         friend class OGRDataSourceWithTransaction;
 
@@ -69,6 +71,8 @@ class OGRLayerWithTransaction final: public OGRLayerDecorator
 
 class OGRDataSourceWithTransaction final: public OGRDataSource
 {
+        CPL_DISALLOW_COPY_ASSIGN(OGRDataSourceWithTransaction)
+
   protected:
     OGRDataSource *m_poBaseDataSource;
     IOGRTransactionBehaviour* m_poTransactionBehaviour;
@@ -76,9 +80,9 @@ class OGRDataSourceWithTransaction final: public OGRDataSource
     int            m_bHasOwnershipTransactionBehaviour;
     int            m_bInTransaction;
 
-    std::map<CPLString, OGRLayerWithTransaction* > m_oMapLayers;
-    std::set<OGRLayerWithTransaction*> m_oSetLayers;
-    std::set<OGRLayer*> m_oSetExecuteSQLLayers;
+    std::map<CPLString, OGRLayerWithTransaction* > m_oMapLayers{};
+    std::set<OGRLayerWithTransaction*> m_oSetLayers{};
+    std::set<OGRLayer*> m_oSetExecuteSQLLayers{};
 
     OGRLayer*     WrapLayer(OGRLayer* poLayer);
     void          RemapLayers();

@@ -1,5 +1,5 @@
 /*
- * $Id: keaband.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: keaband.h 2519a7eb0e1649dbf8625ae8ffc7bb7c3ef9514b 2018-07-10 12:05:23 +0100 Robert Coup $
  *  keaband.h
  *
  *  Created by Pete Bunting on 01/08/2012.
@@ -38,22 +38,22 @@ class KEAOverview;
 class KEAMaskBand;
 
 // Provides the implementation of a GDAL raster band
-class KEARasterBand : public GDALPamRasterBand
+class KEARasterBand: public GDALPamRasterBand
 {
 private:
-    int                 *m_pnRefCount; // reference count of m_pImageIO
+    int                 *m_pnRefCount = nullptr; // reference count of m_pImageIO
 
-    int                  m_nOverviews; // number of overviews
-    KEAOverview        **m_panOverviewBands; // array of overview objects
-    GDALRasterBand      *m_pMaskBand;   // pointer to mask band if one exists (and been requested)
-    bool                 m_bMaskBandOwned; // do we delete it or not?
+    int                  m_nOverviews = 0; // number of overviews
+    KEAOverview        **m_panOverviewBands = nullptr; // array of overview objects
+    GDALRasterBand      *m_pMaskBand = nullptr;   // pointer to mask band if one exists (and been requested)
+    bool                 m_bMaskBandOwned = false; // do we delete it or not?
 
-    GDALRasterAttributeTable  *m_pAttributeTable; // pointer to the attribute table
+    GDALRasterAttributeTable  *m_pAttributeTable = nullptr; // pointer to the attribute table
                                                  // created on first call to GetDefaultRAT()
-    GDALColorTable      *m_pColorTable;     // pointer to the color table
+    GDALColorTable      *m_pColorTable = nullptr;     // pointer to the color table
                                             // created on first call to GetColorTable()
 
-    int                  m_nAttributeChunkSize; // for reporting via the metadata
+    int                  m_nAttributeChunkSize = 0; // for reporting via the metadata
 public:
     // constructor/destructor
     KEARasterBand( KEADataset *pDataset, int nSrcBand, GDALAccess eAccess, kealib::KEAImageIO *pImageIO, int *pRefCount );
@@ -108,6 +108,9 @@ public:
     void CreateOverviews(int nOverviews, int *panOverviewList);
     KEAOverview** GetOverviewList() { return m_panOverviewBands; }
 
+    kealib::KEALayerType getLayerType() const;
+    void setLayerType(kealib::KEALayerType eLayerType);
+
 protected:
     // methods for accessing data as blocks
     virtual CPLErr IReadBlock( int, int, void * ) override;
@@ -120,10 +123,10 @@ protected:
     CPLErr SetHistogramFromString(const char *pszString);
     char *GetHistogramAsString();
     // So we can return the histogram as a string from GetMetadataItem
-    char *m_pszHistoBinValues;
+    char *m_pszHistoBinValues = nullptr;
 
-    kealib::KEAImageIO  *m_pImageIO; // our image access pointer - refcounted
-    char               **m_papszMetadataList; // CPLStringList of metadata
+    kealib::KEAImageIO  *m_pImageIO = nullptr; // our image access pointer - refcounted
+    char               **m_papszMetadataList = nullptr; // CPLStringList of metadata
     kealib::KEADataType  m_eKEADataType; // data type as KEA enum
 };
 

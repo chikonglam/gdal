@@ -48,7 +48,7 @@
 #include "cpl_string.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: polygonize.cpp 9ff327806cd64df6d73a6c91f92d12ca0c5e07df 2018-04-07 20:25:06 +0200 Even Rouault $")
+CPL_CVSID("$Id: polygonize.cpp fe2d81c8819bf9794bce0210098e637565728350 2018-05-06 00:49:51 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */
@@ -62,13 +62,12 @@ CPL_CVSID("$Id: polygonize.cpp 9ff327806cd64df6d73a6c91f92d12ca0c5e07df 2018-04-
 
 class RPolygon {
 public:
-    explicit RPolygon( double dfValue )
-        { dfPolyValue = dfValue; nLastLineUpdated = -1; }
+    double           dfPolyValue = 0.0;
+    int              nLastLineUpdated = -1;
 
-    double           dfPolyValue;
-    int              nLastLineUpdated;
+    std::vector< std::vector<int> > aanXY{};
 
-    std::vector< std::vector<int> > aanXY;
+    explicit RPolygon( double dfValue ): dfPolyValue(dfValue) {}
 
     void             AddSegment( int x1, int y1, int x2, int y2 );
     void             Dump() const;

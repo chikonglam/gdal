@@ -37,7 +37,7 @@
 #include <cmath>
 #include <algorithm>
 
-CPL_CVSID("$Id: mffdataset.cpp f946b03da9b425043fed0a0c58a329295240840f 2017-12-15 13:36:23Z Kurt Schwehr $")
+CPL_CVSID("$Id: mffdataset.cpp d14a537a4324399712f4b822656d374341773cd3 2018-07-29 23:14:54 +0200 Even Rouault $")
 
 enum {
   MFFPRJ_NONE,
@@ -54,7 +54,7 @@ static int GetMFFProjectionType(const char * pszNewProjection);
 /* ==================================================================== */
 /************************************************************************/
 
-class MFFDataset : public RawDataset
+class MFFDataset final : public RawDataset
 {
     int         nGCPCount;
     GDAL_GCP    *pasGCPList;
@@ -66,6 +66,8 @@ class MFFDataset : public RawDataset
 
     void        ScanForGCPs();
     void        ScanForProjectionInfo();
+
+    CPL_DISALLOW_COPY_ASSIGN(MFFDataset)
 
   public:
     MFFDataset();
@@ -101,12 +103,14 @@ class MFFDataset : public RawDataset
 /* ==================================================================== */
 /************************************************************************/
 
-class MFFTiledBand : public GDALRasterBand
+class MFFTiledBand final: public GDALRasterBand
 {
     friend class MFFDataset;
 
     VSILFILE      *fpRaw;
     bool           bNative;
+
+    CPL_DISALLOW_COPY_ASSIGN(MFFTiledBand)
 
   public:
     MFFTiledBand( MFFDataset *, int, VSILFILE *, int, int,
@@ -403,7 +407,7 @@ void MFFDataset::ScanForGCPs()
             dfRasterY = GetRasterYSize()-0.5;
             pszBase = "BOTTOM_LEFT_CORNER";
         }
-        else if( nCorner == 4 )
+        else /* if( nCorner == 4 ) */
         {
             dfRasterX = GetRasterXSize()/2.0;
             dfRasterY = GetRasterYSize()/2.0;
@@ -971,7 +975,7 @@ GDALDataset *MFFDataset::Open( GDALOpenInfo * poOpenInfo )
             poBand =
                 new RawRasterBand( poDS, nBand, fpRaw, 0, nPixelOffset,
                                    nPixelOffset * poDS->GetRasterXSize(),
-                                   eDataType, bNative, TRUE, TRUE );
+                                   eDataType, bNative, RawRasterBand::OwnFP::YES );
         }
 
         poDS->SetBand( nBand, poBand );

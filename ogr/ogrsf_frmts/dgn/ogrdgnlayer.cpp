@@ -35,7 +35,7 @@
 #include <cmath>
 #include <list>
 
-CPL_CVSID("$Id: ogrdgnlayer.cpp 98dfb4b4012c5ae4621e246e8eb393b3c05a3f48 2018-04-02 22:09:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrdgnlayer.cpp 88eda08930b6dafb9ea1374ba19e0b1cf5ded3d3 2018-08-11 20:16:37 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           OGRDGNLayer()                              */
@@ -885,6 +885,7 @@ DGNElemCore **OGRDGNLayer::LineStringToElementGroup( OGRLineString *poLS,
         int nThisCount = 0;
 
         // we need to repeat end points of elements.
+        // cppcheck-suppress duplicateExpression
         if( iNextPoint != 0 )
             iNextPoint--;
 

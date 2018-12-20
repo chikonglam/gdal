@@ -34,7 +34,7 @@
 #include <cassert>
 #include <limits>
 
-CPL_CVSID("$Id: gdalgeopackagerasterband.cpp d3d03495b767cd1ee443e1543c9ebe6b6040a21e 2018-08-11 19:46:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalgeopackagerasterband.cpp 17d3e07a485cc762ef4e5803ac2a0d01797a67d1 2018-06-22 20:07:31 +0200 Even Rouault $")
 
 #if !defined(DEBUG_VERBOSE) && defined(DEBUG_VERBOSE_GPKG)
 #define DEBUG_VERBOSE

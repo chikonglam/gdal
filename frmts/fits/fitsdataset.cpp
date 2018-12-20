@@ -33,7 +33,7 @@
 #include <string.h>
 #include <fitsio.h>
 
-CPL_CVSID("$Id: fitsdataset.cpp 6eaea8fcfa9a9d8184a4f0ab9f143bcb620d51da 2018-10-24 20:23:42 +0200 Even Rouault $")
+CPL_CVSID("$Id: fitsdataset.cpp 25fc57b7642662356328928a01e3d64ff89eb4c7 2018-10-24 20:23:42 +0200 Even Rouault $")
 
 /************************************************************************/
 /* ==================================================================== */

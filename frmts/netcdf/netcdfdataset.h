@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: netcdfdataset.h 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $
+ * $Id: netcdfdataset.h 747442274b44f53e85c1532d3dae82e623d4f56b 2018-08-08 13:31:38 +0200 Even Rouault $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library.
@@ -41,6 +41,7 @@
 #include "netcdf.h"
 #include "ogr_spatialref.h"
 #include "ogrsf_frmts.h"
+#include "netcdfuffd.h"
 
 #if defined(DEBUG) || defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION) || defined(ALLOW_FORMAT_DUMPS)
 // Whether to support opening a ncdump file as a file dataset
@@ -770,6 +771,9 @@ class netCDFDataset final: public GDALPamDataset
     bool          bFileToDestroyAtClosing;
 #endif
     int           cdfid;
+#ifdef ENABLE_UFFD
+    cpl_uffd_context *pCtx = nullptr;
+#endif
     char          **papszSubDatasets;
     char          **papszMetadata;
     CPLStringList papszDimName;

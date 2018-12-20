@@ -69,6 +69,7 @@ package Geo::GDAL;
 *GetErrorCounter = *Geo::GDALc::GetErrorCounter;
 *VSIGetLastErrorNo = *Geo::GDALc::VSIGetLastErrorNo;
 *VSIGetLastErrorMsg = *Geo::GDALc::VSIGetLastErrorMsg;
+*VSIErrorReset = *Geo::GDALc::VSIErrorReset;
 *PushFinderLocation = *Geo::GDALc::PushFinderLocation;
 *PopFinderLocation = *Geo::GDALc::PopFinderLocation;
 *FinderClean = *Geo::GDALc::FinderClean;
@@ -95,6 +96,7 @@ package Geo::GDAL;
 *VSIFOpenL = *Geo::GDALc::VSIFOpenL;
 *VSIFOpenExL = *Geo::GDALc::VSIFOpenExL;
 *VSIFEofL = *Geo::GDALc::VSIFEofL;
+*VSIFFlushL = *Geo::GDALc::VSIFFlushL;
 *VSIFCloseL = *Geo::GDALc::VSIFCloseL;
 *VSIFSeekL = *Geo::GDALc::VSIFSeekL;
 *VSIFTellL = *Geo::GDALc::VSIFTellL;
@@ -104,6 +106,7 @@ package Geo::GDAL;
 *VSIStdoutSetRedirection = *Geo::GDALc::VSIStdoutSetRedirection;
 *VSIStdoutUnsetRedirection = *Geo::GDALc::VSIStdoutUnsetRedirection;
 *VSICurlClearCache = *Geo::GDALc::VSICurlClearCache;
+*VSICurlPartialClearCache = *Geo::GDALc::VSICurlPartialClearCache;
 *ParseCommandLine = *Geo::GDALc::ParseCommandLine;
 *GDAL_GCP_GCPX_get = *Geo::GDALc::GDAL_GCP_GCPX_get;
 *GDAL_GCP_GCPX_set = *Geo::GDALc::GDAL_GCP_GCPX_set;
@@ -133,6 +136,7 @@ package Geo::GDAL;
 *_RegenerateOverviews = *Geo::GDALc::_RegenerateOverviews;
 *_RegenerateOverview = *Geo::GDALc::_RegenerateOverview;
 *ContourGenerate = *Geo::GDALc::ContourGenerate;
+*ContourGenerateEx = *Geo::GDALc::ContourGenerateEx;
 *_AutoCreateWarpedVRT = *Geo::GDALc::_AutoCreateWarpedVRT;
 *CreatePansharpenedVRT = *Geo::GDALc::CreatePansharpenedVRT;
 *ApplyVerticalShiftGrid = *Geo::GDALc::ApplyVerticalShiftGrid;
@@ -179,6 +183,25 @@ package Geo::GDAL;
 *wrapper_GDALRasterizeDestName = *Geo::GDALc::wrapper_GDALRasterizeDestName;
 *wrapper_GDALBuildVRT_objects = *Geo::GDALc::wrapper_GDALBuildVRT_objects;
 *wrapper_GDALBuildVRT_names = *Geo::GDALc::wrapper_GDALBuildVRT_names;
+
+############# Class : Geo::GDAL::VSILFILE ##############
+
+package Geo::GDAL::VSILFILE;
+use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
+@ISA = qw( Geo::GDAL );
+%OWNER = ();
+sub DISOWN {
+    my $self = shift;
+    my $ptr = tied(%$self);
+    delete $OWNER{$ptr};
+}
+
+sub ACQUIRE {
+    my $self = shift;
+    my $ptr = tied(%$self);
+    $OWNER{$ptr} = 1;
+}
+
 
 ############# Class : Geo::GDAL::MajorObject ##############
 
@@ -606,6 +629,8 @@ sub DESTROY {
 *GetRowOfValue = *Geo::GDALc::RasterAttributeTable_GetRowOfValue;
 *ChangesAreWrittenToFile = *Geo::GDALc::RasterAttributeTable_ChangesAreWrittenToFile;
 *DumpReadable = *Geo::GDALc::RasterAttributeTable_DumpReadable;
+*SetTableType = *Geo::GDALc::RasterAttributeTable_SetTableType;
+*GetTableType = *Geo::GDALc::RasterAttributeTable_GetTableType;
 sub DISOWN {
     my $self = shift;
     my $ptr = tied(%$self);
@@ -1066,8 +1091,8 @@ use Geo::GDAL::Const;
 # Note that the 1/100000 digits may be used to create more than one
 # CPAN release from one GDAL release.
 
-our $VERSION = '2.0303';
-our $GDAL_VERSION = '2.3.3';
+our $VERSION = '2.0400';
+our $GDAL_VERSION = '2.4.0';
 
 =pod
 
@@ -2970,6 +2995,11 @@ sub Seek {
 sub Tell {
     my ($self) = @_;
     Geo::GDAL::VSIFTellL($self);
+}
+
+sub Flush {
+    my ($self) = @_;
+    Geo::GDAL::VSIFFlushL($self);
 }
 
 sub Truncate {

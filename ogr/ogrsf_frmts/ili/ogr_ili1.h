@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_ili1.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: ogr_ili1.h 29dcefd34892121afac0b7b978757ee6daad614a 2018-05-03 15:55:54 +0200 Even Rouault $
  *
  * Project:  Interlis 1 Translator
  * Purpose:   Definition of classes for OGR Interlis 1 driver.
@@ -104,6 +104,8 @@ class OGRILI1DataSource : public OGRDataSource
     char       *pszTopic;
     int         nLayers;
     OGRILI1Layer** papoLayers;
+
+    CPL_DISALLOW_COPY_ASSIGN(OGRILI1DataSource)
 
   public:
                 OGRILI1DataSource();

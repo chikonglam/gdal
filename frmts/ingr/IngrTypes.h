@@ -1,5 +1,5 @@
 /*****************************************************************************
- * $Id: IngrTypes.h 586c66c58186ee53153aa3ed94920e512fb62397 2016-11-23 00:33:51Z Even Rouault $
+ * $Id: IngrTypes.h 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $
  *
  * Project:  Intergraph Raster Format support
  * Purpose:  Types, constants and functions definition
@@ -207,7 +207,7 @@ typedef enum {
 } INGR_ColorTableType;
 
 //  ----------------------------------------------------------------------------
-//    Environ-V Color Tables Entrie
+//    Environ-V Color Tables Entry
 //  ----------------------------------------------------------------------------
 
 struct vlt_slot
@@ -219,7 +219,7 @@ struct vlt_slot
 };
 
 //  ----------------------------------------------------------------------------
-//    IGDS Color Tables Entrie
+//    IGDS Color Tables Entry
 //  ----------------------------------------------------------------------------
 
 struct igds_slot

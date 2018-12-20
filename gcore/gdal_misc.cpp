@@ -58,7 +58,7 @@
 #include "ogr_spatialref.h"
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: gdal_misc.cpp 35bffe8063631f82da77398a37900c784b2b414f 2018-11-02 22:54:20 +0100 Even Rouault $")
+CPL_CVSID("$Id: gdal_misc.cpp e5e7b313540f0ff913fadfe6a273fb7c356a22cb 2018-11-02 22:54:20 +0100 Even Rouault $")
 
 static int GetMinBitsForPair(
     const bool pabSigned[], const bool pabFloating[], const int panBits[])

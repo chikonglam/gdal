@@ -32,7 +32,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: fastdataset.cpp a542b2797f15f2ed694cfcee9ff17d86b339dfee 2018-04-02 00:24:03 +0200 Even Rouault $")
+CPL_CVSID("$Id: fastdataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 // constexpr int ADM_STD_HEADER_SIZE = 4608;  // Format specification says it
 constexpr int ADM_HEADER_SIZE = 5000;  // Should be 4608, but some vendors
@@ -100,7 +100,7 @@ enum FASTSatellite  // Satellites:
 /* ==================================================================== */
 /************************************************************************/
 
-class FASTDataset : public GDALPamDataset
+class FASTDataset final: public GDALPamDataset
 {
     friend class FASTRasterBand;
 
@@ -116,6 +116,8 @@ class FASTDataset : public GDALPamDataset
     FASTSatellite iSatellite;
 
     int         OpenChannel( const char *pszFilename, int iBand );
+
+    CPL_DISALLOW_COPY_ASSIGN(FASTDataset)
 
   public:
     FASTDataset();
@@ -141,6 +143,8 @@ class FASTRasterBand : public RawRasterBand
 {
     friend class FASTDataset;
 
+    CPL_DISALLOW_COPY_ASSIGN(FASTRasterBand)
+
   public:
                 FASTRasterBand( FASTDataset *, int, VSILFILE *, vsi_l_offset,
                                 int, int, GDALDataType, int );
@@ -155,7 +159,8 @@ FASTRasterBand::FASTRasterBand( FASTDataset *poDSIn, int nBandIn, VSILFILE * fpR
                                 int nLineOffsetIn,
                                 GDALDataType eDataTypeIn, int bNativeOrderIn ) :
     RawRasterBand( poDSIn, nBandIn, fpRawIn, nImgOffsetIn, nPixelOffsetIn,
-                   nLineOffsetIn, eDataTypeIn, bNativeOrderIn, TRUE )
+                   nLineOffsetIn, eDataTypeIn, bNativeOrderIn,
+                   RawRasterBand::OwnFP::NO )
 {}
 
 /************************************************************************/

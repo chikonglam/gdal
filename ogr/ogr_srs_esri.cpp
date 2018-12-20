@@ -52,7 +52,7 @@
 #include "ogr_p.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogr_srs_esri.cpp 307445e29097746ae602c7149101ef485efbbfbf 2018-06-19 06:51:52 -0700 Kurt Schwehr $")
+CPL_CVSID("$Id: ogr_srs_esri.cpp cc6ca001ca38524e60b40ab86e4b23372ddf9936 2018-06-19 06:51:52 -0700 Kurt Schwehr $")
 
 extern void OGREPSGDatumNameMassage( char ** ppszDatum );
 
@@ -1743,7 +1743,7 @@ OGRErr OGRSpatialReference::morphToESRI()
         if( (poProjCS = GetAttrNode( "PROJCS" )) != nullptr )
             poProjCSNodeChild = poProjCS->GetChild(0);
 
-        if( bHasEquivalentMerc2SP )
+        if( poProjCS && bHasEquivalentMerc2SP )
         {
             const int iScaleFactorChild =
                 FindProjParm( SRS_PP_SCALE_FACTOR, poProjCS );

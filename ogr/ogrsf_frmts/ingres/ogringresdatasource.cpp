@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogringresdatasource.cpp 6574497e5ddfd7c08c094a76756a0ef477cef6a1 2018-04-04 22:15:20 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogringresdatasource.cpp d14a537a4324399712f4b822656d374341773cd3 2018-07-29 23:14:54 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                            SetConnParam()                            */
@@ -79,17 +79,6 @@ SetConnParam(II_PTR *connHandle,
 OGRIngresDataSource::OGRIngresDataSource()
 
 {
-    pszName = NULL;
-    papoLayers = NULL;
-    nLayers = 0;
-    hConn = 0;
-
-    nKnownSRID = 0;
-    panSRID = NULL;
-    papoSRS = NULL;
-    poActiveLayer = NULL;
-    bDSUpdate = FALSE;
-    bNewIngres = FALSE;
 }
 
 /************************************************************************/

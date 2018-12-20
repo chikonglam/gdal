@@ -1,5 +1,5 @@
 /*
- * $Id: kearat.h 63b779f5c1ce6e55328b6739436678fe40be9af1 2017-04-11 19:34:57Z Even Rouault $
+ * $Id: kearat.h 2519a7eb0e1649dbf8625ae8ffc7bb7c3ef9514b 2018-07-10 12:05:23 +0100 Robert Coup $
  *  kearat.h
  *
  *  Created by Pete Bunting on 01/08/2012.
@@ -36,7 +36,7 @@
 
 #include "keaband.h"
 
-class KEARasterAttributeTable : public GDALRasterAttributeTable
+class KEARasterAttributeTable : public GDALDefaultRasterAttributeTable
 {
 private:
     kealib::KEAAttributeTable *m_poKEATable;
@@ -84,6 +84,9 @@ public:
                                             double *pdfBinSize ) const override;
 
     virtual CPLXMLNode   *Serialize() const override;
+
+    virtual GDALRATTableType GetTableType() const override;
+    virtual CPLErr        SetTableType(const GDALRATTableType eInTableType) override;
 };
 
 #endif //KEARAT_H

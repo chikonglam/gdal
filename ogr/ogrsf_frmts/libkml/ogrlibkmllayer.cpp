@@ -38,8 +38,9 @@
 #include "ogrlibkmlstyle.h"
 
 #include <algorithm>
+#include <set>
 
-CPL_CVSID("$Id: ogrlibkmllayer.cpp 3f0732f8c46f1eecf57e9837ee97727db4268357 2018-09-22 10:31:14 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrlibkmllayer.cpp 539e65602cad8be14816343d19a0fb8ca86c87c2 2018-09-22 10:31:14 +0200 Even Rouault $")
 
 using kmldom::CameraPtr;
 using kmldom::ChangePtr;
@@ -216,6 +217,8 @@ OGRLIBKMLLayer::OGRLIBKMLLayer( const char *pszLayerName,
         if( m_poKmlLayer->IsA( kmldom::Type_Document ) )
             ParseStyles( AsDocument ( m_poKmlLayer ), &m_poStyleTable );
 
+        bool bCanSetKmlSchema = true;
+
         /***** get the schema if the layer is a Document *****/
         if( m_poKmlLayer->IsA( kmldom::Type_Document ) )
         {
@@ -223,13 +226,25 @@ OGRLIBKMLLayer::OGRLIBKMLLayer( const char *pszLayerName,
 
             if( poKmlDocument->get_schema_array_size() )
             {
-                m_poKmlSchema = poKmlDocument->get_schema_array_at( 0 );
-                kml2FeatureDef( m_poKmlSchema, m_poOgrFeatureDefn );
+                for(size_t i = 0; i < poKmlDocument->get_schema_array_size(); i++ )
+                {
+                    auto schema = poKmlDocument->get_schema_array_at( i );
+                    if( bCanSetKmlSchema && !m_poKmlSchema )
+                    {
+                        m_poKmlSchema = schema;
+                        bCanSetKmlSchema = false;
+                    }
+                    else
+                    {
+                        m_poKmlSchema = nullptr;
+                    }
+                    kml2FeatureDef( schema, m_poOgrFeatureDefn );
+                }
             }
         }
 
         /***** the schema is somewhere else *****/
-        if( !m_poKmlSchema )
+        if( bCanSetKmlSchema )
         {
             /***** try to find the correct schema *****/
             bool bHasHeading = false;
@@ -237,14 +252,16 @@ OGRLIBKMLLayer::OGRLIBKMLLayer( const char *pszLayerName,
             bool bHasRoll = false;
             bool bHasSnippet = false;
             FeaturePtr poKmlFeature = nullptr;
+            const bool bLaunderFieldNames =
+                CPLTestBool(CPLGetConfigOption(
+                    "LIBKML_LAUNDER_FIELD_NAMES", "YES"));
+            std::set<std::string> oSetSchemaAlreadyVisited;
 
             /***** find the first placemark *****/
-            do {
-                if( iFeature >= nFeatures )
-                    break;
-
+            for( iFeature = 0; iFeature < nFeatures; iFeature++ )
+            {
                 poKmlFeature =
-                    m_poKmlLayer->get_feature_array_at( iFeature++ );
+                    m_poKmlLayer->get_feature_array_at( iFeature );
 
                 if( poKmlFeature->Type() == kmldom::Type_Placemark )
                 {
@@ -275,6 +292,67 @@ OGRLIBKMLLayer::OGRLIBKMLLayer( const char *pszLayerName,
                             m_poOgrFeatureDefn->AddFieldDefn( &oOgrField );
                         }
                     }
+
+                    if( poKmlFeature->has_extendeddata() )
+                    {
+                        const ExtendedDataPtr poKmlExtendedData =
+                            poKmlFeature->get_extendeddata();
+
+                        if( poKmlExtendedData->get_schemadata_array_size() > 0 )
+                        {
+                            const SchemaDataPtr poKmlSchemaData =
+                                poKmlExtendedData->get_schemadata_array_at( 0 );
+
+                            if( poKmlSchemaData->has_schemaurl() )
+                            {
+                                std::string oKmlSchemaUrl =
+                                    poKmlSchemaData->get_schemaurl();
+                                if( oSetSchemaAlreadyVisited.find(
+                                        oKmlSchemaUrl) ==
+                                            oSetSchemaAlreadyVisited.end() )
+                                {
+                                    oSetSchemaAlreadyVisited.insert(
+                                        oKmlSchemaUrl);
+                                    auto schema = m_poOgrDS->FindSchema(
+                                            oKmlSchemaUrl.c_str() );
+                                    if( schema )
+                                    {
+                                        if( bCanSetKmlSchema && !m_poKmlSchema )
+                                        {
+                                            m_poKmlSchema = schema;
+                                            bCanSetKmlSchema = false;
+                                        }
+                                        else
+                                        {
+                                            m_poKmlSchema = nullptr;
+                                        }
+                                        kml2FeatureDef( schema, m_poOgrFeatureDefn );
+                                    }
+                                }
+                            }
+                        }
+                        else if( poKmlExtendedData->get_data_array_size() > 0 )
+                        {
+                            const size_t nDataArraySize =
+                                poKmlExtendedData->get_data_array_size();
+                            for( size_t i = 0; i < nDataArraySize; i++ )
+                            {
+                                const DataPtr& data =
+                                    poKmlExtendedData->get_data_array_at(i);
+                                if( data->has_name() )
+                                {
+                                    CPLString osName = std::string(data->get_name());
+                                    if( bLaunderFieldNames )
+                                        osName = LaunderFieldNames(osName);
+                                    if( m_poOgrFeatureDefn->GetFieldIndex(osName) < 0 )
+                                    {
+                                        OGRFieldDefn oOgrField( osName, OFTString );
+                                        m_poOgrFeatureDefn->AddFieldDefn( &oOgrField );
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 if( !bHasSnippet && poKmlFeature->has_snippet() )
                 {
@@ -282,57 +360,8 @@ OGRLIBKMLLayer::OGRLIBKMLLayer( const char *pszLayerName,
                     OGRFieldDefn oOgrField( oFC.snippetfield, OFTString );
                     m_poOgrFeatureDefn->AddFieldDefn( &oOgrField );
                 }
-            } while( poKmlFeature->Type() != kmldom::Type_Placemark );
-
-            if( iFeature <= nFeatures && poKmlFeature &&
-                poKmlFeature->Type() == kmldom::Type_Placemark &&
-                poKmlFeature->has_extendeddata() )
-            {
-
-                const ExtendedDataPtr poKmlExtendedData =
-                    poKmlFeature->get_extendeddata();
-
-                if( poKmlExtendedData->get_schemadata_array_size() > 0 )
-                {
-                    const SchemaDataPtr poKmlSchemaData =
-                        poKmlExtendedData->get_schemadata_array_at( 0 );
-
-                    if( poKmlSchemaData->has_schemaurl() )
-                    {
-                        std::string oKmlSchemaUrl =
-                            poKmlSchemaData->get_schemaurl();
-                        if( ( m_poKmlSchema = m_poOgrDS->FindSchema(
-                                  oKmlSchemaUrl.c_str() ) ) )
-                        {
-                            kml2FeatureDef( m_poKmlSchema, m_poOgrFeatureDefn );
-                        }
-                    }
-                }
-                else if( poKmlExtendedData->get_data_array_size() > 0 )
-                {
-                    // Use the <Data> of the first placemark to build the
-                    // feature definition.  If others have different fields,
-                    // too bad...
-                    const bool bLaunderFieldNames =
-                        CPLTestBool(CPLGetConfigOption(
-                            "LIBKML_LAUNDER_FIELD_NAMES", "YES"));
-                    const size_t nDataArraySize =
-                        poKmlExtendedData->get_data_array_size();
-                    for( size_t i = 0; i < nDataArraySize; i++ )
-                    {
-                        const DataPtr& data =
-                            poKmlExtendedData->get_data_array_at(i);
-                        if( data->has_name() )
-                        {
-                            CPLString osName = std::string(data->get_name());
-                            if( bLaunderFieldNames )
-                                osName = LaunderFieldNames(osName);
-                            OGRFieldDefn oOgrField( osName, OFTString );
-                            m_poOgrFeatureDefn->AddFieldDefn( &oOgrField );
-                        }
-                    }
-                }
             }
+
             iFeature = 0;
         }
     }
@@ -363,7 +392,7 @@ OGRLIBKMLLayer::~OGRLIBKMLLayer()
 
  Returns:       The next feature, or NULL if there is no more
 
- This function copyed from the sqlite driver.
+ This function copied from the sqlite driver.
 ******************************************************************************/
 
 OGRFeature *OGRLIBKMLLayer::GetNextFeature()

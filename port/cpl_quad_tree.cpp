@@ -39,7 +39,7 @@
 #include "cpl_conv.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: cpl_quad_tree.cpp 0846c4df38348216396587449b9cef818856b36c 2018-01-10 16:19:40Z Kurt Schwehr $")
+CPL_CVSID("$Id: cpl_quad_tree.cpp 5e0bc19589a7902ad40bd8c2ed9af34f8e62a9b4 2018-07-04 22:34:59 +0200 Even Rouault $")
 
 constexpr int MAX_DEFAULT_TREE_DEPTH = 12;
 constexpr int MAX_SUBNODES = 4;
@@ -194,7 +194,7 @@ int CPLQuadTreeGetAdvisedMaxDepth(int nExpectedFeatures)
     int nMaxDepth = 0;
     int nMaxNodeCount = 1;
 
-    while( nMaxNodeCount*4 < nExpectedFeatures )
+    while( nMaxNodeCount < nExpectedFeatures / 4 )
     {
         nMaxDepth += 1;
         nMaxNodeCount = nMaxNodeCount * 2;

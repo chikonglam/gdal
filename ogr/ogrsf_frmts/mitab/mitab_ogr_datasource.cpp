@@ -32,7 +32,7 @@
 
 #include "mitab_ogr_driver.h"
 
-CPL_CVSID("$Id: mitab_ogr_datasource.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_ogr_datasource.cpp 43b6061a355c4bce2283b787b28d5f3ae6b9e2af 2018-05-06 14:19:59 +0200 Even Rouault $")
 
 /*=======================================================================
  *                 OGRTABDataSource
@@ -333,7 +333,7 @@ OGRTABDataSource::ICreateLayer( const char *pszLayerName,
 
         m_bSingleLayerAlreadyCreated = TRUE;
 
-        poFile = (IMapInfoFile *) m_papoLayers[0];
+        poFile = m_papoLayers[0];
         if( pszEncoding )
             poFile->SetCharset( pszCharset );
     }
@@ -471,7 +471,7 @@ char **OGRTABDataSource::GetFileList()
              papszDirEntries != nullptr && papszDirEntries[iFile] != nullptr;
              iFile++ )
         {
-            if( CSLFindString((char **)apszExtensions,
+            if( CSLFindString(apszExtensions,
                               CPLGetExtension(papszDirEntries[iFile])) != -1)
             {
                 osList.AddString(

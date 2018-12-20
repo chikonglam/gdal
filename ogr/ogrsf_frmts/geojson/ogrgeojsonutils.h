@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonutils.h 55901e50fd8583acecc3d37c9cc2870043fc8bdb 2018-01-11 09:11:21Z Dmitry Baryshnikov $
+ * $Id: ogrgeojsonutils.h 287413caabcca722a41a2f74f819e5b03e44ed21 2018-09-16 15:01:08 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private utilities within OGR OGRGeoJSON Driver.
@@ -50,6 +50,7 @@ enum GeoJSONSourceType
 };
 
 GeoJSONSourceType GeoJSONGetSourceType( GDALOpenInfo* poOpenInfo );
+GeoJSONSourceType GeoJSONSeqGetSourceType( GDALOpenInfo* poOpenInfo );
 GeoJSONSourceType ESRIJSONDriverGetSourceType( GDALOpenInfo* poOpenInfo );
 GeoJSONSourceType TopoJSONDriverGetSourceType( GDALOpenInfo* poOpenInfo );
 
@@ -58,6 +59,7 @@ GeoJSONSourceType TopoJSONDriverGetSourceType( GDALOpenInfo* poOpenInfo );
 /************************************************************************/
 
 bool GeoJSONIsObject( const char* pszText );
+bool GeoJSONSeqIsObject( const char* pszText );
 bool ESRIJSONIsObject(const char *pszText);
 bool TopoJSONIsObject(const char *pszText);
 

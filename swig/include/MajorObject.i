@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: MajorObject.i a2d4bcda7874bbc6de9942874f8d549219e9403d 2016-01-08 21:00:50Z Kurt Schwehr $
+ * $Id: MajorObject.i 90dde4a3fc0d89373a62000ae14e424fc41f7306 2018-09-17 17:47:00 +0900 Hiroshi Miura $
  *
  * Project:  GDAL SWIG Interfaces.
  * Purpose:  SWIG Definitions for GDALMajorObject.
@@ -37,6 +37,8 @@
 %module "Geo::GDAL"
 #elif defined(SWIGCSHARP)
 %module Gdal
+#elif defined(SWIGPYTHON)
+%module (package="osgeo") gdal
 #else
 %module gdal
 #endif

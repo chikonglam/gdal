@@ -1,5 +1,5 @@
 /*
- * $Id: keamaskband.h 2c3d60220a2d6b41496ded571e231b96435bffa0 2016-11-25 14:09:24Z Even Rouault $
+ * $Id: keamaskband.h 1dd8a744bbfec8b849371abec5cd44f729eecb03 2018-05-06 21:11:29 +0200 Even Rouault $
  *  keamaskband.h
  *
  *  Created by Pete Bunting on 01/08/2012.
@@ -35,7 +35,7 @@
 
 #include "libkea_headers.h"
 
-class KEAMaskBand : public GDALRasterBand
+class KEAMaskBand final: public GDALRasterBand
 {
     int m_nSrcBand;
     kealib::KEAImageIO  *m_pImageIO; // our image access pointer - refcounted

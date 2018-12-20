@@ -34,7 +34,7 @@
 
 #include <cstdlib>
 
-CPL_CVSID("$Id: genbindataset.cpp 373f8b25e241d5ee1e2816b5eb7642ab7e60e096 2018-04-07 16:25:30 +0200 Even Rouault $")
+CPL_CVSID("$Id: genbindataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /* ==================================================================== */
 /*      Table relating USGS and ESRI state plane zones.                 */
@@ -189,7 +189,7 @@ constexpr int anUsgsEsriZones[] =
 /* ==================================================================== */
 /************************************************************************/
 
-class GenBinDataset : public RawDataset
+class GenBinDataset final: public RawDataset
 {
     friend class GenBinBitRasterBand;
 
@@ -202,6 +202,8 @@ class GenBinDataset : public RawDataset
     char      **papszHDR;
 
     void        ParseCoordinateSystem( char ** );
+
+    CPL_DISALLOW_COPY_ASSIGN(GenBinDataset)
 
   public:
     GenBinDataset();
@@ -221,9 +223,11 @@ class GenBinDataset : public RawDataset
 /* ==================================================================== */
 /************************************************************************/
 
-class GenBinBitRasterBand : public GDALPamRasterBand
+class GenBinBitRasterBand final: public GDALPamRasterBand
 {
     int            nBits;
+
+    CPL_DISALLOW_COPY_ASSIGN(GenBinBitRasterBand)
 
   public:
     GenBinBitRasterBand( GenBinDataset *poDS, int nBits );
@@ -836,7 +840,8 @@ GDALDataset *GenBinDataset::Open( GDALOpenInfo * poOpenInfo )
                 i+1,
                 new RawRasterBand( poDS, i+1, poDS->fpImage,
                                    nBandOffset * i, nPixelOffset, nLineOffset,
-                                   eDataType, bNative, TRUE ) );
+                                   eDataType, bNative,
+                                   RawRasterBand::OwnFP::NO ) );
         }
     }
 

@@ -52,7 +52,7 @@
 #define TIMESTAMP_DEBUG
 // #define MEMORY_DEBUG
 
-CPL_CVSID("$Id: cpl_vsi_error.cpp 0846c4df38348216396587449b9cef818856b36c 2018-01-10 16:19:40Z Kurt Schwehr $")
+CPL_CVSID("$Id: cpl_vsi_error.cpp 340ad0d703534a256ec3de94176c95b0cf20cbd4 2018-10-13 00:33:14 +0200 Even Rouault $")
 
 constexpr int DEFAULT_LAST_ERR_MSG_SIZE =
 #if !defined(HAVE_VSNPRINTF)
@@ -281,6 +281,10 @@ int CPL_DLL CPL_STDCALL VSIToCPLError( CPLErr eErrClass,
             break;
         case VSIE_HttpError:
             CPLError(eErrClass, CPLE_HttpResponse, "%s", VSIGetLastErrorMsg());
+            break;
+        case VSIE_AWSError:
+            CPLError(eErrClass, CPLE_AWSError,
+                     "%s", VSIGetLastErrorMsg());
             break;
         case VSIE_AWSAccessDenied:
             CPLError(eErrClass, CPLE_AWSAccessDenied,

@@ -53,7 +53,7 @@
 #include "ogrsf_frmts.h"
 
 
-CPL_CVSID("$Id: ogrinfo.cpp 2487aa3c7836a7d43351540c252a0d2f4aa9bd60 2018-04-20 17:20:01 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrinfo.cpp a6d7833fdb738661c118e43c577d959652e4b168 2018-04-20 19:24:15 +0200 Even Rouault $")
 
 bool bVerbose = true;
 bool bSuperQuiet = false;

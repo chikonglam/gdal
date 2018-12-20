@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gensql.h 3e9d922f6235cbf10dcc765d1326add45431fb8a 2018-04-02 16:53:25 +0200 Even Rouault $
+ * $Id: ogr_gensql.h e37e476c4cf8f4b0df8995e0d95d5d672fca1a9b 2018-05-05 16:54:18 +0200 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes related to generic implementation of ExecuteSQL().
@@ -111,6 +111,8 @@ class OGRGenSQLResultsLayer final: public OGRLayer
     void        InvalidateOrderByIndex();
 
     int         MustEvaluateSpatialFilterOnGenSQL();
+
+    CPL_DISALLOW_COPY_ASSIGN(OGRGenSQLResultsLayer)
 
   public:
                 OGRGenSQLResultsLayer( GDALDataset *poSrcDS,

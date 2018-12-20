@@ -52,7 +52,7 @@
 #include "ogr_spatialref.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: gdalrasterize.cpp 9ff327806cd64df6d73a6c91f92d12ca0c5e07df 2018-04-07 20:25:06 +0200 Even Rouault $")
+CPL_CVSID("$Id: gdalrasterize.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 /************************************************************************/
 /*                           gvBurnScanline()                           */
@@ -721,7 +721,7 @@ CPLErr GDALRasterizeGeometries( GDALDatasetH hDS,
     if( eOptim == GRO_Auto )
     {
         eOptim = GRO_Raster;
-        // TODO make more tests with various inputs/outputs to ajust the parameters
+        // TODO make more tests with various inputs/outputs to adjust the parameters
         if( nYBlockSize > 1 && nGeomCount > 10000 && (poBand->GetXSize() * static_cast<long long>(poBand->GetYSize()) / nGeomCount > 50) )
         {
             eOptim = GRO_Vector;

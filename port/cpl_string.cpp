@@ -63,7 +63,7 @@
 #define va_copy __va_copy
 #endif
 
-CPL_CVSID("$Id: cpl_string.cpp 2a269ed2b136bd254b213f39846587c1eb237662 2018-04-18 23:42:24 +0200 Even Rouault $")
+CPL_CVSID("$Id: cpl_string.cpp e12a0fc61edef91a039e13c7baff2ce58288a552 2018-08-10 00:53:29 +0200 Juergen E. Fischer $")
 
 /*=====================================================================
                     StringList manipulation functions.
@@ -2020,6 +2020,10 @@ void CSLSetNameValueSeparator( char ** papszList, const char *pszSeparator )
  * Note that CPLUnescapeString() currently does not support this format, only
  * CPLEscapeString().  See cpl_csv.cpp for CSV parsing support.
  *
+ * CPLES_SQLI(7): All double quotes are replaced with two double quotes.
+ * Suitable for use when constructing identifiers for SQL commands where
+ * the literal will be enclosed in double quotes.
+ *
  * @param pszInput the string to escape.
  * @param nLength The number of bytes of data to preserve.  If this is -1
  * the strlen(pszString) function will be used to compute the length.
@@ -2163,14 +2167,15 @@ char *CPLEscapeString( const char *pszInput, int nLength,
         }
         pszOutput[iOut++] = '\0';
     }
-    else if( nScheme == CPLES_SQL )
+    else if( nScheme == CPLES_SQL || nScheme == CPLES_SQLI )
     {
+        char szQuote = nScheme == CPLES_SQL ? '\'' : '\"';
         for( int iIn = 0; iIn < nLength; ++iIn )
         {
-            if( pszInput[iIn] == '\'' )
+            if( pszInput[iIn] == szQuote )
             {
-                pszOutput[iOut++] = '\'';
-                pszOutput[iOut++] = '\'';
+                pszOutput[iOut++] = szQuote;
+                pszOutput[iOut++] = szQuote;
             }
             else
             {
@@ -2419,11 +2424,12 @@ char *CPLUnescapeString( const char *pszInput, int *pnLength, int nScheme )
             }
         }
     }
-    else if( nScheme == CPLES_SQL )
+    else if( nScheme == CPLES_SQL || nScheme == CPLES_SQLI )
     {
+        char szQuote = nScheme == CPLES_SQL ? '\'' : '\"';
         for( int iIn = 0; pszInput[iIn] != '\0'; ++iIn )
         {
-            if( pszInput[iIn] == '\'' && pszInput[iIn+1] == '\'' )
+            if( pszInput[iIn] == szQuote && pszInput[iIn+1] == szQuote )
             {
                 ++iIn;
                 pszOutput[iOut++] = pszInput[iIn];

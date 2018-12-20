@@ -64,7 +64,7 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpglayer.cpp 7d078e0357d2998edfa713422e607cbadf77f9ff 2018-04-08 22:11:28 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrpglayer.cpp e57c8627b2925254b5d0b35d42d987891eb3bcd0 2018-11-21 20:25:46 +0100 Even Rouault $")
 
 // These originally are defined in libpq-fs.h.
 
@@ -110,7 +110,7 @@ OGRPGLayer::~OGRPGLayer()
                   poFeatureDefn->GetName() );
     }
 
-    OGRPGLayer::ResetReading();
+    CloseCursor();
 
     CPLFree( pszFIDColumn );
     CPLFree( pszQueryStatement );
@@ -123,8 +123,6 @@ OGRPGLayer::~OGRPGLayer()
         poFeatureDefn->UnsetLayer();
         poFeatureDefn->Release();
     }
-
-    CloseCursor();
 }
 
 /************************************************************************/
@@ -796,8 +794,8 @@ OGRFeature *OGRPGLayer::RecordToFeature( PGresult* hResult,
                     poGeometry = OGRGeometryFromEWKB(pabyData, nLength, NULL,
                                                      poDS->sPostGISVersion.nMajor < 2 );
                 }
-#endif
                 if (poGeometry == nullptr)
+#endif
                 {
                     poGeometry = BYTEAToGeometry( (const char*)pabyData,
                                                   (poDS->sPostGISVersion.nMajor < 2) );
@@ -2188,6 +2186,11 @@ int OGRPGLayer::ReadResultDefinition(PGresult *hInitialResultIn)
 #endif
 
             oField.SetType( OFTDateTime );
+        }
+        else if ( nTypeOID == JSONOID || nTypeOID == JSONBOID )
+        {
+            oField.SetType( OFTString );
+            oField.SetSubType( OFSTJSON );
         }
         else /* unknown type */
         {

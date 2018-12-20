@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ******************************************************************************
-#  $Id: gcps2vec.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
+#  $Id: gcps2vec.py 8e263710cb425c4a8b76b1f363b98be41ea0a983 2018-04-30 19:40:20 +1000 Ben Elliston $
 #
 #  Project:  GDAL
 #  Purpose:  Convert GCPs to a point layer.
@@ -93,7 +93,7 @@ gcps = ds.GetGCPs()
 
 ds = None
 
-if gcps is None or len(gcps) == 0:
+if gcps is None or not gcps:
     print('No GCPs on file %s!' % in_file)
     sys.exit(1)
 

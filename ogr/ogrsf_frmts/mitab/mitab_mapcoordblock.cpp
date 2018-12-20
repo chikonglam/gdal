@@ -43,7 +43,7 @@
 #include "cpl_error.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: mitab_mapcoordblock.cpp f61bae9ed8735d8b4765f350130fb06ac3769324 2018-09-17 14:19:33 +0200 Even Rouault $")
+CPL_CVSID("$Id: mitab_mapcoordblock.cpp fd5a52b3fb25239d417f2daed64aa6f8cbe38da9 2018-09-17 14:19:33 +0200 Even Rouault $")
 
 /*=====================================================================
  *                      class TABMAPCoordBlock
@@ -190,7 +190,7 @@ int     TABMAPCoordBlock::CommitToFile()
 
     WriteInt16(TABMAP_COORD_BLOCK);    // Block type code
     CPLAssert(m_nSizeUsed >= MAP_COORD_HEADER_SIZE && m_nSizeUsed < MAP_COORD_HEADER_SIZE + 32768);
-    WriteInt16((GInt16)(m_nSizeUsed - MAP_COORD_HEADER_SIZE)); // num. bytes used
+    WriteInt16(static_cast<GInt16>(m_nSizeUsed - MAP_COORD_HEADER_SIZE)); // num. bytes used
     WriteInt32(m_nNextCoordBlock);
 
     if( CPLGetLastErrorType() == CE_Failure )
@@ -578,11 +578,11 @@ int     TABMAPCoordBlock::WriteCoordSecHdrs(int nVersion,
         if (nVersion >= 450)
             WriteInt32(pasHdrs[i].numVertices);
         else
-            WriteInt16((GInt16)pasHdrs[i].numVertices);
+            WriteInt16(static_cast<GInt16>(pasHdrs[i].numVertices));
         if (nVersion >= 800)
             WriteInt32(pasHdrs[i].numHoles);
         else
-            WriteInt16((GInt16)pasHdrs[i].numHoles);
+            WriteInt16(static_cast<GInt16>(pasHdrs[i].numHoles));
         WriteIntCoord(pasHdrs[i].nXMin, pasHdrs[i].nYMin, bCompressed);
         WriteIntCoord(pasHdrs[i].nXMax, pasHdrs[i].nYMax, bCompressed);
         WriteInt32(pasHdrs[i].nDataOffset);

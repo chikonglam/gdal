@@ -53,7 +53,7 @@
 #include <cmath>
 #include <vector>
 
-CPL_CVSID("$Id: jp2kakdataset.cpp 002b050d9a9ef403a732c1210784736ef97216d4 2018-04-09 21:34:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: jp2kakdataset.cpp 043ba13bd9b86aff795e0e3efc3dd3a109520bc4 2018-05-06 19:31:13 +0200 Even Rouault $")
 
 // Before v7.5 Kakadu does not advertise its version well
 // After v7.5 Kakadu has KDU_{MAJOR,MINOR,PATCH}_VERSION defines so it is easier
@@ -2305,10 +2305,10 @@ JP2KAKCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         oCodeStream.access_siz()->parse_string("Creversible=no");
 
     // Set some user-overridable parameters.
-    const char *apszParms[] =
+    const char * const apszParms[] =
         { "Corder", "PCRL",
-          "Cprecincts", "{512,512},{256,512},{128,512},{64,512},{32,512},"
-              "{16,512},{8,512},{4,512},{2,512}",
+          "Cprecincts",
+          "{512,512},{256,512},{128,512},{64,512},{32,512},{16,512},{8,512},{4,512},{2,512}",
           "ORGgen_plt", "yes",
           "ORGgen_tlm", nullptr,
           "Qguard", nullptr,

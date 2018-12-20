@@ -42,7 +42,7 @@
 #include "ogr_p.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ogrgeometrycollection.cpp 971ad299681ca1ea2e1b800e88209f426b77e9aa 2018-04-17 12:14:43 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgeometrycollection.cpp ba2ef4045f82fd2260f1732e9e46a927277ac93d 2018-05-06 19:07:03 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                       OGRGeometryCollection()                        */
@@ -52,12 +52,7 @@ CPL_CVSID("$Id: ogrgeometrycollection.cpp 971ad299681ca1ea2e1b800e88209f426b77e9
  * \brief Create an empty geometry collection.
  */
 
-OGRGeometryCollection::OGRGeometryCollection()
-
-{
-    nGeomCount = 0;
-    papoGeoms = nullptr;
-}
+OGRGeometryCollection::OGRGeometryCollection() = default;
 
 /************************************************************************/
 /*         OGRGeometryCollection( const OGRGeometryCollection& )        */
@@ -74,9 +69,7 @@ OGRGeometryCollection::OGRGeometryCollection()
 
 OGRGeometryCollection::OGRGeometryCollection(
     const OGRGeometryCollection& other ) :
-    OGRGeometry(other),
-    nGeomCount(0),
-    papoGeoms(nullptr)
+    OGRGeometry(other)
 {
     // Do not use addGeometry() as it is virtual.
     papoGeoms = static_cast<OGRGeometry **>(

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: mkgraticule.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
+# $Id: mkgraticule.py b44827f88294f39aaab49ccde473ef376e79f37d 2018-05-03 06:38:59 +1000 Ben Elliston $
 #
 # Project:  OGR Python samples
 # Purpose:  Produce a graticule (grid) dataset.
@@ -38,11 +38,11 @@ from osgeo import osr
 def float_range(*args):
     start = 0.0
     step = 1.0
-    if (len(args) == 1):
+    if len(args) == 1:
         (stop,) = args
-    elif (len(args) == 2):
+    elif len(args) == 2:
         (start, stop) = args
-    elif (len(args) == 3):
+    elif len(args) == 3:
         (start, stop, step) = args
     else:
         raise TypeError("float_range needs 1-3 float arguments")

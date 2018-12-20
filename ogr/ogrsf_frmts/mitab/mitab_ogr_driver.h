@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: mitab_ogr_driver.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: mitab_ogr_driver.h 43b6061a355c4bce2283b787b28d5f3ae6b9e2af 2018-05-06 14:19:59 +0200 Even Rouault $
  *
  * Name:     mitab_ogr_drive.h
  * Project:  Mid/mif tab ogr support
@@ -44,6 +44,8 @@
  *====================================================================*/
 class OGRTABDataSource : public OGRDataSource
 {
+    CPL_DISALLOW_COPY_ASSIGN(OGRTABDataSource)
+
   private:
     char                *m_pszName;
     char                *m_pszDirectory;

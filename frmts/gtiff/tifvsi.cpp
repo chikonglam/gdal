@@ -51,7 +51,7 @@
 #include "gdal_libgeotiff_symbol_rename.h"
 #endif
 
-CPL_CVSID("$Id: tifvsi.cpp 01037e400d90e8bc4a74f8d886ea5a27ecce02c5 2018-01-12 23:49:31Z Kurt Schwehr $")
+CPL_CVSID("$Id: tifvsi.cpp f6833aea93b09852c9e25fb54abbb6f019524d37 2018-05-06 23:29:35 +0200 Even Rouault $")
 
 CPL_C_START
 extern TIFF CPL_DLL * XTIFFClientOpen( const char* name, const char* mode,
@@ -113,7 +113,7 @@ _tiffReadProc( thandle_t th, tdata_t buf, tsize_t size )
 
 static bool GTHFlushBuffer( thandle_t th )
 {
-    GDALTiffHandle* psGTH = (GDALTiffHandle*) th;
+    GDALTiffHandle* psGTH = static_cast<GDALTiffHandle*>(th);
     bool bRet = true;
     if( psGTH->abyWriteBuffer && psGTH->nWriteBufferSize )
     {
@@ -244,7 +244,7 @@ _tiffSizeProc( thandle_t th )
     const vsi_l_offset old_off = VSIFTellL( psGTH->fpL );
     CPL_IGNORE_RET_VAL(VSIFSeekL( psGTH->fpL, 0, SEEK_END ));
 
-    const toff_t file_size = (toff_t) VSIFTellL( psGTH->fpL );
+    const toff_t file_size = static_cast<toff_t>(VSIFTellL( psGTH->fpL ));
     CPL_IGNORE_RET_VAL(VSIFSeekL( psGTH->fpL, old_off, SEEK_SET ));
 
     return file_size;
@@ -373,7 +373,7 @@ TIFF* VSI_TIFFOpen( const char* name, const char* mode,
 
     TIFF *tif =
         XTIFFClientOpen( name, mode,
-                         (thandle_t) psGTH,
+                         reinterpret_cast<thandle_t>(psGTH),
                          _tiffReadProc, _tiffWriteProc,
                          _tiffSeekProc, _tiffCloseProc, _tiffSizeProc,
                          _tiffMapProc, _tiffUnmapProc );

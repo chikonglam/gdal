@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: GDALCreateCopy.cs f070adf64950cae1c6cc86b104ba835c29df06b1 2016-08-28 06:06:11Z Kurt Schwehr $
+ * $Id: GDALCreateCopy.cs 65a24c56ebe59cdef9245fbaed0b203b2765d7c9 2018-05-28 19:40:31 +0300 Igor $
  *
  * Name:     GDALWrite.cs
  * Project:  GDAL CSharp Interface
@@ -89,7 +89,7 @@ class GDALWrite {
 
             if (ds == null)
             {
-                Console.WriteLine("Can't open source dataset " + args[1]);
+                Console.WriteLine("Can't open source dataset " + args[0]);
                 System.Environment.Exit(-1);
             }
 

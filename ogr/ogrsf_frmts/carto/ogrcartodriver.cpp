@@ -30,7 +30,7 @@
 
 // g++ -g -Wall -fPIC -shared -o ogr_CARTO.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/carto ogr/ogrsf_frmts/carto/*.c* -L. -lgdal -Iogr/ogrsf_frmts/geojson/libjson
 
-CPL_CVSID("$Id: ogrcartodriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrcartodriver.cpp 33f8a9b6edc31b5a6594c9deea91c975aab77ba1 2018-07-09 07:41:00 -0700 Paul Ramsey $")
 
 extern "C" void RegisterOGRCarto();
 
@@ -117,6 +117,7 @@ void RegisterOGRCarto()
     "  <Option name='API_KEY' type='string' description='Account API key'/>"
     "  <Option name='ACCOUNT' type='string' description='Account name' required='true'/>"
     "  <Option name='BATCH_INSERT' type='boolean' description='Whether to group features to be inserted in a batch' default='YES'/>"
+    "  <Option name='COPY_MODE' type='boolean' description='Whether to use the COPY API for faster uploads' default='YES'/>"
     "</OpenOptionList>");
 
     poDriver->SetMetadataItem( GDAL_DMD_CREATIONOPTIONLIST, "<CreationOptionList/>");

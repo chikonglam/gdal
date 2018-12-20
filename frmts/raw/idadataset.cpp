@@ -33,7 +33,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: idadataset.cpp 6574497e5ddfd7c08c094a76756a0ef477cef6a1 2018-04-04 22:15:20 +0200 Even Rouault $")
+CPL_CVSID("$Id: idadataset.cpp b2723bb9ee29fb36de5c3afec9e9a6b757ef743c 2018-05-10 21:21:26 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                                tp2c()                                */
@@ -114,7 +114,7 @@ static void c2tp( double x, GByte *r )
 /* ==================================================================== */
 /************************************************************************/
 
-class IDADataset : public RawDataset
+class IDADataset final: public RawDataset
 {
     friend class IDARasterBand;
 
@@ -144,6 +144,8 @@ class IDADataset : public RawDataset
     bool        bHeaderDirty;
 
     void        ReadColorTable();
+
+    CPL_DISALLOW_COPY_ASSIGN(IDADataset)
 
   public:
     IDADataset();
@@ -176,6 +178,8 @@ class IDARasterBand : public RawRasterBand
     GDALRasterAttributeTable *poRAT;
     GDALColorTable       *poColorTable;
 
+    CPL_DISALLOW_COPY_ASSIGN(IDARasterBand)
+
   public:
     IDARasterBand( IDADataset *poDSIn, VSILFILE *fpRaw, int nXSize );
     ~IDARasterBand() override;
@@ -197,7 +201,7 @@ class IDARasterBand : public RawRasterBand
 IDARasterBand::IDARasterBand( IDADataset *poDSIn,
                               VSILFILE *fpRawIn, int nXSize ) :
     RawRasterBand( poDSIn, 1, fpRawIn, 512, 1, nXSize,
-                   GDT_Byte, FALSE, TRUE ),
+                   GDT_Byte, FALSE, RawRasterBand::OwnFP::NO ),
     poRAT(nullptr),
     poColorTable(nullptr)
 {}
@@ -387,7 +391,7 @@ IDADataset::IDADataset() :
 IDADataset::~IDADataset()
 
 {
-    FlushCache();
+    IDADataset::FlushCache();
 
     if( fpRaw != nullptr )
     {

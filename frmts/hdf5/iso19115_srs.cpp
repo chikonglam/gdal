@@ -40,7 +40,7 @@
 #include "ogr_core.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: iso19115_srs.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: iso19115_srs.cpp de35b73572bc3545ba4b5c3c72a6e340249339cf 2018-08-27 15:05:29 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                     OGR_SRS_ImportFromISO19115()                     */
@@ -106,7 +106,11 @@ OGRErr OGR_SRS_ImportFromISO19115( OGRSpatialReference *poThis,
                                "");
             if( strlen(pszFalseNorthing) > 0 )
             {
-                if( EQUAL(pszFalseNorthing, "10000000"))
+                if( CPLAtof(pszFalseNorthing) == 0.0 )
+                {
+                    bNorth = TRUE;
+                }
+                else if( CPLAtof(pszFalseNorthing) == 10000000.0 )
                 {
                     bNorth = FALSE;
                 }
@@ -135,9 +139,12 @@ OGRErr OGR_SRS_ImportFromISO19115( OGRSpatialReference *poThis,
     }
     else
     {
-        CPLError(CE_Failure, CPLE_AppDefined,
-                 "projection = %s not recognised by ISO 19115 parser.",
-                 pszProjection);
+        if( !EQUAL(pszProjection, "") )
+        {
+            CPLError(CE_Failure, CPLE_AppDefined,
+                    "projection = %s not recognised by ISO 19115 parser.",
+                    pszProjection);
+        }
         CPLDestroyXMLNode(psRoot);
         return OGRERR_FAILURE;
     }

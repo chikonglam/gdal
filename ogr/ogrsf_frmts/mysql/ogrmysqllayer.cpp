@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrmysqllayer.cpp 6e4c87af0ee76324209081d113704c52a5f79955 2018-09-08 11:50:50 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrmysqllayer.cpp 06803487d7e0d67089b5fc6e58a0dd7ecc831b23 2018-09-08 11:50:50 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           OGRMySQLLayer()                            */

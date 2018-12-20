@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonwriter.h 8075d2214b8fc3baf71cb7f1eb983415790dc7ef 2018-03-28 20:59:35 +0200 Even Rouault $
+ * $Id: ogrgeojsonwriter.h a965bda62acdb21b5ac3e5291f84cdadcbeb4b05 2018-11-22 12:39:10 +0100 Even Rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines GeoJSON reader within OGR OGRGeoJSON Driver.
@@ -71,30 +71,20 @@ class OGRCoordinateTransformation;
 class OGRGeoJSONWriteOptions
 {
     public:
-        bool bWriteBBOX;
-        bool bBBOXRFC7946;
-        int  nCoordPrecision;
-        int  nSignificantFigures;
-        bool bPolygonRightHandRule;
-        bool bCanPatchCoordinatesWithNativeData;
-        bool bHonourReservedRFC7946Members;
-        CPLString osIDField;
-        bool bForceIDFieldType;
-        OGRFieldType eForcedIDFieldType;
-
-        OGRGeoJSONWriteOptions():
-            bWriteBBOX(false),
-            bBBOXRFC7946(false),
-            nCoordPrecision(-1),
-            nSignificantFigures(-1),
-            bPolygonRightHandRule(false),
-            bCanPatchCoordinatesWithNativeData(true),
-            bHonourReservedRFC7946Members(false),
-            bForceIDFieldType(false),
-            eForcedIDFieldType(OFTString)
-        {}
+        bool bWriteBBOX = false;
+        bool bBBOXRFC7946 = false;
+        int  nCoordPrecision = -1;
+        int  nSignificantFigures = -1;
+        bool bPolygonRightHandRule = false;
+        bool bCanPatchCoordinatesWithNativeData = true;
+        bool bHonourReservedRFC7946Members = false;
+        CPLString osIDField{};
+        bool bForceIDFieldType = false;
+        OGRFieldType eForcedIDFieldType = OFTString;
+        bool bAllowNonFiniteValues = false;
 
         void SetRFC7946Settings();
+        void SetIDOptions(CSLConstList papszOptions);
 };
 /*! @endcond */
 

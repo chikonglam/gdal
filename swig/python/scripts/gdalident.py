@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ******************************************************************************
-#  $Id: gdalident.py 54587021942e38164ce1cd8009e74933fd328f38 2018-04-18 03:01:56 +1000 Ben Elliston $
+#  $Id: gdalident.py e3962554e8676c6d005a5af5b2f49a19dab17b96 2018-05-08 04:34:14 +1000 Ben Elliston $
 #
 #  Project:  GDAL
 #  Purpose:  Application to identify files by format.
@@ -102,8 +102,8 @@ while i < len(argv):
 
     i = i + 1
 
-if len(files) == 0:
+if not files:
     Usage()
 
-for file in files:
-    ProcessTarget(file, recursive, report_failure)
+for f in files:
+    ProcessTarget(f, recursive, report_failure)

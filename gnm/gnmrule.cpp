@@ -30,7 +30,7 @@
 #include "gnm.h"
 #include "gnm_priv.h"
 
-CPL_CVSID("$Id: gnmrule.cpp 22f8ae3bf7bc3cccd970992655c63fc5254d3206 2018-04-08 20:13:05 +0200 Even Rouault $")
+CPL_CVSID("$Id: gnmrule.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 /*! @cond Doxygen_Suppress */
 GNMRule::GNMRule()
@@ -150,7 +150,7 @@ bool GNMRule::ParseRuleString()
     }
 
     // now just test if the value == connects
-    // in future shoult set rule type
+    // in future should set rule type
 
     if(!EQUAL(aTokens[1], GNM_RULEKW_CONNECTS))
     {

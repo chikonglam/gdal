@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_xplane_reader.h 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $
+ * $Id: ogr_xplane_reader.h 29dcefd34892121afac0b7b978757ee6daad614a 2018-05-03 15:55:54 +0200 Even Rouault $
  *
  * Project:  X-Plane aeronautical data reader
  * Purpose:  Definition of classes for OGR X-Plane aeronautical data reader.
@@ -49,6 +49,8 @@ class OGRXPlaneDataSource;
 
 class OGRXPlaneReader
 {
+        CPL_DISALLOW_COPY_ASSIGN(OGRXPlaneReader)
+
     protected:
         int             nLineNumber;
         char**          papszTokens;

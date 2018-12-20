@@ -35,7 +35,7 @@
 
 #include "cpl_json_header.h"
 
-CPL_CVSID("$Id: ogrgmlasreader.cpp 98dfb4b4012c5ae4621e246e8eb393b3c05a3f48 2018-04-02 22:09:55 +0200 Even Rouault $")
+CPL_CVSID("$Id: ogrgmlasreader.cpp 6ef13199b493973da285decbfcd5e2a763954b97 2018-06-07 05:46:42 -0400 luzpaz $")
 
 /************************************************************************/
 /*                        GMLASBinInputStream                           */
@@ -1000,7 +1000,7 @@ void GMLASReader::PopContext()
 #ifdef DEBUG_VERBOSE
     if( !m_aoStackContext.empty() )
     {
-        CPLDebug("GMLAS", "Poping up context:");
+        CPLDebug("GMLAS", "Popping up context:");
         m_aoStackContext.back().Dump();
     }
 #endif

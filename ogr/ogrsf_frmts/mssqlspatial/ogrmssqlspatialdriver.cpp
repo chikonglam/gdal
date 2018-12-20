@@ -29,7 +29,7 @@
 #include "ogr_mssqlspatial.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialdriver.cpp 7e07230bbff24eb333608de4dbd460b7312839d0 2017-12-11 19:08:47Z Even Rouault $")
+CPL_CVSID("$Id: ogrmssqlspatialdriver.cpp af87d0f739c0d9769410034858a8831d84c62915 2018-08-15 16:04:34 +0200 Even Rouault $")
 
 /************************************************************************/
 /*                           ~OGRMSSQLSpatialDriver()                   */
@@ -64,7 +64,7 @@ OGRDataSource *OGRMSSQLSpatialDriver::Open( const char * pszFilename, int bUpdat
 
     poDS = new OGRMSSQLSpatialDataSource();
 
-    if( !poDS->Open( pszFilename, bUpdate, TRUE ) )
+    if( !poDS->Open( pszFilename, CPL_TO_BOOL(bUpdate), TRUE ) )
     {
         delete poDS;
         return nullptr;
