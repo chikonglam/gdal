@@ -1,8 +1,9 @@
-gdal (2.3.3~rc2+dfsg-1~exp2) UNRELEASED; urgency=medium
+gdal (2.3.3+dfsg-1) UNRELEASED; urgency=medium
 
+  * New upstream release.
   * Update watch file for final releases.
 
- -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Dec 2018 13:34:42 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Dec 2018 13:37:04 +0100
 
 gdal (2.3.3~rc2+dfsg-1~exp1) experimental; urgency=medium
 
