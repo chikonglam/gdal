@@ -1,4 +1,4 @@
-gdal (2.4.0~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.4.0~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
   * Update watch file for 2.4.0 pre-releases.
@@ -9,7 +9,7 @@ gdal (2.4.0~rc1+dfsg-1) UNRELEASED; urgency=medium
     - Add license & copyright for LercLib
   * Override dh_installdocs to install NOTICE file in all packages.
 
- -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Dec 2018 16:52:47 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Dec 2018 17:42:37 +0100
 
 gdal (2.3.3+dfsg-1) unstable; urgency=medium
 
