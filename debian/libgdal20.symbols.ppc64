@@ -48,6 +48,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"PamHistogramToXMLTree(double, double, int, unsigned long long*, int, int)@Base" 2.0.2 1
  (c++)"VSICreateGZipWritable(VSIVirtualHandle*, int, int)@Base" 2.0.2 1
  (c++)"CPLParseRFC822DateTime(char const*, int*, int*, int*, int*, int*, int*, int*, int*)@Base" 2.3.0 1
+ (c++)"CPLQuotedSQLIdentifier(char const*)@Base" 2.4.0~rc1 1
  (c++)"OGRGeometryFromHexEWKB(char const*, int*, int)@Base" 2.0.2 1
  (c++)"OGRPGCommonLaunderName(char const*, char const*)@Base" 2.0.2 1
  (c++)"OGRParseRFC822DateTime(char const*, OGRField*)@Base" 2.0.2 1
@@ -140,6 +141,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALDriver::SetMetadataItem(char const*, char const*, char const*)@Base" 2.0.2 1
  (c++)"GDALDriver::DefaultCopyFiles(char const*, char const*)@Base" 1.10.0 1
  (c++)"GDALDriver::DefaultCopyMasks(GDALDataset*, GDALDataset*, int)@Base" 1.10.0 1
+ (c++)"GDALDriver::DefaultCopyMasks(GDALDataset*, GDALDataset*, int, char const* const*, int (*)(double, char const*, void*), void*)@Base" 2.4.0~rc1 1
  (c++)"GDALDriver::DefaultCreateCopy(char const*, GDALDataset*, int, char**, int (*)(double, char const*, void*), void*)@Base" 1.10.0 1
  (c++)"GDALDriver::Create(char const*, int, int, int, GDALDataType, char**)@Base" 1.10.0 1
  (c++)"GDALDriver::Delete(char const*)@Base" 1.10.0 1
@@ -336,6 +338,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"VRTDataset::IBuildOverviews(char const*, int, int*, int, int*, int (*)(double, char const*, void*), void*)@Base" 2.1.0 1
  (c++)"VRTDataset::SetGeoTransform(double*)@Base" 1.10.0 1
  (c++)"VRTDataset::SetMetadataItem(char const*, char const*, char const*)@Base" 1.10.0 1
+ (c++)"VRTDataset::ExpandProxyBands()@Base" 2.4.0~rc1 1
  (c++)"VRTDataset::GetGCPProjection()@Base" 1.10.0 1
  (c++)"VRTDataset::GetProjectionRef()@Base" 1.10.0 1
  (c++)"VRTDataset::BuildVirtualOverviews()@Base" 2.1.0 1
@@ -442,7 +445,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALDataset::ProcessSQLAlterTableAlterColumn(char const*)@Base" 2.0.2 1
  (c++)"GDALDataset::ProcessSQLAlterTableRenameColumn(char const*)@Base" 2.0.2 1
  (c++)"GDALDataset::ValidateRasterIOOrAdviseReadParameters(char const*, int*, int, int, int, int, int, int, int, int*)@Base" 1.11.0 1
- (c++)"GDALDataset::Init(bool)@Base" 2.2.0 1
  (c++)"GDALDataset::Bands::Iterator::Iterator(GDALDataset*, bool)@Base" 2.3.0 1
  (c++)"GDALDataset::Bands::Iterator::Iterator(GDALDataset*, bool)@Base" 2.3.0 1
  (c++)"GDALDataset::Bands::Iterator::~Iterator()@Base" 2.3.0 1
@@ -715,7 +717,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"CPLLockHolder::CPLLockHolder(_CPLLock**, CPLLockType, char const*, int)@Base" 2.0.2 1
  (c++)"CPLLockHolder::~CPLLockHolder()@Base" 2.0.2 1
  (c++)"CPLLockHolder::~CPLLockHolder()@Base" 2.0.2 1
- (c++)"CPLStringList::Initialize()@Base" 1.10.0 1
  (c++)"CPLStringList::AddNameValue(char const*, char const*)@Base" 1.10.0 1
  (c++)"CPLStringList::SetNameValue(char const*, char const*)@Base" 1.10.0 1
  (c++)"CPLStringList::MakeOurOwnCopy()@Base" 1.10.0 1
@@ -894,10 +895,10 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"RawRasterBand::Write(void*, unsigned long, unsigned long)@Base" 1.10.0 1
  (c++)"RawRasterBand::IRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.2 1
  (c++)"RawRasterBand::SetAccess(GDALAccess)@Base" 1.10.0 1
- (c++)"RawRasterBand::RawRasterBand(GDALDataset*, int, void*, unsigned long long, int, int, GDALDataType, int, int, int)@Base" 1.10.0 1
- (c++)"RawRasterBand::RawRasterBand(void*, unsigned long long, int, int, GDALDataType, int, int, int, int, int)@Base" 1.10.0 1
- (c++)"RawRasterBand::RawRasterBand(GDALDataset*, int, void*, unsigned long long, int, int, GDALDataType, int, int, int)@Base" 1.10.0 1
- (c++)"RawRasterBand::RawRasterBand(void*, unsigned long long, int, int, GDALDataType, int, int, int, int, int)@Base" 1.10.0 1
+ (c++)"RawRasterBand::RawRasterBand(GDALDataset*, int, _IO_FILE*, unsigned long long, int, int, GDALDataType, int, RawRasterBand::OwnFP)@Base" 2.4.0~rc1 1
+ (c++)"RawRasterBand::RawRasterBand(_IO_FILE*, unsigned long long, int, int, GDALDataType, int, int, int, RawRasterBand::OwnFP)@Base" 2.4.0~rc1 1
+ (c++)"RawRasterBand::RawRasterBand(GDALDataset*, int, _IO_FILE*, unsigned long long, int, int, GDALDataType, int, RawRasterBand::OwnFP)@Base" 2.4.0~rc1 1
+ (c++)"RawRasterBand::RawRasterBand(_IO_FILE*, unsigned long long, int, int, GDALDataType, int, int, int, RawRasterBand::OwnFP)@Base" 2.4.0~rc1 1
  (c++)"RawRasterBand::~RawRasterBand()@Base" 1.10.0 1
  (c++)"RawRasterBand::~RawRasterBand()@Base" 1.10.0 1
  (c++)"RawRasterBand::~RawRasterBand()@Base" 1.10.0 1
@@ -1046,6 +1047,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALRasterBand::GetNoDataValue(int*)@Base" 1.10.0 1
  (c++)"GDALRasterBand::LeaveReadWrite()@Base" 2.0.2 1
  (c++)"GDALRasterBand::SetNoDataValue(double)@Base" 1.10.0 1
+ (c++)"GDALRasterBand::SetValidPercent(unsigned long long, unsigned long long)@Base" 2.4.0~rc1 1
  (c++)"GDALRasterBand::GetCategoryNames()@Base" 1.10.0 1
  (c++)"GDALRasterBand::GetOverviewCount()@Base" 1.10.0 1
  (c++)"GDALRasterBand::OverviewRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.2 1
@@ -1074,7 +1076,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALRasterBand::GetRasterSampleOverview(unsigned long long)@Base" 2.0.2 1
  (c++)"GDALRasterBand::GetIndexColorTranslationTo(GDALRasterBand*, unsigned char*, int*)@Base" 1.10.0 1
  (c++)"GDALRasterBand::Fill(double, double)@Base" 1.10.0 1
- (c++)"GDALRasterBand::Init(int)@Base" 2.1.0 1
  (c++)"GDALRasterBand::GetBand()@Base" 1.10.0 1
  (c++)"GDALRasterBand::GetScale(int*)@Base" 1.10.0 1
  (c++)"GDALRasterBand::GetXSize()@Base" 1.10.0 1
@@ -1645,6 +1646,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"VRTRawRasterBand::~VRTRawRasterBand()@Base" 1.10.0 1
  (c++)"VRTRawRasterBand::~VRTRawRasterBand()@Base" 1.10.0 1
  (c++)"VRTRawRasterBand::~VRTRawRasterBand()@Base" 1.10.0 1
+ (c++)"VRTWarpedDataset::FlushCache()@Base" 2.4.0~rc1 1
  (c++)"VRTWarpedDataset::Initialize(void*)@Base" 1.10.0 1
  (c++)"VRTWarpedDataset::GetFileList()@Base" 1.10.0 1
  (c++)"VRTWarpedDataset::ProcessBlock(int, int)@Base" 1.10.0 1
@@ -1732,6 +1734,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALWarpOperation::CreateDestinationBuffer(int, int, int*)@Base" 2.3.0 1
  (c++)"GDALWarpOperation::CollectChunkListInternal(int, int, int, int)@Base" 2.3.0 1
  (c++)"GDALWarpOperation::DestroyDestinationBuffer(void*)@Base" 2.3.0 1
+ (c++)"GDALWarpOperation::ComputeSourceWindowStartingFromSource(int, int, int, int, double*, double*, double*, double*)@Base" 2.4.0~rc1 1
  (c++)"GDALWarpOperation::GDALWarpOperation()@Base" 1.10.0 1
  (c++)"GDALWarpOperation::GDALWarpOperation()@Base" 1.10.0 1
  (c++)"GDALWarpOperation::~GDALWarpOperation()@Base" 1.10.0 1
@@ -1930,13 +1933,20 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRMultiLineString::~OGRMultiLineString()@Base" 1.10.0 1
  (c++)"OGRMultiLineString::~OGRMultiLineString()@Base" 1.10.0 1
  (c++)"OGRMultiLineString::operator=(OGRMultiLineString const&)@Base" 2.1.0 1
+ (c++)"CADDictionaryRecord::CADDictionaryRecord()@Base" 2.4.0~rc1 1
+ (c++)"CADDictionaryRecord::CADDictionaryRecord()@Base" 2.4.0~rc1 1
+ (c++)"CADDictionaryRecord::~CADDictionaryRecord()@Base" 2.4.0~rc1 1
+ (c++)"CADDictionaryRecord::~CADDictionaryRecord()@Base" 2.4.0~rc1 1
+ (c++)"CADDictionaryRecord::~CADDictionaryRecord()@Base" 2.4.0~rc1 1
  (c++)"CPLWorkerThreadPool::GetNextJob(CPLWorkerThread*)@Base" 2.1.0 1
  (c++)"CPLWorkerThreadPool::SubmitJobs(void (*)(void*), std::vector<void*, std::allocator<void*> > const&)@Base" 2.1.0 1
  (c++)"CPLWorkerThreadPool::WaitCompletion(int)@Base" 2.1.0 1
  (c++)"CPLWorkerThreadPool::DeclareJobFinished()@Base" 2.1.0 1
  (c++)"CPLWorkerThreadPool::WorkerThreadFunction(void*)@Base" 2.1.0 1
  (c++)"CPLWorkerThreadPool::Setup(int, void (*)(void*), void**)@Base" 2.1.0 1
+ (c++)"CPLWorkerThreadPool::Setup(int, void (*)(void*), void**, bool)@Base" 2.4.0~rc1 1
  (c++)"CPLWorkerThreadPool::SubmitJob(void (*)(void*), void*)@Base" 2.1.0 1
+ (c++)"CPLWorkerThreadPool::WaitEvent()@Base" 2.4.0~rc1 1
  (c++)"CPLWorkerThreadPool::CPLWorkerThreadPool()@Base" 2.1.0 1
  (c++)"CPLWorkerThreadPool::CPLWorkerThreadPool()@Base" 2.1.0 1
  (c++)"CPLWorkerThreadPool::~CPLWorkerThreadPool()@Base" 2.1.0 1
@@ -2138,6 +2148,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALAllValidMaskBand::IReadBlock(int, int, void*)@Base" 1.10.0 1
  (c++)"GDALAllValidMaskBand::GetMaskBand()@Base" 1.10.0 1
  (c++)"GDALAllValidMaskBand::GetMaskFlags()@Base" 1.10.0 1
+ (c++)"GDALAllValidMaskBand::ComputeStatistics(int, double*, double*, double*, double*, int (*)(double, char const*, void*), void*)@Base" 2.4.0~rc1 1
  (c++)"GDALAllValidMaskBand::GDALAllValidMaskBand(GDALRasterBand*)@Base" 1.10.0 1
  (c++)"GDALAllValidMaskBand::GDALAllValidMaskBand(GDALRasterBand*)@Base" 1.10.0 1
  (c++)"GDALAllValidMaskBand::~GDALAllValidMaskBand()@Base" 1.10.0 1
@@ -2177,6 +2188,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALGeorefPamDataset::~GDALGeorefPamDataset()@Base" 1.11.0 1
  (c++)"GDALGeorefPamDataset::~GDALGeorefPamDataset()@Base" 1.11.0 1
  (c++)"GDALGeorefPamDataset::~GDALGeorefPamDataset()@Base" 1.11.0 1
+ (c++)"GDALProxyPoolDataset::AddSrcBand(int, GDALDataType, int, int)@Base" 2.4.0~rc1 1
  (c++)"GDALProxyPoolDataset::FlushCache()@Base" 2.3.0 1
  (c++)"GDALProxyPoolDataset::GetMetadata(char const*)@Base" 1.10.0 1
  (c++)"GDALProxyPoolDataset::SetProjection(char const*)@Base" 1.10.0 1
@@ -2330,10 +2342,12 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"VSIFilesystemHandler::SupportsSparseFiles(char const*)@Base" 2.2.0 1
  (c++)"VSIFilesystemHandler::HasOptimizedReadMultiRange(char const*)@Base" 2.3.0 1
  (c++)"VSIFilesystemHandler::Open(char const*, char const*)@Base" 2.1.0 1
+ (c++)"VSIFilesystemHandler::Sync(char const*, char const*, char const* const*, int (*)(double, char const*, void*), void*, char***)@Base" 2.4.0~rc1 1
  (c++)"VSIFilesystemHandler::Mkdir(char const*, long)@Base" 1.10.0 1
  (c++)"VSIFilesystemHandler::Rmdir(char const*)@Base" 1.10.0 1
  (c++)"VSIFilesystemHandler::Rename(char const*, char const*)@Base" 1.10.0 1
  (c++)"VSIFilesystemHandler::Unlink(char const*)@Base" 1.10.0 1
+ (c++)"VSIFilesystemHandler::OpenDir(char const*, int, char const* const*)@Base" 2.4.0~rc1 1
  (c++)"VSIFilesystemHandler::ReadDir(char const*)@Base" 1.10.0 1
  (c++)"VSIFilesystemHandler::ReadDirEx(char const*, int)@Base" 2.1.0 1
  (c++)"CPLConfigOptionSetter::CPLConfigOptionSetter(char const*, char const*, bool)@Base" 2.3.0 1
@@ -2380,7 +2394,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"CPLJSonStreamingParser::SetMaxStringSize(unsigned long)@Base" 2.3.0 1
  (c++)"CPLJSonStreamingParser::StartArrayMember()@Base" 2.3.0 1
  (c++)"CPLJSonStreamingParser::StartObjectMember(char const*, unsigned long)@Base" 2.3.0 1
- (c++)"CPLJSonStreamingParser::EmitUnexpectedChar(char)@Base" 2.3.0 1
+ (c++)"CPLJSonStreamingParser::EmitUnexpectedChar(char, char const*)@Base" 2.4.0~rc1 1
  (c++)"CPLJSonStreamingParser::GetSerializedString[abi:cxx11](char const*)@Base" 2.3.0 1
  (c++)"CPLJSonStreamingParser::CheckAndEmitTrueFalseOrNull(char)@Base" 2.3.0 1
  (c++)"CPLJSonStreamingParser::Null()@Base" 2.3.0 1
@@ -2449,7 +2463,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALProxyPoolRasterBand::RefUnderlyingRasterBand()@Base" 1.10.0 1
  (c++)"GDALProxyPoolRasterBand::AddSrcMaskBandDescription(GDALDataType, int, int)@Base" 1.10.0 1
  (c++)"GDALProxyPoolRasterBand::UnrefUnderlyingRasterBand(GDALRasterBand*)@Base" 1.10.0 1
- (c++)"GDALProxyPoolRasterBand::Init()@Base" 1.10.0 1
  (c++)"GDALProxyPoolRasterBand::GDALProxyPoolRasterBand(GDALProxyPoolDataset*, GDALRasterBand*)@Base" 1.10.0 1
  (c++)"GDALProxyPoolRasterBand::GDALProxyPoolRasterBand(GDALProxyPoolDataset*, int, GDALDataType, int, int)@Base" 1.10.0 1
  (c++)"GDALProxyPoolRasterBand::GDALProxyPoolRasterBand(GDALProxyPoolDataset*, GDALRasterBand*)@Base" 1.10.0 1
@@ -2541,15 +2554,15 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRDefaultConstGeometryVisitor::~OGRDefaultConstGeometryVisitor()@Base" 2.3.0 1
  (c++)"GDALDefaultRasterAttributeTable::SetRowCount(int)@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::CreateColumn(char const*, GDALRATFieldType, GDALRATFieldUsage)@Base" 1.11.0 1
+ (c++)"GDALDefaultRasterAttributeTable::SetTableType(GDALRATTableType)@Base" 2.4.0~rc1 1
  (c++)"GDALDefaultRasterAttributeTable::AnalyseColumns()@Base" 1.11.0 1
+ (c++)"GDALDefaultRasterAttributeTable::RemoveStatistics()@Base" 2.4.0~rc1 1
  (c++)"GDALDefaultRasterAttributeTable::SetLinearBinning(double, double)@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::ChangesAreWrittenToFile()@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::SetValue(int, int, char const*)@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::SetValue(int, int, double)@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::SetValue(int, int, int)@Base" 1.11.0 1
- (c++)"GDALDefaultRasterAttributeTable::GDALDefaultRasterAttributeTable(GDALDefaultRasterAttributeTable const&)@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::GDALDefaultRasterAttributeTable()@Base" 1.11.0 1
- (c++)"GDALDefaultRasterAttributeTable::GDALDefaultRasterAttributeTable(GDALDefaultRasterAttributeTable const&)@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::GDALDefaultRasterAttributeTable()@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::~GDALDefaultRasterAttributeTable()@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::~GDALDefaultRasterAttributeTable()@Base" 1.11.0 1
@@ -2569,6 +2582,9 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"CADRay::~CADRay()@Base" 2.3.0 1
  (c++)"CADRay::~CADRay()@Base" 2.3.0 1
  (c++)"CADRay::~CADRay()@Base" 2.3.0 1
+ (c++)"VSIDIR::~VSIDIR()@Base" 2.4.0~rc1 1
+ (c++)"VSIDIR::~VSIDIR()@Base" 2.4.0~rc1 1
+ (c++)"VSIDIR::~VSIDIR()@Base" 2.4.0~rc1 1
  (c++)"CADFile::ReadTables(CADFile::OpenOptions)@Base" 2.2.0 1
  (c++)"CADFile::isReadingUnsupportedGeometries()@Base" 2.2.0 1
  (c++)"CADFile::GetLayer(unsigned long)@Base" 2.2.0 1
@@ -2963,8 +2979,8 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"S57Writer::WriteCompleteFeature(OGRFeature*)@Base" 1.10.0 1
  (c++)"S57Writer::Close()@Base" 1.10.0 1
  (c++)"S57Writer::WriteATTF(DDFRecord*, OGRFeature*)@Base" 1.10.0 1
- (c++)"S57Writer::WriteDSID(int, int, char const*, char const*, char const*, char const*, char const*, char const*, int, char const*, int, int, int, int, int, int)@Base" 2.0.2 1
- (c++)"S57Writer::WriteDSPM(int, int, int, int)@Base" 2.0.2 1
+ (c++)"S57Writer::WriteDSID(int, int, char const*, char const*, char const*, char const*, char const*, char const*, int, char const*, int, int, int, int, int, int, int, int)@Base" 2.4.0~rc1 1
+ (c++)"S57Writer::WriteDSPM(int, int, int, int, int, int)@Base" 2.4.0~rc1 1
  (c++)"S57Writer::S57Writer()@Base" 1.10.0 1
  (c++)"S57Writer::S57Writer()@Base" 1.10.0 1
  (c++)"S57Writer::~S57Writer()@Base" 1.10.0 1
@@ -3229,6 +3245,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRFeatureDefn::GetGeomFieldIndex(char const*) const@Base" 2.3.0 1
  (c++)"OGRFeatureDefn::IsGeometryIgnored() const@Base" 2.3.0 1
  (c++)"OGRFeatureDefn::ComputeMapForSetFrom(OGRFeatureDefn const*, bool) const@Base" 2.3.0 1
+ (c++)"OGRFeatureDefn::GetFieldIndexCaseSensitive(char const*) const@Base" 2.4.0~rc1 1
  (c++)"OGRFeatureDefn::Clone() const@Base" 2.3.0 1
  (c++)"OGRFeatureDefn::IsSame(OGRFeatureDefn const*) const@Base" 2.3.0 1
  (c++)"OGRFeatureDefn::GetName() const@Base" 2.3.0 1
@@ -3386,6 +3403,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRMultiLineString::hasCurveGeometry(int) const@Base" 2.0.2 1
  (c++)"OGRMultiLineString::isCompatibleSubType(OGRwkbGeometryType) const@Base" 2.0.2 1
  (c++)"OGRMultiLineString::accept(IOGRConstGeometryVisitor*) const@Base" 2.3.0 1
+ (c++)"CADDictionaryRecord::getType() const@Base" 2.4.0~rc1 1
  (c++)"OGRSpatialReference::GetTOWGS84(double*, int) const@Base" 1.10.0 1
  (c++)"OGRSpatialReference::GetUTMZone(int*) const@Base" 1.10.0 1
  (c++)"OGRSpatialReference::IsCompound() const@Base" 1.10.0 1
@@ -3499,6 +3517,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRGeometryUniquePtrDeleter::operator()(OGRGeometry*) const@Base" 2.3.0 1
  (c++)"GDALDefaultRasterAttributeTable::GetRowCount() const@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::GetNameOfCol(int) const@Base" 1.11.0 1
+ (c++)"GDALDefaultRasterAttributeTable::GetTableType() const@Base" 2.4.0~rc1 1
  (c++)"GDALDefaultRasterAttributeTable::GetTypeOfCol(int) const@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::GetColOfUsage(GDALRATFieldUsage) const@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::GetRowOfValue(double) const@Base" 1.11.0 1
@@ -3633,6 +3652,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"CPLString::ifind(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long) const@Base" 2.0.2 1
  (c++)"CPLString::endsWith(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) const@Base" 2.3.0 1
  (c++)"std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Identity, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_find_before_node(unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long) const@Base" 2.3.0 1
+ (c++)"std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int> >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::_M_find_before_node(unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long) const@Base" 2.4.0~rc1 1
  (c++)"std::ctype<char>::do_widen(char) const@Base" 2.1.0 1
  (c++)"std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::find(CPLString const&) const@Base" 1.10.1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, void*>, std::_Select1st<std::pair<CPLString const, void*> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, void*> > >::find(CPLString const&) const@Base" 2.3.0 1
@@ -3649,6 +3669,9 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Identity, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_rehash(unsigned long, unsigned long const&)@Base" 2.2.0 1
  (c++)"std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Identity, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::~_Hashtable()@Base" 2.2.0 1
  (c++)"std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Identity, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::~_Hashtable()@Base" 2.2.0 1
+ (c++)"std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int> >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::_M_insert_unique_node(unsigned long, unsigned long, std::__detail::_Hash_node<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int>, true>*, unsigned long)@Base" 2.4.0~rc1 1
+ (c++)"std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int> >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::~_Hashtable()@Base" 2.4.0~rc1 1
+ (c++)"std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int> >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::~_Hashtable()@Base" 2.4.0~rc1 1
  (c++)"std::_Deque_base<long long, std::allocator<long long> >::_M_initialize_map(unsigned long)@Base" 2.2.0 1
  (c++)"std::_Deque_base<long long, std::allocator<long long> >::~_Deque_base()@Base" 2.2.0 1
  (c++)"std::_Deque_base<long long, std::allocator<long long> >::~_Deque_base()@Base" 2.2.0 1
@@ -3671,15 +3694,34 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Sp_counted_ptr<GDALColorTable*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.3.0 1
  (c++)"std::_Sp_counted_ptr<GDALColorTable*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.3.0 1
  (c++)"std::_Sp_counted_ptr<GDALColorTable*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.3.0 1
+ (c++)"std::_Sp_counted_ptr<CADDictionaryRecord*, (__gnu_cxx::_Lock_policy)2>::_M_destroy()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<CADDictionaryRecord*, (__gnu_cxx::_Lock_policy)2>::_M_dispose()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<CADDictionaryRecord*, (__gnu_cxx::_Lock_policy)2>::_M_get_deleter(std::type_info const&)@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<CADDictionaryRecord*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<CADDictionaryRecord*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<CADDictionaryRecord*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<GDALRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::_M_destroy()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<GDALRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::_M_dispose()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<GDALRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::_M_get_deleter(std::type_info const&)@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<GDALRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<GDALRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<GDALRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.4.0~rc1 1
  (c++)"std::_Sp_counted_ptr<GDALDefaultRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::_M_destroy()@Base" 2.3.0 1
  (c++)"std::_Sp_counted_ptr<GDALDefaultRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::_M_dispose()@Base" 2.3.0 1
  (c++)"std::_Sp_counted_ptr<GDALDefaultRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::_M_get_deleter(std::type_info const&)@Base" 2.3.0 1
  (c++)"std::_Sp_counted_ptr<GDALDefaultRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.3.0 1
  (c++)"std::_Sp_counted_ptr<GDALDefaultRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.3.0 1
  (c++)"std::_Sp_counted_ptr<GDALDefaultRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.3.0 1
+ (c++)"std::_Sp_counted_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, (__gnu_cxx::_Lock_policy)2>::_M_destroy()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, (__gnu_cxx::_Lock_policy)2>::_M_dispose()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, (__gnu_cxx::_Lock_policy)2>::_M_get_deleter(std::type_info const&)@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.4.0~rc1 1
+ (c++)"std::_Sp_counted_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr()@Base" 2.4.0~rc1 1
  (c++)"std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_destroy()@Base" 2.2.0 1
  (c++)"std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()@Base" 2.2.0 1
  (c++)"__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > > std::_V2::__rotate<__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > > >(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, __gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, __gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, std::random_access_iterator_tag)@Base" 2.3.0 1
+ (c++)"std::map<CPLString, OGREnvelope, std::less<CPLString>, std::allocator<std::pair<CPLString const, OGREnvelope> > >::operator[](CPLString const&)@Base" 2.4.0~rc1 1
  (c++)"std::map<CPLString, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int), std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> > >::~map()@Base" 1.10.0 1
  (c++)"std::map<CPLString, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int), std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> > >::~map()@Base" 1.10.0 1
  (c++)"std::map<CPLString, CPLString, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::~map()@Base" 2.2.0 1
@@ -3688,7 +3730,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::map<CPLString, CPLString, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::operator[](CPLString const&)@Base" 1.10.0 1
  (c++)"std::map<CPLString, std::vector<CPLString, std::allocator<CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, std::vector<CPLString, std::allocator<CPLString> > > > >::operator[](CPLString const&)@Base" 1.10.0 1
  (c++)"std::map<CPLString, bool, std::less<CPLString>, std::allocator<std::pair<CPLString const, bool> > >::operator[](CPLString const&)@Base" 2.2.0 1
- (c++)"std::map<CPLString, int, std::less<CPLString>, std::allocator<std::pair<CPLString const, int> > >::operator[](CPLString&&)@Base" 2.3.0 1
  (c++)"std::map<CPLString, int, std::less<CPLString>, std::allocator<std::pair<CPLString const, int> > >::operator[](CPLString const&)@Base" 2.2.0 1
  (c++)"std::map<OGRLayer*, OGRLayer*, std::less<OGRLayer*>, std::allocator<std::pair<OGRLayer* const, OGRLayer*> > >::operator[](OGRLayer* const&)@Base" 2.2.2 1
  (c++)"std::map<OGRLayer*, int, std::less<OGRLayer*>, std::allocator<std::pair<OGRLayer* const, int> > >::operator[](OGRLayer*&&)@Base" 2.2.0 1
@@ -3708,6 +3749,8 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >::pair<CPLString&, std::vector<CPLString, std::allocator<CPLString> >&, true>(CPLString&, std::vector<CPLString, std::allocator<CPLString> >&)@Base" 2.3.2 1
  (c++)"std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >::~pair()@Base" 2.3.2 1
  (c++)"std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >::~pair()@Base" 2.3.2 1
+ (c++)"std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::shared_ptr<CADDictionaryRecord> >::~pair()@Base" 2.4.0~rc1 1
+ (c++)"std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::shared_ptr<CADDictionaryRecord> >::~pair()@Base" 2.4.0~rc1 1
  (c++)"void std::deque<long long, std::allocator<long long> >::_M_push_back_aux<long long const&>(long long const&)@Base" 2.2.0 1
  (c++)"void std::vector<CPLJSONObject, std::allocator<CPLJSONObject> >::_M_realloc_insert<CPLJSONObject>(__gnu_cxx::__normal_iterator<CPLJSONObject*, std::vector<CPLJSONObject, std::allocator<CPLJSONObject> > >, CPLJSONObject&&)@Base" 2.3.0 1
  (c++)"std::vector<CPLJSONObject, std::allocator<CPLJSONObject> >::~vector()@Base" 2.3.0 1
@@ -3728,7 +3771,10 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"void std::vector<CPLString, std::allocator<CPLString> >::emplace_back<CPLString>(CPLString&&)@Base" 2.1.1 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::_M_insert_rval(__gnu_cxx::__normal_iterator<CPLString const*, std::vector<CPLString, std::allocator<CPLString> > >, CPLString&&)@Base" 2.2.2 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::_M_default_append(unsigned long)@Base" 2.1.1 1
+ (c++)"void std::vector<CPLString, std::allocator<CPLString> >::_M_realloc_insert<char const*>(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, char const*&&)@Base" 2.4.0~rc1 1
+ (c++)"void std::vector<CPLString, std::allocator<CPLString> >::_M_realloc_insert<char const (&) [2]>(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, char const (&) [2])@Base" 2.4.0~rc1 1
  (c++)"void std::vector<CPLString, std::allocator<CPLString> >::_M_realloc_insert<CPLString const&>(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, CPLString const&)@Base" 2.2.2 1
+ (c++)"void std::vector<CPLString, std::allocator<CPLString> >::_M_realloc_insert<char const*&>(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, char const*&)@Base" 2.4.0~rc1 1
  (c++)"void std::vector<CPLString, std::allocator<CPLString> >::_M_realloc_insert<CPLString>(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, CPLString&&)@Base" 2.2.2 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::reserve(unsigned long)@Base" 2.2.0 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::push_back(CPLString const&)@Base" 2.2.2 1
@@ -3738,6 +3784,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::~vector()@Base" 1.10.0 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::operator=(std::vector<CPLString, std::allocator<CPLString> > const&)@Base" 1.10.0 1
  (c++)"void std::vector<VRTWarpedDataset::VerticalShiftGrid, std::allocator<VRTWarpedDataset::VerticalShiftGrid> >::_M_realloc_insert<VRTWarpedDataset::VerticalShiftGrid const&>(__gnu_cxx::__normal_iterator<VRTWarpedDataset::VerticalShiftGrid*, std::vector<VRTWarpedDataset::VerticalShiftGrid, std::allocator<VRTWarpedDataset::VerticalShiftGrid> > >, VRTWarpedDataset::VerticalShiftGrid const&)@Base" 2.2.2 1
+ (c++)"void std::vector<CPLJSonStreamingParser::ArrayState, std::allocator<CPLJSonStreamingParser::ArrayState> >::_M_realloc_insert<CPLJSonStreamingParser::ArrayState>(__gnu_cxx::__normal_iterator<CPLJSonStreamingParser::ArrayState*, std::vector<CPLJSonStreamingParser::ArrayState, std::allocator<CPLJSonStreamingParser::ArrayState> > >, CPLJSonStreamingParser::ArrayState&&)@Base" 2.4.0~rc1 1
  (c++)"void std::vector<CPLJSonStreamingParser::MemberState, std::allocator<CPLJSonStreamingParser::MemberState> >::_M_realloc_insert<CPLJSonStreamingParser::MemberState>(__gnu_cxx::__normal_iterator<CPLJSonStreamingParser::MemberState*, std::vector<CPLJSonStreamingParser::MemberState, std::allocator<CPLJSonStreamingParser::MemberState> > >, CPLJSonStreamingParser::MemberState&&)@Base" 2.3.0 1
  (c++)"void std::vector<CPLJSonStreamingParser::State, std::allocator<CPLJSonStreamingParser::State> >::emplace_back<CPLJSonStreamingParser::State>(CPLJSonStreamingParser::State&&)@Base" 2.3.0 1
  (c++)"void std::vector<CPLJSonStreamingParser::State, std::allocator<CPLJSonStreamingParser::State> >::_M_realloc_insert<CPLJSonStreamingParser::State>(__gnu_cxx::__normal_iterator<CPLJSonStreamingParser::State*, std::vector<CPLJSonStreamingParser::State, std::allocator<CPLJSonStreamingParser::State> > >, CPLJSonStreamingParser::State&&)@Base" 2.3.0 1
@@ -3748,6 +3795,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::emplace_back<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&)@Base" 2.1.1 1
  (c++)"std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_default_append(unsigned long)@Base" 2.1.1 1
  (c++)"void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@Base" 2.2.2 1
+ (c++)"void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<char*&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, char*&)@Base" 2.4.0~rc1 1
  (c++)"void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)@Base" 2.2.2 1
  (c++)"void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&)@Base" 2.2.2 1
  (c++)"std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()@Base" 2.0.2 1
@@ -3843,6 +3891,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >, std::allocator<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > > > >::~vector()@Base" 2.3.2 1
  (c++)"void std::vector<std::pair<CPLString, int>, std::allocator<std::pair<CPLString, int> > >::emplace_back<std::pair<CPLString, int> >(std::pair<CPLString, int>&&)@Base" 2.1.1 1
  (c++)"void std::vector<std::pair<CPLString, int>, std::allocator<std::pair<CPLString, int> > >::_M_realloc_insert<std::pair<CPLString, int> >(__gnu_cxx::__normal_iterator<std::pair<CPLString, int>*, std::vector<std::pair<CPLString, int>, std::allocator<std::pair<CPLString, int> > > >, std::pair<CPLString, int>&&)@Base" 2.2.2 1
+ (c++)"void std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::shared_ptr<CADDictionaryRecord> >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::shared_ptr<CADDictionaryRecord> > > >::_M_realloc_insert<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::shared_ptr<CADDictionaryRecord> >&>(__gnu_cxx::__normal_iterator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::shared_ptr<CADDictionaryRecord> >*, std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::shared_ptr<CADDictionaryRecord> >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::shared_ptr<CADDictionaryRecord> > > > >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::shared_ptr<CADDictionaryRecord> >&)@Base" 2.4.0~rc1 1
  (c++)"void std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double> > >::emplace_back<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double> >(std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>&&)@Base" 2.1.1 1
  (c++)"void std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double> > >::_M_realloc_insert<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double> >(__gnu_cxx::__normal_iterator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>*, std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double> > > >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>&&)@Base" 2.2.2 1
  (c++)"void std::vector<std::pair<char const*, double>, std::allocator<std::pair<char const*, double> > >::emplace_back<std::pair<char const*, double> >(std::pair<char const*, double>&&)@Base" 2.3.0 1
@@ -3854,16 +3903,18 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"void std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::_M_realloc_insert<std::pair<double, double> >(__gnu_cxx::__normal_iterator<std::pair<double, double>*, std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > >, std::pair<double, double>&&)@Base" 2.2.2 1
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::operator=(std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const&)@Base" 1.10.0 1
  (c++)"void std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > >::_M_realloc_insert<std::pair<int, int> >(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, std::pair<int, int>&&)@Base" 2.2.2 1
+ (c++)"std::vector<std::pair<unsigned int, unsigned int>, std::allocator<std::pair<unsigned int, unsigned int> > >::_M_default_append(unsigned long)@Base" 2.4.0~rc1 1
  (c++)"std::vector<std::pair<long, std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, long, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, long> > > >, std::allocator<std::pair<long, std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, long, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, long> > > > > >::~vector()@Base" 2.2.0 1
  (c++)"std::vector<std::pair<long, std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, long, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, long> > > >, std::allocator<std::pair<long, std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, long, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, long> > > > > >::~vector()@Base" 2.2.0 1
  (c++)"void std::vector<std::pair<long, long>, std::allocator<std::pair<long, long> > >::emplace_back<std::pair<long, long> >(std::pair<long, long>&&)@Base" 2.2.0 1
  (c++)"void std::vector<std::pair<long, long>, std::allocator<std::pair<long, long> > >::_M_realloc_insert<std::pair<long, long> >(__gnu_cxx::__normal_iterator<std::pair<long, long>*, std::vector<std::pair<long, long>, std::allocator<std::pair<long, long> > > >, std::pair<long, long>&&)@Base" 2.2.2 1
- (c++)"std::vector<std::pair<short, unsigned int>, std::allocator<std::pair<short, unsigned int> > >::_M_default_append(unsigned long)@Base" 2.1.1 1
- (c++)"std::vector<std::pair<short, unsigned int>, std::allocator<std::pair<short, unsigned int> > >::operator=(std::vector<std::pair<short, unsigned int>, std::allocator<std::pair<short, unsigned int> > > const&)@Base" 2.1.0 1
+ (c++)"std::vector<std::pair<unsigned short, unsigned int>, std::allocator<std::pair<unsigned short, unsigned int> > >::_M_default_append(unsigned long)@Base" 2.4.0~rc1 1
+ (c++)"std::vector<std::pair<unsigned short, unsigned int>, std::allocator<std::pair<unsigned short, unsigned int> > >::operator=(std::vector<std::pair<unsigned short, unsigned int>, std::allocator<std::pair<unsigned short, unsigned int> > > const&)@Base" 2.4.0~rc1 1
  (c++)"void std::vector<std::pair<long long, long long>, std::allocator<std::pair<long long, long long> > >::emplace_back<std::pair<long long, long long> >(std::pair<long long, long long>&&)@Base" 2.2.0 1
  (c++)"void std::vector<std::pair<long long, long long>, std::allocator<std::pair<long long, long long> > >::_M_assign_aux<__gnu_cxx::__normal_iterator<std::pair<long long, long long>*, std::vector<std::pair<long long, long long>, std::allocator<std::pair<long long, long long> > > > >(__gnu_cxx::__normal_iterator<std::pair<long long, long long>*, std::vector<std::pair<long long, long long>, std::allocator<std::pair<long long, long long> > > >, __gnu_cxx::__normal_iterator<std::pair<long long, long long>*, std::vector<std::pair<long long, long long>, std::allocator<std::pair<long long, long long> > > >, std::forward_iterator_tag)@Base" 2.2.0 1
  (c++)"void std::vector<std::pair<long long, long long>, std::allocator<std::pair<long long, long long> > >::_M_range_insert<__gnu_cxx::__normal_iterator<std::pair<long long, long long>*, std::vector<std::pair<long long, long long>, std::allocator<std::pair<long long, long long> > > > >(__gnu_cxx::__normal_iterator<std::pair<long long, long long>*, std::vector<std::pair<long long, long long>, std::allocator<std::pair<long long, long long> > > >, __gnu_cxx::__normal_iterator<std::pair<long long, long long>*, std::vector<std::pair<long long, long long>, std::allocator<std::pair<long long, long long> > > >, __gnu_cxx::__normal_iterator<std::pair<long long, long long>*, std::vector<std::pair<long long, long long>, std::allocator<std::pair<long long, long long> > > >, std::forward_iterator_tag)@Base" 2.2.0 1
  (c++)"void std::vector<std::pair<unsigned long long, unsigned long>, std::allocator<std::pair<unsigned long long, unsigned long> > >::_M_realloc_insert<std::pair<unsigned long long, unsigned long> >(__gnu_cxx::__normal_iterator<std::pair<unsigned long long, unsigned long>*, std::vector<std::pair<unsigned long long, unsigned long>, std::allocator<std::pair<unsigned long long, unsigned long> > > >, std::pair<unsigned long long, unsigned long>&&)@Base" 2.3.0 1
+ (c++)"void std::vector<std::tuple<CPLString, CPLString>, std::allocator<std::tuple<CPLString, CPLString> > >::emplace_back<std::tuple<CPLString, CPLString> >(std::tuple<CPLString, CPLString>&&)@Base" 2.4.0~rc1 1
  (c++)"void std::vector<std::tuple<CPLString, CPLString>, std::allocator<std::tuple<CPLString, CPLString> > >::_M_realloc_insert<std::tuple<CPLString, CPLString> >(__gnu_cxx::__normal_iterator<std::tuple<CPLString, CPLString>*, std::vector<std::tuple<CPLString, CPLString>, std::allocator<std::tuple<CPLString, CPLString> > > >, std::tuple<CPLString, CPLString>&&)@Base" 2.3.0 1
  (c++)"std::vector<bool, std::allocator<bool> >::_M_insert_aux(std::_Bit_iterator, bool)@Base" 2.1.0 1
  (c++)"std::vector<bool, std::allocator<bool> >::_M_fill_insert(std::_Bit_iterator, unsigned long, bool)@Base" 1.10.0 1
@@ -3873,14 +3924,18 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<char, std::allocator<char> >::vector(std::initializer_list<char>, std::allocator<char> const&)@Base" 2.2.0 1
  (c++)"std::vector<char, std::allocator<char> >::~vector()@Base" 2.2.0 1
  (c++)"std::vector<char, std::allocator<char> >::~vector()@Base" 2.2.0 1
+ (c++)"void std::vector<double, std::allocator<double> >::emplace_back<double const&>(double const&)@Base" 2.4.0~rc1 1
+ (c++)"void std::vector<double, std::allocator<double> >::emplace_back<double&>(double&)@Base" 2.4.0~rc1 1
  (c++)"void std::vector<double, std::allocator<double> >::emplace_back<double>(double&&)@Base" 2.1.1 1
  (c++)"void std::vector<double, std::allocator<double> >::_M_assign_aux<double const*>(double const*, double const*, std::forward_iterator_tag)@Base" 2.3.2 1
  (c++)"void std::vector<double, std::allocator<double> >::_M_range_insert<__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > > >(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, __gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, __gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, std::forward_iterator_tag)@Base" 2.3.0 1
  (c++)"std::vector<double, std::allocator<double> >::_M_default_append(unsigned long)@Base" 2.1.1 1
  (c++)"void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&)@Base" 2.2.2 1
  (c++)"void std::vector<double, std::allocator<double> >::_M_realloc_insert<double>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double&&)@Base" 2.2.2 1
+ (c++)"std::vector<double, std::allocator<double> >::resize(unsigned long)@Base" 2.4.0~rc1 1
  (c++)"std::vector<double, std::allocator<double> >::reserve(unsigned long)@Base" 1.10.0 1
  (c++)"std::vector<double, std::allocator<double> >::operator=(std::vector<double, std::allocator<double> > const&)@Base" 1.10.0 1
+ (c++)"std::vector<float, std::allocator<float> >::_M_default_append(unsigned long)@Base" 2.4.0~rc1 1
  (c++)"void std::vector<float, std::allocator<float> >::_M_realloc_insert<float const&>(__gnu_cxx::__normal_iterator<float*, std::vector<float, std::allocator<float> > >, float const&)@Base" 2.3.0 1
  (c++)"void std::vector<unsigned char, std::allocator<unsigned char> >::emplace_back<unsigned char>(unsigned char&&)@Base" 2.2.0 1
  (c++)"std::vector<unsigned char, std::allocator<unsigned char> >::_M_default_append(unsigned long)@Base" 2.1.1 1
@@ -3895,6 +3950,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"void std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&)@Base" 2.1.1 1
  (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::_M_fill_assign(unsigned long, unsigned int const&)@Base" 2.3.2 1
  (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned long, unsigned int const&)@Base" 1.10.0 1
+ (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::_M_insert_rval(__gnu_cxx::__normal_iterator<unsigned int const*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int&&)@Base" 2.4.0~rc1 1
  (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::_M_default_append(unsigned long)@Base" 2.1.1 1
  (c++)"void std::vector<unsigned int, std::allocator<unsigned int> >::_M_realloc_insert<unsigned int const&>(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int const&)@Base" 2.2.2 1
  (c++)"void std::vector<unsigned int, std::allocator<unsigned int> >::_M_realloc_insert<unsigned int>(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int&&)@Base" 2.2.2 1
@@ -3915,6 +3971,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<long long, std::allocator<long long> >::_M_default_append(unsigned long)@Base" 2.3.2 1
  (c++)"void std::vector<long long, std::allocator<long long> >::_M_realloc_insert<long long const&>(__gnu_cxx::__normal_iterator<long long*, std::vector<long long, std::allocator<long long> > >, long long const&)@Base" 2.2.2 1
  (c++)"void std::vector<long long, std::allocator<long long> >::_M_realloc_insert<long long>(__gnu_cxx::__normal_iterator<long long*, std::vector<long long, std::allocator<long long> > >, long long&&)@Base" 2.2.2 1
+ (c++)"std::vector<long long, std::allocator<long long> >::reserve(unsigned long)@Base" 2.4.0~rc1 1
  (c++)"std::vector<long long, std::allocator<long long> >::operator=(std::vector<long long, std::allocator<long long> > const&)@Base" 2.2.0 1
  (c++)"void std::vector<unsigned long long, std::allocator<unsigned long long> >::emplace_back<unsigned long long>(unsigned long long&&)@Base" 2.1.1 1
  (c++)"std::vector<unsigned long long, std::allocator<unsigned long long> >::_M_default_append(unsigned long)@Base" 2.3.2 1
@@ -4188,6 +4245,8 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Rb_tree_iterator<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > > std::_Rb_tree<int, std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > >, std::_Select1st<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > >, std::less<int>, std::allocator<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > > >::_M_emplace_hint_unique<std::piecewise_construct_t const&, std::tuple<int const&>, std::tuple<> >(std::_Rb_tree_const_iterator<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > >, std::piecewise_construct_t const&, std::tuple<int const&>&&, std::tuple<>&&)@Base" 2.3.2 1
  (c++)"std::_Rb_tree<int, std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > >, std::_Select1st<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > >, std::less<int>, std::allocator<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > > >::_M_get_insert_unique_pos(int const&)@Base" 2.1.0 1
  (c++)"std::_Rb_tree<int, std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > >, std::_Select1st<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > >, std::less<int>, std::allocator<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > > >::_M_erase(std::_Rb_tree_node<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > >*)@Base" 2.1.0 1
+ (c++)"std::_Rb_tree<int, std::pair<int const, std::vector<int, std::allocator<int> > >, std::_Select1st<std::pair<int const, std::vector<int, std::allocator<int> > > >, std::less<int>, std::allocator<std::pair<int const, std::vector<int, std::allocator<int> > > > >::_M_get_insert_unique_pos(int const&)@Base" 2.4.0~rc1 1
+ (c++)"std::_Rb_tree<int, std::pair<int const, std::vector<int, std::allocator<int> > >, std::_Select1st<std::pair<int const, std::vector<int, std::allocator<int> > > >, std::less<int>, std::allocator<std::pair<int const, std::vector<int, std::allocator<int> > > > >::_M_erase(std::_Rb_tree_node<std::pair<int const, std::vector<int, std::allocator<int> > > >*)@Base" 2.4.0~rc1 1
  (c++)"std::_Rb_tree<int, std::pair<int const, int>, std::_Select1st<std::pair<int const, int> >, std::less<int>, std::allocator<std::pair<int const, int> > >::_M_insert_node(std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::_Rb_tree_node<std::pair<int const, int> >*)@Base" 2.1.1 1
  (c++)"std::_Rb_tree_iterator<std::pair<int const, int> > std::_Rb_tree<int, std::pair<int const, int>, std::_Select1st<std::pair<int const, int> >, std::less<int>, std::allocator<std::pair<int const, int> > >::_M_emplace_hint_unique<std::piecewise_construct_t const&, std::tuple<int const&>, std::tuple<> >(std::_Rb_tree_const_iterator<std::pair<int const, int> >, std::piecewise_construct_t const&, std::tuple<int const&>&&, std::tuple<>&&)@Base" 2.3.2 1
  (c++)"std::_Rb_tree<int, std::pair<int const, int>, std::_Select1st<std::pair<int const, int> >, std::less<int>, std::allocator<std::pair<int const, int> > >::_M_get_insert_unique_pos(int const&)@Base" 1.10.1 1
@@ -4230,13 +4289,12 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Rb_tree<long long, std::pair<long long const, CPLString>, std::_Select1st<std::pair<long long const, CPLString> >, std::less<long long>, std::allocator<std::pair<long long const, CPLString> > >::_M_get_insert_unique_pos(long long const&)@Base" 2.2.0 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, CPLString>, std::_Select1st<std::pair<long long const, CPLString> >, std::less<long long>, std::allocator<std::pair<long long const, CPLString> > >::_M_erase(std::_Rb_tree_node<std::pair<long long const, CPLString> >*)@Base" 2.2.0 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRFeature*>, std::_Select1st<std::pair<long long const, OGRFeature*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRFeature*> > >::_M_insert_node(std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::_Rb_tree_node<std::pair<long long const, OGRFeature*> >*)@Base" 2.1.1 1
+ (c++)"std::_Rb_tree_iterator<std::pair<long long const, OGRFeature*> > std::_Rb_tree<long long, std::pair<long long const, OGRFeature*>, std::_Select1st<std::pair<long long const, OGRFeature*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRFeature*> > >::_M_emplace_hint_unique<std::piecewise_construct_t const&, std::tuple<long long const&>, std::tuple<> >(std::_Rb_tree_const_iterator<std::pair<long long const, OGRFeature*> >, std::piecewise_construct_t const&, std::tuple<long long const&>&&, std::tuple<>&&)@Base" 2.4.0~rc1 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRFeature*>, std::_Select1st<std::pair<long long const, OGRFeature*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRFeature*> > >::_M_get_insert_unique_pos(long long const&)@Base" 2.1.0 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRFeature*>, std::_Select1st<std::pair<long long const, OGRFeature*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRFeature*> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<long long const, OGRFeature*> >, long long const&)@Base" 2.1.1 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRFeature*>, std::_Select1st<std::pair<long long const, OGRFeature*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRFeature*> > >::_M_erase(std::_Rb_tree_node<std::pair<long long const, OGRFeature*> >*)@Base" 2.1.0 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRLineString*>, std::_Select1st<std::pair<long long const, OGRLineString*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRLineString*> > >::_M_get_insert_unique_pos(long long const&)@Base" 2.1.0 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRLineString*>, std::_Select1st<std::pair<long long const, OGRLineString*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRLineString*> > >::_M_erase(std::_Rb_tree_node<std::pair<long long const, OGRLineString*> >*)@Base" 2.1.0 1
- (c++)"std::_Rb_tree<long long, std::pair<long long const, std::pair<double, double> >, std::_Select1st<std::pair<long long const, std::pair<double, double> > >, std::less<long long>, std::allocator<std::pair<long long const, std::pair<double, double> > > >::_M_get_insert_unique_pos(long long const&)@Base" 2.1.0 1
- (c++)"std::_Rb_tree<long long, std::pair<long long const, std::pair<double, double> >, std::_Select1st<std::pair<long long const, std::pair<double, double> > >, std::less<long long>, std::allocator<std::pair<long long const, std::pair<double, double> > > >::_M_erase(std::_Rb_tree_node<std::pair<long long const, std::pair<double, double> > >*)@Base" 2.1.0 1
  (c++)"std::_Rb_tree_iterator<std::pair<long long const, std::pair<int, void*> > > std::_Rb_tree<long long, std::pair<long long const, std::pair<int, void*> >, std::_Select1st<std::pair<long long const, std::pair<int, void*> > >, std::less<long long>, std::allocator<std::pair<long long const, std::pair<int, void*> > > >::_M_emplace_hint_unique<std::piecewise_construct_t const&, std::tuple<long long const&>, std::tuple<> >(std::_Rb_tree_const_iterator<std::pair<long long const, std::pair<int, void*> > >, std::piecewise_construct_t const&, std::tuple<long long const&>&&, std::tuple<>&&)@Base" 2.3.2 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, std::pair<int, void*> >, std::_Select1st<std::pair<long long const, std::pair<int, void*> > >, std::less<long long>, std::allocator<std::pair<long long const, std::pair<int, void*> > > >::_M_get_insert_unique_pos(long long const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, std::pair<int, void*> >, std::_Select1st<std::pair<long long const, std::pair<int, void*> > >, std::less<long long>, std::allocator<std::pair<long long const, std::pair<int, void*> > > >::_M_erase(std::_Rb_tree_node<std::pair<long long const, std::pair<int, void*> > >*)@Base" 1.10.0 1
@@ -4253,10 +4311,12 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Rb_tree<long long, std::pair<long long const, long long>, std::_Select1st<std::pair<long long const, long long> >, std::less<long long>, std::allocator<std::pair<long long const, long long> > >::_M_erase(std::_Rb_tree_node<std::pair<long long const, long long> >*)@Base" 2.2.0 1
  (c++)"std::pair<std::_Rb_tree_iterator<long long>, bool> std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::_M_insert_unique<long long const&>(long long const&)@Base" 2.1.1 1
  (c++)"std::pair<std::_Rb_tree_iterator<long long>, bool> std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::_M_insert_unique<long long>(long long&&)@Base" 2.2.0 1
+ (c++)"std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::_M_get_insert_unique_pos(long long const&)@Base" 2.4.0~rc1 1
  (c++)"std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::erase(long long const&)@Base" 2.1.0 1
  (c++)"std::_Rb_tree_node<long long>* std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::_M_copy<std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::_Alloc_node>(std::_Rb_tree_node<long long> const*, std::_Rb_tree_node_base*, std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::_Alloc_node&)@Base" 2.2.0 1
  (c++)"std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::_M_erase(std::_Rb_tree_node<long long>*)@Base" 2.1.0 1
  (c++)"std::__detail::_Hash_node<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, true>* std::__detail::_Hashtable_alloc<std::allocator<std::__detail::_Hash_node<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, true> > >::_M_allocate_node<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@Base" 2.3.2 1
+ (c++)"std::__detail::_Map_base<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int> >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true>, true>::operator[](std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&)@Base" 2.4.0~rc1 1
  (c++)"bool std::operator< <CPLString, CPLString>(std::pair<CPLString, CPLString> const&, std::pair<CPLString, CPLString> const&)@Base" 2.3.2 1
  (c++)"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&)@Base" 2.1.1 1
  (c++)"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@Base" 2.0.2 1
@@ -4328,6 +4388,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo for OGRLayerDecorator@Base" 2.0.2 1
  (c++)"typeinfo for GDALNoDataMaskBand@Base" 1.10.0 1
  (c++)"typeinfo for OGRMultiLineString@Base" 1.10.0 1
+ (c++)"typeinfo for CADDictionaryRecord@Base" 2.4.0~rc1 1
  (c++)"typeinfo for GDALMDReaderManager@Base" 2.0.2 1
  (c++)"typeinfo for GDALProxyRasterBand@Base" 1.10.0 1
  (c++)"typeinfo for IOGRGeometryVisitor@Base" 2.3.0 1
@@ -4359,6 +4420,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo for CADArc@Base" 2.3.0 1
  (c++)"typeinfo for CADRay@Base" 2.3.0 1
  (c++)"typeinfo for CPLErr@Base" 2.1.0 1
+ (c++)"typeinfo for VSIDIR@Base" 2.4.0~rc1 1
  (c++)"typeinfo for CADFile@Base" 2.2.0 1
  (c++)"typeinfo for CADLine@Base" 2.3.0 1
  (c++)"typeinfo for CADText@Base" 2.3.0 1
@@ -4388,7 +4450,10 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo for std::_Mutex_base<(__gnu_cxx::_Lock_policy)2>@Base" 2.2.0 1
  (c++)"typeinfo for std::_Sp_counted_ptr<GDALDataset*, (__gnu_cxx::_Lock_policy)2>@Base" 2.3.0 1
  (c++)"typeinfo for std::_Sp_counted_ptr<GDALColorTable*, (__gnu_cxx::_Lock_policy)2>@Base" 2.3.0 1
+ (c++)"typeinfo for std::_Sp_counted_ptr<CADDictionaryRecord*, (__gnu_cxx::_Lock_policy)2>@Base" 2.4.0~rc1 1
+ (c++)"typeinfo for std::_Sp_counted_ptr<GDALRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>@Base" 2.4.0~rc1 1
  (c++)"typeinfo for std::_Sp_counted_ptr<GDALDefaultRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>@Base" 2.3.0 1
+ (c++)"typeinfo for std::_Sp_counted_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, (__gnu_cxx::_Lock_policy)2>@Base" 2.4.0~rc1 1
  (c++)"typeinfo for std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>@Base" 2.2.0 1
  (c++)"typeinfo name for CADEllipse@Base" 2.3.0 1
  (c++)"typeinfo name for CADPoint3D@Base" 2.3.0 1
@@ -4456,6 +4521,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo name for OGRLayerDecorator@Base" 2.0.2 1
  (c++)"typeinfo name for GDALNoDataMaskBand@Base" 1.10.0 1
  (c++)"typeinfo name for OGRMultiLineString@Base" 1.10.0 1
+ (c++)"typeinfo name for CADDictionaryRecord@Base" 2.4.0~rc1 1
  (c++)"typeinfo name for GDALMDReaderManager@Base" 2.0.2 1
  (c++)"typeinfo name for GDALProxyRasterBand@Base" 1.10.0 1
  (c++)"typeinfo name for IOGRGeometryVisitor@Base" 2.3.0 1
@@ -4487,6 +4553,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo name for CADArc@Base" 2.3.0 1
  (c++)"typeinfo name for CADRay@Base" 2.3.0 1
  (c++)"typeinfo name for CPLErr@Base" 2.1.0 1
+ (c++)"typeinfo name for VSIDIR@Base" 2.4.0~rc1 1
  (c++)"typeinfo name for CADFile@Base" 2.2.0 1
  (c++)"typeinfo name for CADLine@Base" 2.3.0 1
  (c++)"typeinfo name for CADText@Base" 2.3.0 1
@@ -4516,8 +4583,12 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo name for std::_Mutex_base<(__gnu_cxx::_Lock_policy)2>@Base" 2.2.0 1
  (c++)"typeinfo name for std::_Sp_counted_ptr<GDALDataset*, (__gnu_cxx::_Lock_policy)2>@Base" 2.3.0 1
  (c++)"typeinfo name for std::_Sp_counted_ptr<GDALColorTable*, (__gnu_cxx::_Lock_policy)2>@Base" 2.3.0 1
+ (c++)"typeinfo name for std::_Sp_counted_ptr<CADDictionaryRecord*, (__gnu_cxx::_Lock_policy)2>@Base" 2.4.0~rc1 1
+ (c++)"typeinfo name for std::_Sp_counted_ptr<GDALRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>@Base" 2.4.0~rc1 1
  (c++)"typeinfo name for std::_Sp_counted_ptr<GDALDefaultRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>@Base" 2.3.0 1
+ (c++)"typeinfo name for std::_Sp_counted_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, (__gnu_cxx::_Lock_policy)2>@Base" 2.4.0~rc1 1
  (c++)"typeinfo name for std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>@Base" 2.2.0 1
+ (c++)"typeinfo name for std::_Sp_make_shared_tag@Base" 2.4.0~rc1 1
  (c++)"vtable for CADEllipse@Base" 2.3.0 1
  (c++)"vtable for CADPoint3D@Base" 2.3.0 1
  (c++)"vtable for CADXRecord@Base" 2.2.0 1
@@ -4584,6 +4655,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"vtable for OGRLayerDecorator@Base" 2.0.2 1
  (c++)"vtable for GDALNoDataMaskBand@Base" 1.10.0 1
  (c++)"vtable for OGRMultiLineString@Base" 1.10.0 1
+ (c++)"vtable for CADDictionaryRecord@Base" 2.4.0~rc1 1
  (c++)"vtable for GDALMDReaderManager@Base" 2.0.2 1
  (c++)"vtable for GDALProxyRasterBand@Base" 1.10.0 1
  (c++)"vtable for OGRSpatialReference@Base" 1.10.0 1
@@ -4595,6 +4667,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"vtable for OGRPolyhedralSurface@Base" 2.2.0 1
  (c++)"vtable for VRTDerivedRasterBand@Base" 1.10.0 1
  (c++)"vtable for VRTSourcedRasterBand@Base" 1.10.0 1
+ (c++)"vtable for VSIFilesystemHandler@Base" 2.4.0~rc1 1
  (c++)"vtable for OGRGeometryCollection@Base" 1.10.0 1
  (c++)"vtable for CPLJSonStreamingParser@Base" 2.3.0 1
  (c++)"vtable for GDALJP2AbstractDataset@Base" 1.11.0 1
@@ -4610,6 +4683,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"vtable for GDALDefaultRasterAttributeTable@Base" 1.11.0 1
  (c++)"vtable for CADArc@Base" 2.3.0 1
  (c++)"vtable for CADRay@Base" 2.3.0 1
+ (c++)"vtable for VSIDIR@Base" 2.4.0~rc1 1
  (c++)"vtable for CADFile@Base" 2.2.0 1
  (c++)"vtable for CADLine@Base" 2.3.0 1
  (c++)"vtable for CADText@Base" 2.3.0 1
@@ -4634,6 +4708,10 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"vtable for OGRFeature::FieldNotFoundException@Base" 2.3.0 1
  (c++)"vtable for std::_Sp_counted_ptr<GDALDataset*, (__gnu_cxx::_Lock_policy)2>@Base" 2.3.0 1
  (c++)"vtable for std::_Sp_counted_ptr<GDALColorTable*, (__gnu_cxx::_Lock_policy)2>@Base" 2.3.0 1
+ (c++)"vtable for std::_Sp_counted_ptr<CADDictionaryRecord*, (__gnu_cxx::_Lock_policy)2>@Base" 2.4.0~rc1 1
+ (c++)"vtable for std::_Sp_counted_ptr<GDALRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>@Base" 2.4.0~rc1 1
  (c++)"vtable for std::_Sp_counted_ptr<GDALDefaultRasterAttributeTable*, (__gnu_cxx::_Lock_policy)2>@Base" 2.3.0 1
+ (c++)"vtable for std::_Sp_counted_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, (__gnu_cxx::_Lock_policy)2>@Base" 2.4.0~rc1 1
  (c++)"VRTComplexSource::RasterIOInternal<double>(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*, GDALDataType)::bHasWarned@Base" 2.2.3 1
  (c++)"VRTComplexSource::RasterIOInternal<float>(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*, GDALDataType)::bHasWarned@Base" 2.2.3 1
+ (c++)"std::_Sp_make_shared_tag::_S_ti()::__tag@Base" 2.4.0~rc1 1
