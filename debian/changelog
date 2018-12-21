@@ -1,10 +1,10 @@
-gdal (2.4.0+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.4.0+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release.
   * Update watch file for final releases.
   * Update symbols for 2.4.0~rc1.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Dec 2018 20:19:59 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Dec 2018 20:20:20 +0100
 
 gdal (2.4.0~rc1+dfsg-1~exp1) experimental; urgency=medium
 
