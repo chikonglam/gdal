@@ -414,7 +414,7 @@
  GDALComputeRasterMinMax@Base 1.8.0
  GDALComputeRasterStatistics@Base 1.8.0
  GDALContourGenerate@Base 1.8.0
- GDALContourGenerateEx@Base 2.4.0~rc1
+ GDALContourGenerateEx@Base 2.4.0
  GDALCopyBits@Base 1.8.0
  GDALCopyDatasetFiles@Base 1.8.0
  GDALCopyRasterIOExtraArg@Base 2.0.1
@@ -653,18 +653,18 @@
  GDALRATGetNameOfCol@Base 1.8.0
  GDALRATGetRowCount@Base 1.8.0
  GDALRATGetRowOfValue@Base 1.8.0
- GDALRATGetTableType@Base 2.4.0~rc1
+ GDALRATGetTableType@Base 2.4.0
  GDALRATGetTypeOfCol@Base 1.8.0
  GDALRATGetUsageOfCol@Base 1.8.0
  GDALRATGetValueAsDouble@Base 1.8.0
  GDALRATGetValueAsInt@Base 1.8.0
  GDALRATGetValueAsString@Base 1.8.0
  GDALRATInitializeFromColorTable@Base 1.8.0
- GDALRATRemoveStatistics@Base 2.4.0~rc1
+ GDALRATRemoveStatistics@Base 2.4.0
  GDALRATSerializeJSON@Base 2.0.1
  GDALRATSetLinearBinning@Base 1.8.0
  GDALRATSetRowCount@Base 1.8.0
- GDALRATSetTableType@Base 2.4.0~rc1
+ GDALRATSetTableType@Base 2.4.0
  GDALRATSetValueAsDouble@Base 1.8.0
  GDALRATSetValueAsInt@Base 1.8.0
  GDALRATSetValueAsString@Base 1.8.0
@@ -706,7 +706,7 @@
  GDALRegister_BMP@Base 1.8.0
  GDALRegister_BSB@Base 1.8.0
  GDALRegister_BT@Base 1.8.0
- GDALRegister_BYN@Base 2.4.0~rc1
+ GDALRegister_BYN@Base 2.4.0
  GDALRegister_CALS@Base 2.1.0
  GDALRegister_CEOS@Base 1.8.0
  GDALRegister_COASP@Base 1.8.0
@@ -723,8 +723,8 @@
  GDALRegister_Derived@Base 2.2.0
  GDALRegister_E00GRID@Base 1.9.0
  GDALRegister_ECRGTOC@Base 1.9.0
- GDALRegister_EEDA@Base 2.4.0~rc1
- GDALRegister_EEDAI@Base 2.4.0~rc1
+ GDALRegister_EEDA@Base 2.4.0
+ GDALRegister_EEDAI@Base 2.4.0
  GDALRegister_EHdr@Base 1.8.0
  GDALRegister_EIR@Base 1.8.0
  GDALRegister_ELAS@Base 1.8.0
@@ -758,7 +758,7 @@
  GDALRegister_HTTP@Base 1.8.0
  GDALRegister_IDA@Base 1.8.0
  GDALRegister_IDRISI@Base 1.8.0
- GDALRegister_IGNFHeightASCIIGrid@Base 2.4.0~rc1
+ GDALRegister_IGNFHeightASCIIGrid@Base 2.4.0
  GDALRegister_ILWIS@Base 1.8.0
  GDALRegister_INGR@Base 1.8.0
  GDALRegister_IRIS@Base 1.10.1
@@ -784,7 +784,7 @@
  GDALRegister_NDF@Base 1.8.0
  GDALRegister_NGSGEOID@Base 1.9.0
  GDALRegister_NITF@Base 1.8.0
- GDALRegister_NTv1@Base 2.4.0~rc1
+ GDALRegister_NTv1@Base 2.4.0
  GDALRegister_NTv2@Base 1.8.0
  GDALRegister_NWT_GRC@Base 1.8.0
  GDALRegister_NWT_GRD@Base 1.8.0
@@ -816,7 +816,7 @@
  GDALRegister_SDTS@Base 1.8.0
  GDALRegister_SENTINEL2@Base 2.1.0
  GDALRegister_SGI@Base 1.8.0
- GDALRegister_SIGDEM@Base 2.4.0~rc1
+ GDALRegister_SIGDEM@Base 2.4.0
  GDALRegister_SNODAS@Base 1.9.0
  GDALRegister_SRP@Base 1.8.0
  GDALRegister_SRTMHGT@Base 1.8.0
@@ -1607,7 +1607,7 @@
  RegisterOGRGPX@Base 1.8.0
  RegisterOGRGTM@Base 1.8.0
  RegisterOGRGeoJSON@Base 1.8.0
- RegisterOGRGeoJSONSeq@Base 2.4.0~rc1
+ RegisterOGRGeoJSONSeq@Base 2.4.0
  RegisterOGRGeoPackage@Base 1.11.0
  RegisterOGRGeoRSS@Base 1.8.0
  RegisterOGRGeoconcept@Base 1.8.0
@@ -1624,7 +1624,7 @@
  RegisterOGRMVT@Base 2.3.0
  RegisterOGRMySQL@Base 1.8.0
  RegisterOGRNAS@Base 1.8.0
- RegisterOGRNGW@Base 2.4.0~rc1
+ RegisterOGRNGW@Base 2.4.0
  RegisterOGRNTF@Base 1.8.0
  RegisterOGRODBC@Base 1.8.0
  RegisterOGRODS@Base 1.10.1
@@ -1674,9 +1674,9 @@
  VSICalloc@Base 1.8.0
  VSICallocVerbose@Base 2.1.0
  VSICleanupFileManager@Base 1.8.0
- VSICloseDir@Base 2.4.0~rc1
+ VSICloseDir@Base 2.4.0
  VSICurlClearCache@Base 2.2.1
- VSICurlPartialClearCache@Base 2.4.0~rc1
+ VSICurlPartialClearCache@Base 2.4.0
  VSIError@Base 2.1.0
  VSIErrorReset@Base 2.1.0
  VSIFClose@Base 1.8.0
@@ -1718,7 +1718,7 @@
  VSIGetLastErrorMsg@Base 2.1.0
  VSIGetLastErrorNo@Base 2.1.0
  VSIGetMemFileBuffer@Base 1.8.0
- VSIGetNextDirEntry@Base 2.4.0~rc1
+ VSIGetNextDirEntry@Base 2.4.0
  VSIGetSignedURL@Base 2.3.0
  VSIHasOptimizedReadMultiRange@Base 2.3.0
  VSIIngestFile@Base 1.11.0
@@ -1740,7 +1740,7 @@
  VSIMallocVerbose@Base 2.1.0
  VSIMkdir@Base 1.8.0
  VSIMkdirRecursive@Base 2.3.0
- VSIOpenDir@Base 2.4.0~rc1
+ VSIOpenDir@Base 2.4.0
  VSIReadDir@Base 1.8.0
  VSIReadDirEx@Base 2.1.0
  VSIReadDirRecursive@Base 1.10.1
@@ -1760,7 +1760,7 @@
  VSIStrdupVerbose@Base 2.1.0
  VSIStrerror@Base 1.8.0
  VSISupportsSparseFiles@Base 2.2.0
- VSISync@Base 2.4.0~rc1
+ VSISync@Base 2.4.0
  VSITime@Base 1.8.0
  VSIToCPLError@Base 2.1.0
  VSIUngetc@Base 1.8.0
@@ -1768,11 +1768,11 @@
  _CPLAssert@Base 1.8.0
  json_object_new_double_with_precision@Base 2.0.1
  json_object_new_double_with_significant_figures@Base 2.1.0
- lerc_computeCompressedSize@Base 2.4.0~rc1
- lerc_computeCompressedSizeForVersion@Base 2.4.0~rc1
- lerc_decode@Base 2.4.0~rc1
- lerc_decodeToDouble@Base 2.4.0~rc1
- lerc_encode@Base 2.4.0~rc1
- lerc_encodeForVersion@Base 2.4.0~rc1
- lerc_getBlobInfo@Base 2.4.0~rc1
+ lerc_computeCompressedSize@Base 2.4.0
+ lerc_computeCompressedSizeForVersion@Base 2.4.0
+ lerc_decode@Base 2.4.0
+ lerc_decodeToDouble@Base 2.4.0
+ lerc_encode@Base 2.4.0
+ lerc_encodeForVersion@Base 2.4.0
+ lerc_getBlobInfo@Base 2.4.0
  sqlite3_extension_init@Base 1.10.1
