@@ -1,3 +1,9 @@
+gdal (2.4.0+dfsg-1~exp3) UNRELEASED; urgency=medium
+
+  * Update symbols for kfreebsd-i386.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 31 Dec 2018 08:30:11 +0100
+
 gdal (2.4.0+dfsg-1~exp2) experimental; urgency=medium
 
   * Update symbols for kfreebsd-amd64.
