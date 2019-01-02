@@ -1,8 +1,9 @@
-gdal (2.4.0+dfsg-1~exp3) UNRELEASED; urgency=medium
+gdal (2.4.0+dfsg-1) unstable; urgency=medium
 
   * Update symbols for kfreebsd-i386.
+  * Move from experimental to unstable.
 
- -- Bas Couwenberg <sebastic@debian.org>  Mon, 31 Dec 2018 08:30:11 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 02 Jan 2019 12:59:50 +0100
 
 gdal (2.4.0+dfsg-1~exp2) experimental; urgency=medium
 
