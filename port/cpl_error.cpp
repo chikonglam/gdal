@@ -134,12 +134,12 @@ void* CPL_STDCALL CPLGetErrorHandlerUserData(void)
  * The eErrClass argument can have the value CE_Warning indicating that the
  * message is an informational warning, CE_Failure indicating that the
  * action failed, but that normal recover mechanisms will be used or
- * CE_Fatal meaning that a fatal error has occured, and that CPLError()
+ * CE_Fatal meaning that a fatal error has occurred, and that CPLError()
  * should not return.  
  *
  * The default behaviour of CPLError() is to report errors to stderr,
  * and to abort() after reporting a CE_Fatal error.  It is expected that
- * some applications will want to supress error reporting, and will want to
+ * some applications will want to suppress error reporting, and will want to
  * install a C++ exception, or longjmp() approach to no local fatal error
  * recovery.
  *

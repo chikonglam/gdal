@@ -21190,7 +21190,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDreaddata" >&5
 $as_echo "$ac_cv_lib_mfhdf_SDreaddata" >&6; }
 if test "x$ac_cv_lib_mfhdf_SDreaddata" = xyes; then :
-  HDF_LIB_NAME="-lmfhdf -ldf"
+  HDF_LIB_NAME="-lmfhdfalt -ldfalt"
 else
   HDF_LIB_NAME=missing
 fi
@@ -21250,7 +21250,7 @@ if ${ac_cv_lib_mfhdf_SDreaddata+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lmfhdf -ldf -ljpeg -lz $LIBS"
+LIBS="-lmfhdfalt -ldfalt -ljpeg -lz $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -21281,7 +21281,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDreaddata" >&5
 $as_echo "$ac_cv_lib_mfhdf_SDreaddata" >&6; }
 if test "x$ac_cv_lib_mfhdf_SDreaddata" = xyes; then :
-  HDF_LIB_NAME="-lmfhdf -ldf"
+  HDF_LIB_NAME="-lmfhdfalt -ldfalt"
 else
   HDF_LIB_NAME=missing
 fi
@@ -21296,7 +21296,7 @@ if ${ac_cv_lib_mfhdf_SDreaddata+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lmfhdf -ldf -lsz -ljpeg -lz $LIBS"
+LIBS="-lmfhdfalt -ldfalt -lsz -ljpeg -lz $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -21327,7 +21327,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDreaddata" >&5
 $as_echo "$ac_cv_lib_mfhdf_SDreaddata" >&6; }
 if test "x$ac_cv_lib_mfhdf_SDreaddata" = xyes; then :
-  HDF_LIB_NAME="-lmfhdf -ldf -lsz"
+  HDF_LIB_NAME="-lmfhdfalt -ldfalt -lsz"
 else
   HDF_LIB_NAME=missing
 fi
@@ -25267,7 +25267,7 @@ if ${ac_cv_lib_spatialite_spatialite_init+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lspatialite  $LIBS"
+LIBS="-lspatialite -lsqlite3 $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -25321,7 +25321,7 @@ if ${ac_cv_lib_spatialite_spatialite_init+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lspatialite -L$with_spatialite/lib -lspatialite $LIBS"
+LIBS="-lspatialite -L$with_spatialite/lib -lsqlite3 $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -25413,7 +25413,7 @@ if ${ac_cv_lib_spatialite_spatialite_target_cpu+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lspatialite  $LIBS"
+LIBS="-lspatialite -lsqlite3 $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 

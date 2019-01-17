@@ -794,7 +794,7 @@ WEBPDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
     GDALOpenInfo oOpenInfo(pszFilename, GA_ReadOnly);
 
-    /* If outputing to stdout, we can't reopen it, so we'll return */
+    /* If outputting to stdout, we can't reopen it, so we'll return */
     /* a fake dataset to make the caller happy */
     CPLPushErrorHandler(CPLQuietErrorHandler);
     WEBPDataset *poDS = (WEBPDataset*) WEBPDataset::Open( &oOpenInfo );

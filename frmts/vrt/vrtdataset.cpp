@@ -1317,7 +1317,7 @@ CPLErr VRTDataset::IRasterIO( GDALRWFlag eRWFlag,
 
         CPLErr eErr = CE_None;
         /* Use the last band, because when sources reference a GDALProxyDataset, they */
-        /* don't necessary instanciate all underlying rasterbands */
+        /* don't necessary instantiate all underlying rasterbands */
         VRTSourcedRasterBand* poBand = (VRTSourcedRasterBand* )papoBands[nBands - 1];
         for(int iSource = 0; eErr == CE_None && iSource < poBand->nSources; iSource++)
         {

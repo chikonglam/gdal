@@ -571,7 +571,7 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
             {
                 bAlreadyWarned = TRUE;
                 CPLError(CE_Warning, CPLE_AppDefined,
-                         "It is recommanded to define a FID when calling CreateFeature() in a update document");
+                         "It is recommended to define a FID when calling CreateFeature() in a update document");
             }
         }
         else

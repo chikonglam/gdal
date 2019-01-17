@@ -202,7 +202,7 @@ CPLErr GDALRasterBand::RasterIO( GDALRWFlag eRWFlag,
     if( eRWFlag == GF_Write && eFlushBlockErr != CE_None )
     {
         ReportError(eFlushBlockErr, CPLE_AppDefined,
-                 "An error occured while writing a dirty block");
+                 "An error occurred while writing a dirty block");
         CPLErr eErr = eFlushBlockErr;
         eFlushBlockErr = CE_None;
         return eErr;
@@ -521,7 +521,7 @@ CPLErr GDALRasterBand::WriteBlock( int nXBlockOff, int nYBlockOff,
     if( eFlushBlockErr != CE_None )
     {
         ReportError(eFlushBlockErr, CPLE_AppDefined,
-                 "An error occured while writing a dirty block");
+                 "An error occurred while writing a dirty block");
         CPLErr eErr = eFlushBlockErr;
         eFlushBlockErr = CE_None;
         return eErr;
@@ -855,7 +855,7 @@ CPLErr GDALRasterBand::FlushCache()
     if (eFlushBlockErr != CE_None)
     {
         ReportError(eFlushBlockErr, CPLE_AppDefined,
-                 "An error occured while writing a dirty block");
+                 "An error occurred while writing a dirty block");
         eFlushBlockErr = CE_None;
     }
 
@@ -4766,7 +4766,7 @@ CPLErr CPL_STDCALL GDALCreateMaskBand( GDALRasterBandH hBand, int nFlags )
 /**
  * \brief Compute translation table for color tables.
  *
- * When the raster band has a palette index, it may be usefull to compute
+ * When the raster band has a palette index, it may be useful to compute
  * the "translation" of this palette to the palette of another band.
  * The translation tries to do exact matching first, and then approximate
  * matching if no exact matching is possible.
@@ -4901,9 +4901,9 @@ unsigned char* GDALRasterBand::GetIndexColorTranslationTo(GDALRasterBand* poRefe
 /************************************************************************/
 
 /**
- * \brief Store that an error occured while writing a dirty block.
+ * \brief Store that an error occurred while writing a dirty block.
  *
- * This function stores the fact that an error occured while writing a dirty
+ * This function stores the fact that an error occurred while writing a dirty
  * block from GDALRasterBlock::FlushCacheBlock(). Indeed when dirty blocks are
  * flushed when the block cache get full, it is not convenient/possible to
  * report that a dirty block could not be written correctly. This function

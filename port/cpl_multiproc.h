@@ -86,7 +86,7 @@ CPL_C_END
 
 #ifdef __cplusplus
 
-/* Instanciates the mutex if not already done */
+/* Instantiates the mutex if not already done */
 #define CPLMutexHolderD(x)  CPLMutexHolder oHolder(x,1000.0,__FILE__,__LINE__);
 
 /* This variant assumes the the mutex has already been created. If not, it will */
@@ -102,7 +102,7 @@ class CPL_DLL CPLMutexHolder
 
   public:
 
-    /* Instanciates the mutex if not already done */
+    /* Instantiates the mutex if not already done */
     CPLMutexHolder( void **phMutex, double dfWaitInSeconds = 1000.0,
                     const char *pszFile = __FILE__,
                     int nLine = __LINE__ );

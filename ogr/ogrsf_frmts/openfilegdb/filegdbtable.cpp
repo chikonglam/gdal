@@ -56,7 +56,7 @@ namespace OpenFileGDB
 
 void FileGDBTablePrintError(const char* pszFile, int nLineNumber)
 {
-    CPLError(CE_Failure, CPLE_AppDefined, "Error occured in %s at line %d",
+    CPLError(CE_Failure, CPLE_AppDefined, "Error occurred in %s at line %d",
              pszFile, nLineNumber);
 }
 

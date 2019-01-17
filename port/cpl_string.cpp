@@ -1142,7 +1142,7 @@ const char *CSLFetchNameValue(char **papszStrList, const char *pszName)
  * @param papszStrList the string list to search.
  * @param pszName the key value to look for (case insensitive).
  *
- * @return -1 on failure or the list index of the first occurance 
+ * @return -1 on failure or the list index of the first occurrence 
  * matching the given key.
  */
 
@@ -2083,7 +2083,7 @@ CPLValueType CPLGetValueType(const char* pszValue)
 \verbatim
 char szDest[5];
 if (CPLStrlcpy(szDest, "abcde", sizeof(szDest)) >= sizeof(szDest))
-    fprintf(stderr, "truncation occured !\n");
+    fprintf(stderr, "truncation occurred !\n");
 \endverbatim
 
  * @param pszDest   destination buffer
@@ -2135,7 +2135,7 @@ size_t CPLStrlcpy(char* pszDest, const char* pszSrc, size_t nDestSize)
 char szDest[5];
 CPLStrlcpy(szDest, "ab", sizeof(szDest));
 if (CPLStrlcat(szDest, "cde", sizeof(szDest)) >= sizeof(szDest))
-    fprintf(stderr, "truncation occured !\n");
+    fprintf(stderr, "truncation occurred !\n");
 \endverbatim
 
  * @param pszDest   destination buffer. Must be NUL terminated before running CPLStrlcat
@@ -2170,7 +2170,7 @@ size_t CPLStrlcat(char* pszDest, const char* pszSrc, size_t nDestSize)
  * the specified number of bytes.
  *
  * The CPLStrnlen() function returns MIN(strlen(pszStr), nMaxLen).
- * Only the first nMaxLen bytes of the string will be read. Usefull to
+ * Only the first nMaxLen bytes of the string will be read. Useful to
  * test if a string contains at least nMaxLen characters without reading
  * the full string up to the NUL terminating character.
  *

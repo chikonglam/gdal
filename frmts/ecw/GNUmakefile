@@ -21,3 +21,12 @@ plugin: $(PLUGIN_SO)
 $(PLUGIN_SO):	$(OBJ)
 	$(LD_SHARED) $(LNK_FLAGS) $(OBJ) $(CONFIG_LIBS) $(EXTRA_LIBS) \
 		-o $(PLUGIN_SO)
+ 
+dist:
+	cp -r pkg libgdal-ecw-$(GDAL_VER)
+	rm -rf libgdal-ecw-$(GDAL_VER)/.svn
+	cp *.cpp libgdal-ecw-$(GDAL_VER)
+	cp *.h libgdal-ecw-$(GDAL_VER)
+	tar czvf libgdal-ecw-$(GDAL_VER).tar.gz ./libgdal-ecw-$(GDAL_VER)
+	rm -rf libgdal-ecw-$(GDAL_VER)
+ 

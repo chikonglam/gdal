@@ -46,7 +46,7 @@ import os
 import math
 
 class AffineTransformDecorator:
-    """ A class providing some usefull methods for affine Transformations """
+    """ A class providing some useful methods for affine Transformations """
     def __init__(self, transform ):
         self.geotransform=transform
         self.scaleX=self.geotransform[1]

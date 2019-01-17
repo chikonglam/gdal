@@ -645,7 +645,7 @@ CPL_UNUSED
     if( rc != SQLITE_OK )
     {
         CPLDebug("SQLITE",
-                    "Error occured during spatial index creation : %s",
+                    "Error occurred during spatial index creation : %s",
                     sqlite3_errmsg(hDB));
     }
 #else //  ENABLE_VIRTUAL_OGR_SPATIAL_INDEX
@@ -701,7 +701,7 @@ CPL_UNUSED
     else
     {
         CPLDebug("SQLITE",
-                    "Error occured during spatial index creation : %s",
+                    "Error occurred during spatial index creation : %s",
                     sqlite3_errmsg(hDB));
         rc = sqlite3_exec( hDB, "ROLLBACK", NULL, NULL, NULL );
     }
@@ -774,7 +774,7 @@ OGRLayer * OGRSQLiteExecuteSQL( OGRDataSource* poDS,
         }
     }
 
-    /* The following configuration option is usefull mostly for debugging/testing */
+    /* The following configuration option is useful mostly for debugging/testing */
     if( pabyEmptyDB != NULL && CSLTestBoolean(CPLGetConfigOption("OGR_SQLITE_DIALECT_USE_SPATIALITE", "YES")) )
     {
         GByte* pabyEmptyDBClone = (GByte*)VSIMalloc(nEmptyDBSize);

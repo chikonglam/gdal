@@ -761,7 +761,7 @@ short CPLODBCStatement::GetColNullable( int iCol )
  * be considered reliable on all drivers. 
  *
  * Currently it isn't clear how to determine whether an error or a normal
- * out of data condition has occured if Fetch() fails. 
+ * out of data condition has occurred if Fetch() fails. 
  *
  * @param nOrientation One of SQL_FETCH_NEXT, SQL_FETCH_LAST, SQL_FETCH_PRIOR,
  * SQL_FETCH_ABSOLUTE, or SQL_FETCH_RELATIVE (default is SQL_FETCH_NEXT).

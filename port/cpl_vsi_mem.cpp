@@ -205,7 +205,7 @@ bool VSIMemFile::SetLength( vsi_l_offset nNewLength )
         if( !bOwnData )
         {
             CPLError(CE_Failure, CPLE_NotSupported,
-                     "Cannot extended in-memory file whose ownership was not transfered");
+                     "Cannot extended in-memory file whose ownership was not transferred");
             return false;
         }
         
@@ -869,7 +869,7 @@ VSILFILE *VSIFileFromMemBuffer( const char *pszFilename,
  * This function returns a pointer to the memory buffer underlying a 
  * virtual "in memory" file.  If bUnlinkAndSeize is TRUE the filesystem
  * object will be deleted, and ownership of the buffer will pass to the 
- * caller otherwise the underlying file will remain in existance. 
+ * caller otherwise the underlying file will remain in existence. 
  *
  * @param pszFilename the name of the file to grab the buffer of.
  * @param pnDataLength (file) length returned in this variable.

@@ -463,8 +463,8 @@ char CSVDetectSeperator (const char* pszLine)
                 chDelimiter = *pszLine;
             else if (chDelimiter != *pszLine)
             {
-                /* The separator is not consistant on the line. */
-                CPLDebug("CSV", "Inconsistant separator. '%c' and '%c' found. Using ',' as default",
+                /* The separator is not consistent on the line. */
+                CPLDebug("CSV", "Inconsistent separator. '%c' and '%c' found. Using ',' as default",
                          chDelimiter, *pszLine);
                 chDelimiter = ',';
                 break;

@@ -360,7 +360,7 @@ void OGRLineString::setNumPoints( int nNewPointCount, int bZeroizeNewContent )
  *
  * If iPoint is larger than the number of necessary the number of existing
  * points in the line string, the point count will be increased to
- * accomodate the request.
+ * accommodate the request.
  *
  * There is no SFCOM analog to this method.
  * 
@@ -386,7 +386,7 @@ void OGRLineString::setPoint( int iPoint, OGRPoint * poPoint )
  *
  * If iPoint is larger than the number of necessary the number of existing
  * points in the line string, the point count will be increased to
- * accomodate the request.
+ * accommodate the request.
  * 
  * There is no SFCOM analog to this method.
  *

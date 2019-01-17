@@ -737,7 +737,7 @@ class DataSource(_object):
 
         pszDialect:  allows control of the statement dialect. If set to NULL,
         the OGR SQL engine will be used, except for RDBMS drivers that will
-        use their dedicated SQL engine, unless OGRSQL is explicitely passed as
+        use their dedicated SQL engine, unless OGRSQL is explicitly passed as
         the dialect.
 
         an handle to a OGRLayer containing the results of the query.
@@ -1194,7 +1194,7 @@ class Layer(_object):
 
         Fetch the next available feature from this layer.
 
-        The returned feature becomes the responsiblity of the caller to delete
+        The returned feature becomes the responsibility of the caller to delete
         with OGR_F_Destroy(). It is critical that all features associated with
         an OGRLayer (more specifically an OGRFeatureDefn) be deleted before
         that layer/datasource is deleted.
@@ -1580,7 +1580,7 @@ class Layer(_object):
         directly.
 
         This function should not be called while there are feature objects in
-        existance that were obtained or created with the previous layer
+        existence that were obtained or created with the previous layer
         definition.
 
         Not all drivers support this function. You can query a layer to check
@@ -1620,7 +1620,7 @@ class Layer(_object):
         used by a layer directly.
 
         This function should not be called while there are feature objects in
-        existance that were obtained or created with the previous layer
+        existence that were obtained or created with the previous layer
         definition.
 
         Not all drivers support this function. You can query a layer to check
@@ -1663,7 +1663,7 @@ class Layer(_object):
         OGRFeatureDefn used by a layer directly.
 
         This function should not be called while there are feature objects in
-        existance that were obtained or created with the previous layer
+        existence that were obtained or created with the previous layer
         definition.
 
         The field definition that was at initial position iOldFieldPos will be
@@ -1714,7 +1714,7 @@ class Layer(_object):
         OGRFeatureDefn used by a layer directly.
 
         This function should not be called while there are feature objects in
-        existance that were obtained or created with the previous layer
+        existence that were obtained or created with the previous layer
         definition.
 
         panMap is such that,for each field definition at position i after
@@ -1762,7 +1762,7 @@ class Layer(_object):
         the OGRFeatureDefn used by a layer directly.
 
         This function should not be called while there are feature objects in
-        existance that were obtained or created with the previous layer
+        existence that were obtained or created with the previous layer
         definition.
 
         Not all drivers support this function. You can query a layer to check
@@ -3247,7 +3247,7 @@ class FeatureDefn(_object):
         function directly, but use OGR_L_CreateField() instead.
 
         This function should only be called while there are no OGRFeature
-        objects in existance based on this OGRFeatureDefn. The OGRFieldDefn
+        objects in existence based on this OGRFeatureDefn. The OGRFieldDefn
         passed in is copied, and remains the responsibility of the caller.
 
         This function is the same as the C++ method

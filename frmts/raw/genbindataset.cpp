@@ -806,7 +806,7 @@ GDALDataset *GenBinDataset::Open( GDALOpenInfo * poOpenInfo )
     {
         delete poDS;
         CPLError( CE_Failure, CPLE_AppDefined, 
-                  "Int overflow occured.");
+                  "Int overflow occurred.");
         return NULL;
     }
 

@@ -36,7 +36,7 @@ CPL_CVSID("$Id: commonutils.cpp 27044 2014-03-16 23:41:27Z rouault $");
 /* -------------------------------------------------------------------- */
 /*                      CheckExtensionConsistency()                     */
 /*                                                                      */
-/*      Check that the target file extension is consistant with the     */
+/*      Check that the target file extension is consistent with the     */
 /*      requested driver. Actually, we only warn in cases where the     */
 /*      inconsistency is blatant (use of an extension declared by one   */
 /*      or several drivers, and not by the selected one)                */

@@ -847,7 +847,7 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
         pszSecond = "GAIN%d";
     }
 
-    // Now search for the first number occurance after that string
+    // Now search for the first number occurrence after that string
     for ( i = 1; i <= poDS->nBands; i++ )
     {
         char    *pszValue = NULL;

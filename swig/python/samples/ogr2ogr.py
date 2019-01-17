@@ -1244,7 +1244,7 @@ def SetupTargetLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
 #/*      Find the layer.                                                 */
 #/* -------------------------------------------------------------------- */
 
-    #/* GetLayerByName() can instanciate layers that would have been */
+    #/* GetLayerByName() can instantiate layers that would have been */
     #*/ 'hidden' otherwise, for example, non-spatial tables in a */
     #*/ Postgis-enabled database, so this apparently useless command is */
     #/* not useless... (#4012) */

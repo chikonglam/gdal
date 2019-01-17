@@ -1201,7 +1201,7 @@ void JPGDatasetCommon::InitInternalOverviews()
     bHasInitInternalOverviews = TRUE;
 
 /* -------------------------------------------------------------------- */
-/*      Instanciate on-the-fly overviews (if no external ones).         */
+/*      Instantiate on-the-fly overviews (if no external ones).         */
 /* -------------------------------------------------------------------- */
     if( nScaleFactor == 1 && GetRasterBand(1)->GetOverviewCount() == 0 )
     {
@@ -2976,7 +2976,7 @@ JPGDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /*      Re-open dataset, and copy any auxilary pam information.         */
 /* -------------------------------------------------------------------- */
 
-    /* If outputing to stdout, we can't reopen it, so we'll return */
+    /* If outputting to stdout, we can't reopen it, so we'll return */
     /* a fake dataset to make the caller happy */
     if( CSLTestBoolean(CPLGetConfigOption("GDAL_OPEN_AFTER_COPY", "YES")) )
     {

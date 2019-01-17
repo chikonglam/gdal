@@ -961,7 +961,7 @@ GDALDataset *MFFDataset::Open( GDALOpenInfo * poOpenInfo )
         {
             if (poDS->GetRasterXSize() > INT_MAX / nPixelOffset)
             {
-                CPLError( CE_Warning, CPLE_AppDefined,  "Int overflow occured... skipping");
+                CPLError( CE_Warning, CPLE_AppDefined,  "Int overflow occurred... skipping");
                 nSkipped++;
                 VSIFCloseL(fpRaw);
                 continue;

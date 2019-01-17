@@ -19,7 +19,7 @@ for data translation and processing.  The
 <a href="http://trac.osgeo.org/gdal/wiki/Release/1.10.1-News">NEWS</a>
 page describes the August 2013 GDAL/OGR 1.10.1 release.
 
-The related <a href="ogr/index.html">OGR</a> library (which lives within the GDAL source tree) 
+The related <a href="../ogr/index.html">OGR</a> library (which lives within the GDAL source tree)
 provides a similar capability for simple features vector data.
 
 Master: http://www.gdal.org<br>
@@ -51,7 +51,7 @@ Download:
 <li> <a href="gdal_tutorial.html">GDAL API Tutorial</a>
 <li> <a href="gdal_drivertut.html">GDAL Driver Implementation Tutorial</a>
 <li> <a href="warptut.html">GDAL Warp API Tutorial</a>
-<li> <a href="ogr/osr_tutorial.html">OGRSpatialReference Tutorial</a>
+<li> <a href="../ogr/osr_tutorial.html">OGRSpatialReference Tutorial</a>
 <li> <a href="gdal_8h.html">GDAL C API</a>
 <li> <a href="gdal__alg_8h.html">GDAL Algorithms C API</a>
 <li> <a href="classGDALDataset.html">GDALDataset C++ API</a>

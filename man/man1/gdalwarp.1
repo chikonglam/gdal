@@ -122,9 +122,9 @@ The source file name(s)\&.
 The destination file name\&.  
 .PP
 .PP
-Mosaicing into an existing output file is supported if the output file already exists\&. The spatial extent of the existing file will not be modified to accomodate new data, so you may have to remove it in that case, or use the -overwrite option\&.
+Mosaicing into an existing output file is supported if the output file already exists\&. The spatial extent of the existing file will not be modified to accommodate new data, so you may have to remove it in that case, or use the -overwrite option\&.
 .PP
-Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending\&. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the SRS of the destination file\&. When outputing to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified\&.
+Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending\&. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the SRS of the destination file\&. When outputting to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified\&.
 .SH "EXAMPLE"
 .PP
 For instance, an eight bit spot scene stored in GeoTIFF with control points mapping the corners to lat/long could be warped to a UTM projection with a command like this:

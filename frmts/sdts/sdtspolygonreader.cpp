@@ -209,7 +209,7 @@ void SDTSRawPolygon::AddEdgeToRing( int nVertToAdd,
  * direction of rings.
  *
  * @return TRUE if all rings assembled without problems or FALSE if a problem
- * occured.  If a problem occurs rings are still formed from all lines, but
+ * occurred.  If a problem occurs rings are still formed from all lines, but
  * some of the rings will not be closed, and rings will have no particular
  * order or direction.
  */

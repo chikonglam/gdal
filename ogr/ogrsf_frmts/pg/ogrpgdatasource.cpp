@@ -1310,7 +1310,7 @@ OGRPGDataSource::CreateLayer( const char * pszLayerName,
         osSQLLayerName += pszTableName;
     }
 
-    /* GetLayerByName() can instanciate layers that would have been */
+    /* GetLayerByName() can instantiate layers that would have been */
     /* 'hidden' otherwise, for example, non-spatial tables in a */
     /* Postgis-enabled database, so this apparently useless command is */
     /* not useless... (#4012) */
@@ -2388,7 +2388,7 @@ OGRLayer * OGRPGDataSource::ExecuteSQL( const char *pszSQLCommand,
     }
 
 /* -------------------------------------------------------------------- */
-/*      Generate an error report if an error occured.                   */
+/*      Generate an error report if an error occurred.                  */
 /* -------------------------------------------------------------------- */
     if( !hResult ||
         (PQresultStatus(hResult) == PGRES_NONFATAL_ERROR

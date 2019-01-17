@@ -277,7 +277,7 @@ class GTiffDataset : public GDALPamDataset
 
     toff_t      nDirOffset;
     int		bBase;
-    int         bCloseTIFFHandle; /* usefull for closing TIFF handle opened by GTIFF_DIR: */
+    int         bCloseTIFFHandle; /* useful for closing TIFF handle opened by GTIFF_DIR: */
 
     uint16	nPlanarConfig;
     uint16	nSamplesPerPixel;
@@ -776,7 +776,7 @@ GTiffRasterBand::~GTiffRasterBand()
 
 /* Reads directly bytes from the file using ReadMultiRange(), and by-pass */
 /* block reading. Restricted to simple TIFF configurations (un-tiled, */
-/* uncompressed data, standard data types). Particularly usefull to extract */
+/* uncompressed data, standard data types). Particularly useful to extract */
 /* sub-windows of data on a large /vsicurl dataset). */
 
 CPLErr GTiffRasterBand::DirectIO( GDALRWFlag eRWFlag,
@@ -1555,7 +1555,7 @@ CPLErr GTiffRasterBand::FillCacheForOtherBands( int nBlockXOff, int nBlockYOff )
 /*      and O(nBands^2) performance !                                   */
 /*                                                                      */
 /*      If there are many bands and the block cache size is not big     */
-/*      enough to accomodate the size of all the blocks, don't enter    */
+/*      enough to accommodate the size of all the blocks, don't enter   */
 /* -------------------------------------------------------------------- */
     if( poGDS->nBands != 1 && !poGDS->bLoadingOtherBands &&
         nBlockXSize * nBlockYSize * (GDALGetDataTypeSize(eDataType) / 8) < GDALGetCacheMax64() / poGDS->nBands)
@@ -8681,7 +8681,7 @@ TIFF *GTiffDataset::CreateLL( const char * pszFilename,
     }
 
     /* Set the compression method before asking the default strip size */
-    /* This is usefull when translating to a JPEG-In-TIFF file where */
+    /* This is useful when translating to a JPEG-In-TIFF file where */
     /* the default strip size is 8 or 16 depending on the photometric value */
     TIFFSetField( hTIFF, TIFFTAG_COMPRESSION, nCompression );
 
@@ -9169,7 +9169,7 @@ GTiffDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 #endif
 
     /* Note: JPEG_DIRECT_COPY is not defined by default, because it is mainly */
-    /* usefull for debugging purposes */
+    /* useful for debugging purposes */
 #ifdef JPEG_DIRECT_COPY
     if (CSLFetchBoolean(papszCreateOptions, "JPEG_DIRECT_COPY", FALSE) &&
         GTIFF_CanDirectCopyFromJPEG(poSrcDS, papszCreateOptions))
@@ -9758,7 +9758,7 @@ GTiffDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         if (poDS->nOverviewCount != nSrcOverviews)
         {
             CPLError(CE_Failure, CPLE_AppDefined,
-                     "Did only manage to instanciate %d overview levels, whereas source contains %d",
+                     "Did only manage to instantiate %d overview levels, whereas source contains %d",
                      poDS->nOverviewCount, nSrcOverviews);
             eErr = CE_Failure;
         }

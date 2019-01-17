@@ -66,7 +66,7 @@
    - mremap() with 5 args is Linux specific. It is used when the user callback is invited
      to fill a page, we currently mmap() a writable page, let it filled it,
      and afterwards mremap() that temporary page onto the location where the
-     fault occured.
+     fault occurred.
      If we have no mremap(), the workaround is to pause other threads that
      consume the current view while we are updating the faulted page, otherwise
      a non-paused thread could access a page that is in the middle of being

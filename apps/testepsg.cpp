@@ -115,7 +115,7 @@ int main( int nArgc, char ** papszArgv )
         {
             if( oSRS.SetFromUserInput(papszArgv[i]) != OGRERR_NONE )
                 CPLError( CE_Failure, CPLE_AppDefined, 
-                          "Error occured translating %s.\n", 
+                          "Error occurred translating %s.\n", 
                           papszArgv[i] );
             else
             {

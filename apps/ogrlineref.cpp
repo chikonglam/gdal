@@ -113,7 +113,7 @@ static void Usage(const char* pszAdditionalMsg, int bShort = TRUE)
         " -lf field_name: Field name for uniq paths in layer (optional)\n"
         " -p src_repers_datasource_name: Datasource of repers name\n"
         " -pn layer_name: Layer name in datasource (optional)\n"
-        " -pm pos_field_name: Line postion field name\n"
+        " -pm pos_field_name: Line position field name\n"
         " -pf field_name: Field name for correspondence repers of separate paths in layer (optional)\n"
         " -r src_parts_datasource_name: Parts datasource name\n"
         " -rn layer_name: Layer name in datasource (optional)\n"
@@ -170,7 +170,7 @@ static OGRLayer* SetupTargetLayer(OGRLayer * poSrcLayer, OGRDataSource *poDstDS,
     /*      Find the layer.                                                 */
     /* -------------------------------------------------------------------- */
 
-    /* GetLayerByName() can instanciate layers that would have been */
+    /* GetLayerByName() can instantiate layers that would have been */
     /* 'hidden' otherwise, for example, non-spatial tables in a */
     /* Postgis-enabled database, so this apparently useless command is */
     /* not useless... (#4012) */

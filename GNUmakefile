@@ -41,7 +41,8 @@ $(LIBGDAL):	$(GDAL_OBJ:.o=.lo)
 	$(LD) $(LDFLAGS) $(LIBS) -o $@ $(GDAL_OBJ:.o=.lo) \
 	    -rpath $(INST_LIB) \
 	    -no-undefined \
-	    -version-info $(LIBGDAL_CURRENT):$(LIBGDAL_REVISION):$(LIBGDAL_AGE)
+	    -version-info $(LIBGDAL_CURRENT):$(LIBGDAL_REVISION):$(LIBGDAL_AGE) \
+	    -Wl,-Bsymbolic -Wl,--version-script,$(GDAL_ROOT)/debian/gdal.ver
 ifeq ($(MACOSX_FRAMEWORK),yes)
 	install_name_tool -id ${OSX_VERSION_FRAMEWORK_PREFIX}/GDAL .libs/libgdal.dylib
 endif

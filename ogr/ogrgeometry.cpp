@@ -3660,7 +3660,7 @@ int OGR_G_Centroid( OGRGeometryH hGeom, OGRGeometryH hCentroidPoint )
  *
  * @param hGeom the geometry to operate on. 
  * @return a point guaranteed to lie on the surface or NULL if an error
- *         occured.
+ *         occurred.
  *
  * @since OGR 1.10
  */

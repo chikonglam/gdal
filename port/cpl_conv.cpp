@@ -1531,7 +1531,7 @@ static void CPLAccessConfigOption(const char* pszKey, int bGet)
   *     char* pszOldVal = pszOldValTmp ? CPLStrdup(pszOldValTmp) : NULL;
   *     // override with new value
   *     CPLSetConfigOption(pszKey, pszNewVal);
-  *     // do something usefull
+  *     // do something useful
   *     // restore old value
   *     CPLSetConfigOption(pszKey, pszOldVal);
   *     CPLFree(pszOldVal);
@@ -2488,7 +2488,7 @@ void CPLCleanupSetlocaleMutex(void)
 /************************************************************************/
 
 /**
- * Check for file existance.
+ * Check for file existence.
  *
  * The function checks if a named file exists in the filesystem, hopefully
  * in an efficient fashion if a sibling file list is available.   It exists
@@ -2501,7 +2501,7 @@ void CPLCleanupSetlocaleMutex(void)
  * updated with the correct case and TRUE is returned. 
  *
  * If papszSiblingFiles is NULL, a VSIStatL() is used to test for the files
- * existance, and no case insensitive testing is done. 
+ * existence, and no case insensitive testing is done. 
  *
  * @param pszFilename name of file to check for - filename case updated in some cases.
  * @param papszSiblingFiles a list of files in the same directory as 

@@ -855,7 +855,7 @@ int main( int nArgc, char ** papszArgv )
 {
     int          nRetCode = 0;
     int          bQuiet = FALSE;
-    int          bFormatExplicitelySet = FALSE;
+    int          bFormatExplicitlySet = FALSE;
     const char  *pszFormat = "ESRI Shapefile";
     const char  *pszDataSource = NULL;
     const char  *pszDestDataSource = NULL;
@@ -953,7 +953,7 @@ int main( int nArgc, char ** papszArgv )
         else if( EQUAL(papszArgv[iArg],"-f") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            bFormatExplicitelySet = TRUE;
+            bFormatExplicitlySet = TRUE;
             pszFormat = papszArgv[++iArg];
         }
         else if( EQUAL(papszArgv[iArg],"-dsco") )
@@ -1566,7 +1566,7 @@ int main( int nArgc, char ** papszArgv )
 /* -------------------------------------------------------------------- */
     if( !bUpdate )
     {
-        if (!bQuiet && !bFormatExplicitelySet)
+        if (!bQuiet && !bFormatExplicitlySet)
             CheckDestDataSourceNameConsistency(pszDestDataSource, pszFormat);
 
         OGRSFDriverRegistrar *poR = OGRSFDriverRegistrar::GetRegistrar();
@@ -2571,7 +2571,7 @@ static TargetLayerInfo* SetupTargetLayer( CPL_UNUSED OGRDataSource *poSrcDS,
 /*      Find the layer.                                                 */
 /* -------------------------------------------------------------------- */
 
-    /* GetLayerByName() can instanciate layers that would have been */
+    /* GetLayerByName() can instantiate layers that would have been */
     /* 'hidden' otherwise, for example, non-spatial tables in a */
     /* Postgis-enabled database, so this apparently useless command is */
     /* not useless... (#4012) */

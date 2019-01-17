@@ -788,7 +788,7 @@ try_again:
         }
         }
 
-        /* Instanciate real geometry fields from VRT properties */
+        /* Instantiate real geometry fields from VRT properties */
         poFeatureDefn->SetGeomType(wkbNone);
         for( size_t i = 0; i < apoGeomFieldProps.size(); i ++ )
         {

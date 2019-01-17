@@ -47,7 +47,7 @@ using std::wstring;
 /************************************************************************/
 FGdbBaseLayer::FGdbBaseLayer() :
     m_pFeatureDefn(NULL), m_pSRS(NULL), m_pEnumRows(NULL),
-    m_supressColumnMappingError(false), m_forceMulti(false)
+    m_suppressColumnMappingError(false), m_forceMulti(false)
 {
 }
 
@@ -1178,7 +1178,7 @@ CPLXMLNode* XMLSpatialReference(OGRSpatialReference* poSRS, char** papszOptions)
     const char* gridvalues[7];
 
     /* 
-    Need different default paramters for geographic and projected coordinate systems.
+    Need different default parameters for geographic and projected coordinate systems.
     Try and use ArcGIS 10 default values.
     */
     // default tolerance is 1mm in the units of the coordinate system
@@ -2360,7 +2360,7 @@ bool FGdbBaseLayer::OGRFeatureFromGdbRow(Row* pRow, OGRFeature** ppFeature)
 
             default:
             {
-                if (!m_supressColumnMappingError)
+                if (!m_suppressColumnMappingError)
                 {
                     foundBadColumn = true;
                     CPLError( CE_Warning, CPLE_AppDefined,
@@ -2372,7 +2372,7 @@ bool FGdbBaseLayer::OGRFeatureFromGdbRow(Row* pRow, OGRFeature** ppFeature)
     }
 
     if (foundBadColumn)
-        m_supressColumnMappingError = true;
+        m_suppressColumnMappingError = true;
 
 
     *ppFeature = pOutFeature;

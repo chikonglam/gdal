@@ -29,7 +29,7 @@ A p&aacute;gina
 <a href="http://trac.osgeo.org/gdal/wiki/Release/1.9.0-News">novidades</a> descreve o 
 lan&ccedil;amento em Abril de 2013 da release 1.10.0 da biblioteca GDAL/OGR.
 
-A bilioteca <a href="ogr">OGR</a> (cujo c&oacute;digo fonte esta inclu&iacute;do na GDAL) possue
+A bilioteca <a href="../ogr/index.html">OGR</a> (cujo c&oacute;digo fonte esta inclu&iacute;do na GDAL) possue
 funcionalidades semelhantes &agrave;s da GDAL para datos vetorias (Simple Features).
 
 P&aacute;gina Principal: http://www.gdal.org<br>
@@ -60,7 +60,7 @@ Download:
 <li> <a href="gdal_tutorial_br.html">Tutorial da API do GDAL</a> <b>(em portugu&ecirc;s)</b>
 <li> <a href="gdal_drivertut.html">Tutorial de implementa&ccedil;&atilde;o de drivers</a>
 <li> <a href="warptut.html">Tutorial de transforma&ccedil;&atilde;o geom&eacute;trica</a>
-<li> <a href="ogr/osr_tutorial.html">Tutorial de Refer&ecirc;ncia Espacial</a>
+<li> <a href="../ogr/osr_tutorial.html">Tutorial de Refer&ecirc;ncia Espacial</a>
 <li> <a href="gdal_8h.html">GDAL API para C</a>
 <li> <a href="classGDALDataset.html">GDALDataset</a>
 <li> <a href="classGDALRasterBand.html">GDALRasterBand</a>

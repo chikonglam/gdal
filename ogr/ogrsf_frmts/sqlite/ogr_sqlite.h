@@ -607,7 +607,7 @@ class OGRSQLiteDataSource : public OGRDataSource
 #endif
 
     VSILFILE*           fpMainFile; /* Set by the VFS layer when it opens the DB */
-                                    /* Must *NOT* be closed by the datasource explicitely. */
+                                    /* Must *NOT* be closed by the datasource explicitly. */
     GIntBig             nFileTimestamp;
     int                 bLastSQLCommandIsUpdateLayerStatistics;
 

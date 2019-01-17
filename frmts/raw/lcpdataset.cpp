@@ -297,7 +297,7 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
 
    if (nWidth > INT_MAX / iPixelSize)
    {
-       CPLError( CE_Failure, CPLE_AppDefined,  "Int overflow occured");
+       CPLError( CE_Failure, CPLE_AppDefined,  "Int overflow occurred");
        delete poDS;
        return NULL;
    }

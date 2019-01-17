@@ -2508,7 +2508,7 @@ void PDFDataset::TurnLayersOnOff()
                     oIter->second->setState(OptionalContentGroup::On);
                 }
 
-                // Turn child layers on, unless there's one of them explicitely listed
+                // Turn child layers on, unless there's one of them explicitly listed
                 // in the list.
                 size_t nLen = strlen(papszLayers[i]);
                 int bFoundChildLayer = FALSE;
@@ -4970,7 +4970,7 @@ CPLErr PDFDataset::SetGeoTransform(double* padfGeoTransform)
     bGeoTransformValid = TRUE;
     bProjDirty = TRUE;
 
-    /* Reset NEATLINE if not explicitely set by the user */
+    /* Reset NEATLINE if not explicitly set by the user */
     if (!bNeatLineDirty)
         SetMetadataItem("NEATLINE", NULL);
     return CE_None;
@@ -5153,7 +5153,7 @@ CPLErr PDFDataset::SetGCPs( int nGCPCountIn, const GDAL_GCP *pasGCPListIn,
     
     bProjDirty = TRUE;
 
-    /* Reset NEATLINE if not explicitely set by the user */
+    /* Reset NEATLINE if not explicitly set by the user */
     if (!bNeatLineDirty)
         SetMetadataItem("NEATLINE", NULL);
 

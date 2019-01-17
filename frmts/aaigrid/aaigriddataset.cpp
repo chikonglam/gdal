@@ -1216,7 +1216,7 @@ GDALDataset * AAIGDataset::CreateCopy(
 /*      Re-open dataset, and copy any auxilary pam information.         */
 /* -------------------------------------------------------------------- */
 
-    /* If outputing to stdout, we can't reopen it, so we'll return */
+    /* If outputting to stdout, we can't reopen it, so we'll return */
     /* a fake dataset to make the caller happy */
     CPLPushErrorHandler(CPLQuietErrorHandler);
     GDALPamDataset* poDS = (GDALPamDataset*) GDALOpen(pszFilename, GA_ReadOnly);

@@ -105,7 +105,7 @@ static FindFileTLS* CPLFinderInit()
   #ifdef MACOSX_FRAMEWORK
             CPLPushFinderLocation( GDAL_PREFIX "/Resources/gdal" );
   #else
-            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal" );
+            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal/1.11" );
   #endif
 #else
             CPLPushFinderLocation( "/usr/local/share/gdal" );

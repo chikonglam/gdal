@@ -151,7 +151,7 @@ class CPL_DLL GMLFeatureClass
     double      m_dfYMax;
 
     char       *m_pszSRSName;
-    int         m_bSRSNameConsistant;
+    int         m_bSRSNameConsistent;
 
 public:
             GMLFeatureClass( const char *pszName = "" );

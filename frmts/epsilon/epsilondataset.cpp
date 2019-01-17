@@ -900,7 +900,7 @@ EpsilonDatasetCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
                                            (char*) pszFilter, eMode))
                 {
                     CPLError(CE_Failure, CPLE_AppDefined,
-                             "Error occured when encoding block (%d, %d)",
+                             "Error occurred when encoding block (%d, %d)",
                              nBlockXOff, nBlockYOff);
                     eErr = CE_Failure;
                 }
@@ -921,7 +921,7 @@ EpsilonDatasetCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
                                            (char*) pszFilter, eMode))
                 {
                     CPLError(CE_Failure, CPLE_AppDefined,
-                             "Error occured when encoding block (%d, %d)",
+                             "Error occurred when encoding block (%d, %d)",
                              nBlockXOff, nBlockYOff);
                     eErr = CE_Failure;
                 }

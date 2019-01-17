@@ -169,7 +169,7 @@ void OGRCleanupAll()
  *
  * This static method should be used to fetch the singleton 
  * registrar.  It will create a registrar if there is not already
- * one in existance.
+ * one in existence.
  *
  * @return the current driver registrar.
  */
@@ -820,7 +820,7 @@ void OGRSFDriverRegistrar::AutoLoadDrivers()
     #ifdef MACOSX_FRAMEWORK
                                         GDAL_PREFIX "/PlugIns");
     #else
-                                        GDAL_PREFIX "/lib/gdalplugins" );
+                                        GDAL_PREFIX "/lib/gdalplugins/1.11" );
     #endif
 #else
         char szExecPath[1024];

@@ -116,7 +116,7 @@ double CPLAtofDelim(const char *nptr, char point)
  * custom delimiter.
  *
  * IMPORTANT NOTE.
- * Existance of this function does not mean you should always use it.
+ * Existence of this function does not mean you should always use it.
  * Sometimes you should use standard locale aware atof(3) and its family. When
  * you need to process the user's input (for example, command line parameters)
  * use atof(3), because user works in localized environment and her input will

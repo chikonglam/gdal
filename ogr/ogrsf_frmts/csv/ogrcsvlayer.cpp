@@ -502,7 +502,7 @@ OGRCSVLayer::OGRCSVLayer( const char *pszLayerNameIn,
                 EQUAL(pszFieldName,"WKT") ? "" : CPLSPrintf("geom_%s", pszFieldName),
                 wkbUnknown );
 
-            /* Usefull hack for RFC 41 testing */
+            /* Useful hack for RFC 41 testing */
             const char* pszEPSG = strstr(pszFieldName, "_EPSG_");
             if( pszEPSG != NULL )
             {

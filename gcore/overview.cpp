@@ -1630,9 +1630,9 @@ GDALRegenerateOverviews( GDALRasterBandH hSrcBand,
 /*      amount of computation.                                          */
 /* -------------------------------------------------------------------- */
 
-    /* In case the mask made be computed from another band of the dataset, */
+    /* In case the mask made be computed from another band of the dataset,   */
     /* we can't use cascaded generation, as the computation of the overviews */
-    /* of the band used for the mask band may not have yet occured (#3033) */
+    /* of the band used for the mask band may not have yet occurred (#3033)  */
     if( (EQUALN(pszResampling,"AVER",4) || EQUALN(pszResampling,"GAUSS",5)) && nOverviewCount > 1
          && !(bUseNoDataMask && nMaskFlags != GMF_NODATA))
         return GDALRegenerateCascadingOverviews( poSrcBand, 

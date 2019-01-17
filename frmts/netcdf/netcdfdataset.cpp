@@ -3544,7 +3544,7 @@ CPLErr netCDFDataset::AddProjectionVars( GDALProgressFunc pfnProgress,
                          adfGeoTransform[i] );
                 strcat( szGeoTransform, szTemp );
             }
-            CPLDebug( "GDAL_netCDF", "szGeoTranform = %s", szGeoTransform );
+            CPLDebug( "GDAL_netCDF", "szGeoTransform = %s", szGeoTransform );
             
             // if ( strlen(pszProj4Defn) > 0 ) {
             //     nc_put_att_text( cdfid, NCDFVarID, "proj4",
@@ -4339,7 +4339,7 @@ GDALDataset *netCDFDataset::Open( GDALOpenInfo * poOpenInfo )
     int          nVarID=-1;
 
     int          nTmpFormat=NCDF_FORMAT_NONE;
-    int          *panBandDimPos=NULL;         // X, Y, Z postion in array
+    int          *panBandDimPos=NULL;         // X, Y, Z position in array
     int          *panBandZLev=NULL;
     int          *paDimIds=NULL;
     size_t       xdim, ydim;
@@ -5277,7 +5277,7 @@ netCDFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     int status = NC_NOERR;
 
     int nDim = 2;
-    int          *panBandDimPos=NULL;         // X, Y, Z postion in array
+    int          *panBandDimPos=NULL;         // X, Y, Z position in array
     int          *panBandZLev=NULL;
     int          *panDimIds=NULL;
     int          *panDimVarIds=NULL;
@@ -6188,7 +6188,7 @@ void NCDFWriteProjAttribs( const OGR_SRSNode *poPROJCS,
                             else {
                                 CPLError( CE_Failure, CPLE_NotSupported, 
                                           "NetCDF driver export of LCC-1SP with no standard_parallel1 "
-                                          "and no latitude_of_origin is not suported (bug #3324).");
+                                          "and no latitude_of_origin is not supported (bug #3324).");
                             }
                         }                      
                     }

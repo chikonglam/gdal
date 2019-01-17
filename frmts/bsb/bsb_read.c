@@ -644,7 +644,7 @@ static int BSBReadHeaderLine( BSBInfo *psInfo, char* pszLine, int nLineMaxLen, i
 /*                  BSBSeekAndCheckScanlineNumber()                     */
 /*                                                                      */
 /*       Seek to the beginning of the scanline and check that the       */
-/*       scanline number in file is consistant with what we expect      */
+/*       scanline number in file is consistent with what we expect      */
 /*                                                                      */
 /* @param nScanline zero based line number                              */
 /************************************************************************/
@@ -769,7 +769,7 @@ int BSBReadScanline( BSBInfo *psInfo, int nScanline,
 
 /* -------------------------------------------------------------------- */
 /*       Seek to the beginning of the scanline and check that the       */
-/*       scanline number in file is consistant with what we expect      */
+/*       scanline number in file is consistent with what we expect      */
 /* -------------------------------------------------------------------- */
     if ( !BSBSeekAndCheckScanlineNumber(psInfo, nScanline, TRUE) )
     {
@@ -844,7 +844,7 @@ int BSBReadScanline( BSBInfo *psInfo, int nScanline,
 /*      For reasons that are unclear, some scanlines are exactly one    */
 /*      pixel short (such as in the BSB 3.0 354704.KAP product from     */
 /*      NDI/CHS) but are otherwise OK.  Just add a zero if this         */
-/*      appear to have occured.                                         */
+/*      appear to have occurred.                                        */
 /* -------------------------------------------------------------------- */
         if( iPixel == psInfo->nXSize - 1 )
             pabyScanlineBuf[iPixel++] = 0;

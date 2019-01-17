@@ -181,7 +181,7 @@ OGR_L_GetNextFeature(OGRLayerH hLayer)
 
 Fetch the next available feature from this layer.
 
-The returned feature becomes the responsiblity of the caller to delete
+The returned feature becomes the responsibility of the caller to delete
 with OGR_F_Destroy(). It is critical that all features associated with
 an OGRLayer (more specifically an OGRFeatureDefn) be deleted before
 that layer/datasource is deleted.
@@ -261,7 +261,7 @@ Applications should never modify the OGRFeatureDefn used by a layer
 directly.
 
 This function should not be called while there are feature objects in
-existance that were obtained or created with the previous layer
+existence that were obtained or created with the previous layer
 definition.
 
 Not all drivers support this function. You can query a layer to check
@@ -295,7 +295,7 @@ the deleted field. Applications should never modify the OGRFeatureDefn
 used by a layer directly.
 
 This function should not be called while there are feature objects in
-existance that were obtained or created with the previous layer
+existence that were obtained or created with the previous layer
 definition.
 
 Not all drivers support this function. You can query a layer to check
@@ -328,7 +328,7 @@ the reordering of the fields. Applications should never modify the
 OGRFeatureDefn used by a layer directly.
 
 This function should not be called while there are feature objects in
-existance that were obtained or created with the previous layer
+existence that were obtained or created with the previous layer
 definition.
 
 panMap is such that,for each field definition at position i after
@@ -373,7 +373,7 @@ the reordering of the fields. Applications should never modify the
 OGRFeatureDefn used by a layer directly.
 
 This function should not be called while there are feature objects in
-existance that were obtained or created with the previous layer
+existence that were obtained or created with the previous layer
 definition.
 
 The field definition that was at initial position iOldFieldPos will be
@@ -419,7 +419,7 @@ updated to reflect the altered field. Applications should never modify
 the OGRFeatureDefn used by a layer directly.
 
 This function should not be called while there are feature objects in
-existance that were obtained or created with the previous layer
+existence that were obtained or created with the previous layer
 definition.
 
 Not all drivers support this function. You can query a layer to check

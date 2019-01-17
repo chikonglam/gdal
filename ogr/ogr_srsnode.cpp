@@ -342,7 +342,7 @@ void OGR_SRSNode::SetValue( const char * pszNewValue )
 /**
  * Make a duplicate of this node, and it's children.
  *
- * @return a new node tree, which becomes the responsiblity of the caller.
+ * @return a new node tree, which becomes the responsibility of the caller.
  */
 
 OGR_SRSNode *OGR_SRSNode::Clone() const
@@ -770,7 +770,7 @@ void OGR_SRSNode::MakeValueSafe()
  * argument.
  * 
  * @return returns OGRERR_NONE unless something bad happens.  There is no
- * indication returned about whether any replacement occured.  
+ * indication returned about whether any replacement occurred.  
  */
 
 OGRErr OGR_SRSNode::applyRemapper( const char *pszNode, 

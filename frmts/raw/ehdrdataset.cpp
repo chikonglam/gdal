@@ -1600,7 +1600,7 @@ GDALDataset *EHdrDataset::Open( GDALOpenInfo * poOpenInfo )
             }
             else
             {
-                CPLError( CE_Warning, CPLE_NotSupported, "Cannot retrive projection from IMAGE.REP");
+                CPLError( CE_Warning, CPLE_NotSupported, "Cannot retrieve projection from IMAGE.REP");
             }
         }
     }

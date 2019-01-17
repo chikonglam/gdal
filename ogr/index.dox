@@ -6,7 +6,7 @@ tools) providing read (and sometimes write) access to a variety of vector file
 formats including ESRI Shapefiles, S-57, SDTS, PostGIS, Oracle Spatial, 
 and Mapinfo mid/mif and TAB formats.<p>
 
-OGR is a part of the <a href="http://www.gdal.org/">GDAL</a> library.<p>
+OGR is a part of the <a href="../gdal/index.html">GDAL</a> library.<p>
 
 <h2>Resources</h2>
 
@@ -14,7 +14,7 @@ OGR is a part of the <a href="http://www.gdal.org/">GDAL</a> library.<p>
 
 <li> <a href="ogr_formats.html">OGR Supported Formats</a> : ESRI Shapefile, ESRI ArcSDE, MapInfo (tab and mid/mif), GML, KML, PostGIS, Oracle Spatial, ...
 
-<li> <a href="../ogr_utilities.html">OGR Utility Programs</a> : ogrinfo, ogr2ogr, ogrtindex
+<li> <a href="../gdal/ogr_utilities.html">OGR Utility Programs</a> : ogrinfo, ogr2ogr, ogrtindex
 
 <li> <a href="hierarchy.html">OGR Class Documentation</a>
 
@@ -51,7 +51,7 @@ or <a href="http://home.gdal.org/projects/opengis/wkt_prop.doc">doc</a> format.
 
 <h3>Ready to Use Executables</h3>
 
-The best way to get OGR <a href="ogr_utilities.html">utilities</a>
+The best way to get OGR <a href="../gdal/ogr_utilities.html">utilities</a>
 in ready-to-use form is to download the latest 
 <a href="http://fwtools.maptools.org/">FWTools</a> kit
 for your platform.  While large, these include builds of the OGR utilities

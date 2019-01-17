@@ -832,7 +832,7 @@ GDALWarpDstAlphaMasker( void *pMaskFuncArg, int nBandCount, CPL_UNUSED GDALDataT
  * polygon.
  *
  * - OPTIMIZE_SIZE: This defaults to FALSE, but may be set to TRUE when
- * outputing typically to a compressed dataset (GeoTIFF with COMPRESSED creation
+ * outputting typically to a compressed dataset (GeoTIFF with COMPRESSED creation
  * option set for example) for achieving a smaller file size. This is achieved
  * by writing at once data aligned on full blocks of the target dataset, which
  * avoids partial writes of compressed blocks and lost space when they are rewritten
@@ -1397,7 +1397,7 @@ GDALWarpOptions * CPL_STDCALL GDALDeserializeWarpOptions( CPLXMLNode *psTree )
     }
 
 /* -------------------------------------------------------------------- */
-/*      If any error has occured, cleanup else return success.          */
+/*      If any error has occurred, cleanup else return success.         */
 /* -------------------------------------------------------------------- */
     if( CPLGetLastErrorNo() != CE_None )
     {

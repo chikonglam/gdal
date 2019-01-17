@@ -1381,7 +1381,7 @@ OJPEGReadHeaderInfoSec(TIFF* tif)
 static int
 OJPEGReadHeaderInfoSecStreamDri(TIFF* tif)
 {
-	/* this could easilly cause trouble in some cases... but no such cases have occured sofar */
+	/* this could easilly cause trouble in some cases... but no such cases have occurred sofar */
 	static const char module[]="OJPEGReadHeaderInfoSecStreamDri";
 	OJPEGState* sp=(OJPEGState*)tif->tif_data;
 	uint16 m;

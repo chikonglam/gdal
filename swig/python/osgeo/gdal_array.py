@@ -252,9 +252,9 @@ def BandReadAsArray( band, xoff = 0, yoff = 0, win_xsize = None, win_ysize = Non
             shape_buf_xsize = buf_obj.shape[2]
             shape_buf_ysize = buf_obj.shape[1]
         if buf_xsize is not None and buf_xsize != shape_buf_xsize:
-            raise ValueError('Specified buf_xsize not consistant with array shape')
+            raise ValueError('Specified buf_xsize not consistent with array shape')
         if buf_ysize is not None and buf_ysize != shape_buf_ysize:
-            raise ValueError('Specified buf_ysize not consistant with array shape')
+            raise ValueError('Specified buf_ysize not consistent with array shape')
         buf_xsize = shape_buf_xsize
         buf_ysize = shape_buf_ysize
 

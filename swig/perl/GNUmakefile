@@ -26,7 +26,7 @@ build: gdal_wrap.cc Makefile_Geo__GDAL
 gdal_wrap.cc: generate
 
 Makefile_Geo__GDAL:
-	perl Makefile.PL INSTALL_BASE=$(INST_PREFIX)
+	perl Makefile.PL INSTALLDIRS=vendor
 
 test: build
 	$(MAKE) -f Makefile_Geo__GDAL test

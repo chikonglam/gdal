@@ -2937,7 +2937,7 @@ void CPL_STDCALL
 PythonBindingErrorHandler(CPLErr eclass, int code, const char *msg ) 
 {
   /* 
-  ** Generally we want to supress error reporting if we have exceptions
+  ** Generally we want to suppress error reporting if we have exceptions
   ** enabled as the error message will be in the exception thrown in 
   ** Python.  
   */
@@ -20887,7 +20887,7 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"pszDialect:  allows control of the statement dialect. If set to NULL,\n"
 		"the OGR SQL engine will be used, except for RDBMS drivers that will\n"
-		"use their dedicated SQL engine, unless OGRSQL is explicitely passed as\n"
+		"use their dedicated SQL engine, unless OGRSQL is explicitly passed as\n"
 		"the dialect.\n"
 		"\n"
 		"an handle to a OGRLayer containing the results of the query.\n"
@@ -21223,7 +21223,7 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"Fetch the next available feature from this layer.\n"
 		"\n"
-		"The returned feature becomes the responsiblity of the caller to delete\n"
+		"The returned feature becomes the responsibility of the caller to delete\n"
 		"with OGR_F_Destroy(). It is critical that all features associated with\n"
 		"an OGRLayer (more specifically an OGRFeatureDefn) be deleted before\n"
 		"that layer/datasource is deleted.\n"
@@ -21580,7 +21580,7 @@ static PyMethodDef SwigMethods[] = {
 		"directly.\n"
 		"\n"
 		"This function should not be called while there are feature objects in\n"
-		"existance that were obtained or created with the previous layer\n"
+		"existence that were obtained or created with the previous layer\n"
 		"definition.\n"
 		"\n"
 		"Not all drivers support this function. You can query a layer to check\n"
@@ -21617,7 +21617,7 @@ static PyMethodDef SwigMethods[] = {
 		"used by a layer directly.\n"
 		"\n"
 		"This function should not be called while there are feature objects in\n"
-		"existance that were obtained or created with the previous layer\n"
+		"existence that were obtained or created with the previous layer\n"
 		"definition.\n"
 		"\n"
 		"Not all drivers support this function. You can query a layer to check\n"
@@ -21657,7 +21657,7 @@ static PyMethodDef SwigMethods[] = {
 		"OGRFeatureDefn used by a layer directly.\n"
 		"\n"
 		"This function should not be called while there are feature objects in\n"
-		"existance that were obtained or created with the previous layer\n"
+		"existence that were obtained or created with the previous layer\n"
 		"definition.\n"
 		"\n"
 		"The field definition that was at initial position iOldFieldPos will be\n"
@@ -21705,7 +21705,7 @@ static PyMethodDef SwigMethods[] = {
 		"OGRFeatureDefn used by a layer directly.\n"
 		"\n"
 		"This function should not be called while there are feature objects in\n"
-		"existance that were obtained or created with the previous layer\n"
+		"existence that were obtained or created with the previous layer\n"
 		"definition.\n"
 		"\n"
 		"panMap is such that,for each field definition at position i after\n"
@@ -21750,7 +21750,7 @@ static PyMethodDef SwigMethods[] = {
 		"the OGRFeatureDefn used by a layer directly.\n"
 		"\n"
 		"This function should not be called while there are feature objects in\n"
-		"existance that were obtained or created with the previous layer\n"
+		"existence that were obtained or created with the previous layer\n"
 		"definition.\n"
 		"\n"
 		"Not all drivers support this function. You can query a layer to check\n"
@@ -22770,7 +22770,7 @@ static PyMethodDef SwigMethods[] = {
 		"function directly, but use OGR_L_CreateField() instead.\n"
 		"\n"
 		"This function should only be called while there are no OGRFeature\n"
-		"objects in existance based on this OGRFeatureDefn. The OGRFieldDefn\n"
+		"objects in existence based on this OGRFeatureDefn. The OGRFieldDefn\n"
 		"passed in is copied, and remains the responsibility of the caller.\n"
 		"\n"
 		"This function is the same as the C++ method\n"

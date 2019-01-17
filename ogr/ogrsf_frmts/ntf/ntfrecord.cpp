@@ -170,7 +170,7 @@ int NTFRecord::ReadPhysicalLine( FILE *fp, char *pszLine )
         else
         {
             CPLError( CE_Failure, CPLE_AppDefined, 
-                      "Low level read error occured while reading NTF file." );
+                      "Low level read error occurred while reading NTF file." );
             return -2;
         }
     }

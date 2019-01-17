@@ -206,13 +206,13 @@ Set the color interpretation of the bands of the target dataset from the source 
 
 Mosaicing into an existing output file is supported if the output file 
 already exists. The spatial extent of the existing file will not
-be modified to accomodate new data, so you may have to remove it in that case, or
+be modified to accommodate new data, so you may have to remove it in that case, or
 use the -overwrite option.
 
 Polygon cutlines may be used as a mask to restrict the area of the destination file
 that may be updated, including blending.  If the OGR layer containing the cutline
 features has no explicit SRS, the cutline features must be in the SRS of the
-destination file. When outputing to a not yet existing target dataset,
+destination file. When outputting to a not yet existing target dataset,
 its extent will be the one of the original raster unless -te or -crop_to_cutline are
 specified.
 
@@ -337,7 +337,7 @@ int main( int argc, char ** argv )
 {
     GDALDatasetH	hDstDS;
     const char         *pszFormat = "GTiff";
-    int bFormatExplicitelySet = FALSE;
+    int bFormatExplicitlySet = FALSE;
     char              **papszSrcFiles = NULL;
     char               *pszDstFilename = NULL;
     int                 bCreateOutput = FALSE, i;
@@ -440,7 +440,7 @@ int main( int argc, char ** argv )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             pszFormat = argv[++i];
-            bFormatExplicitelySet = TRUE;
+            bFormatExplicitlySet = TRUE;
             bCreateOutput = TRUE;
             if( EQUAL(pszFormat,"VRT") )
                 bVRT = TRUE;
@@ -898,7 +898,7 @@ int main( int argc, char ** argv )
 
     if( hDstDS == NULL )
     {
-        if (!bQuiet && !bFormatExplicitelySet)
+        if (!bQuiet && !bFormatExplicitlySet)
             CheckExtensionConsistency(pszDstFilename, pszFormat);
 
         hDstDS = GDALWarpCreateOutput( papszSrcFiles, pszDstFilename,pszFormat,
