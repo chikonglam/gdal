@@ -1,0 +1,186 @@
+dnl ***************************************************************************
+dnl $Id: configure.in 9971 2006-08-23 20:06:02Z fwarmerdam $
+dnl
+dnl Project:  GDAL ECW Plugin
+dnl Purpose:  Configure source file.
+dnl Author:   Frank Warmerdam, warmerdam@pobox.com
+dnl Changed by: Francesco P Lovergine, frankie@debian.org on the basis of
+dnl             GDAL GRASS Plugin 
+dnl
+dnl ***************************************************************************
+dnl Copyright (c) 2005, Frank Warmerdam
+dnl Copyright (c) 2008, Francesco P Lovergine
+dnl
+dnl Permission is hereby granted, free of charge, to any person obtaining a
+dnl copy of this software and associated documentation files (the "Software"),
+dnl to deal in the Software without restriction, including without limitation
+dnl the rights to use, copy, modify, merge, publish, distribute, sublicense,
+dnl and/or sell copies of the Software, and to permit persons to whom the
+dnl Software is furnished to do so, subject to the following conditions:
+dnl
+dnl The above copyright notice and this permission notice shall be included
+dnl in all copies or substantial portions of the Software.
+dnl
+dnl THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+dnl OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+dnl FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+dnl THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+dnl LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+dnl FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+dnl DEALINGS IN THE SOFTWARE.
+dnl ***************************************************************************
+
+dnl Disable configure caching ... it causes lots of hassles.
+define([AC_CACHE_LOAD], )
+define([AC_CACHE_SAVE], )
+
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(Makefile.in)
+
+dnl We require autoconf 2.52+ for libtool support on cygwin/mingw hosts
+AC_PREREQ(2.52)
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_CXX
+
+AC_PROG_RANLIB
+AC_COMPILER_PIC
+AC_LD_SHARED
+AC_COMPILER_WFLAGS
+
+dnl ---------------------------------------------------------------------------
+dnl Find GDAL
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH(gdal,
+[  --with-gdal[=PATH]        GDAL (PATH is path to gdal-config)],,)
+
+if test "$with_gdal" = "yes" -o "$with_gdal" = "" ; then
+
+  if test "`basename xx/$with_gdal`" = "gdal-config" ; then
+    GDAL_CONFIG="$with_gdal"
+  fi
+
+  if test -z "$GDAL_CONFIG" ; then
+    AC_PATH_PROG(GDAL_CONFIG, gdal-config, no)
+  fi
+
+  if test "$GDAL_CONFIG" = "no" ; then
+    AC_MSG_ERROR([couldn't find gdal-config])
+  fi
+
+elif test -n "$with_gdal" -a "$with_gdal" != "no" ; then
+
+  GDAL_CONFIG=$with_gdal
+
+  if test -f "$GDAL_CONFIG" -a -x "$GDAL_CONFIG" ; then
+    AC_MSG_RESULT([user supplied gdal-config ($GDAL_CONFIG)])
+  else
+    AC_MSG_ERROR(['$GDAL_CONFIG' is not an executable.  Make sure you use --with-gdal=/path/to/gdal-config])
+  fi
+
+else
+
+  AC_MSG_ERROR([gdal required to build GDAL ECW 3.3 driver])
+
+fi
+
+LIBS="`$GDAL_CONFIG --libs` $LIBS"
+GDAL_INC=`$GDAL_CONFIG --cflags`
+
+AC_SUBST(GDAL_INC,    $GDAL_INC)
+
+dnl ---------------------------------------------------------------------------
+dnl Where to put driver?
+dnl ---------------------------------------------------------------------------
+AC_ARG_WITH(autoload,[  --with-autoload[=DIR]      Directory for autoload drivers],,)
+
+if test "$with_autoload" != "" ; then
+  AUTOLOAD_DIR=$with_autoload
+else
+  if $GDAL_CONFIG --autoload > /dev/null 2>&1 ; then
+    AUTOLOAD_DIR=`$GDAL_CONFIG --autoload`
+  else
+    AUTOLOAD_DIR=`$GDAL_CONFIG --prefix`/lib/gdalplugins
+  fi
+fi
+
+AC_MSG_RESULT(using $AUTOLOAD_DIR as GDAL shared library autoload directory)
+AC_SUBST(AUTOLOAD_DIR,$AUTOLOAD_DIR)
+
+dnl ---------------------------------------------------------------------------
+dnl Find ECW stuff
+dnl ---------------------------------------------------------------------------
+
+ECW_SETTING=no
+ECW_INCLUDE=
+export ECW_INCLUDE ECW_SETTING
+
+AC_ARG_WITH(ecw,[  --with-ecw[=ARG]        Include ECW support (ARG=ECW SDK Path)],,)
+
+if test ! -z "`uname | grep Darwin`" ; then
+  CARBON_FRAMEWORK="-framework Carbon"
+else
+  CARBON_FRAMEWORK=
+fi
+
+if test "$with_ecw" = "no" ; then
+  AC_MSG_ERROR([ECW required for this driver, please install ECW 3.3+ and rebuild])
+fi
+
+if test "$with_ecw" = "yes" -o "$with_ecw" = "" ; then
+
+  AC_CHECK_LIB(NCSEcw,NCScbmOpenFileView,ECW_SETTING=yes,ECW_SETTING=no,-lNCSCnet -lNCSUtil)
+
+  if test "$ECW_SETTING" = "yes" ; then   
+    LIBS="-lNCSEcw -lNCSCnet -lNCSUtil $LIBS"
+  fi
+
+  if test "$ECW_SETTING" = "no" ; then
+    AC_CHECK_LIB(ecwj2,NCScbmOpenFileView,ECW_SETTING=yes,ECW_SETTING=no,$CARBON_FRAMEWORK)
+    if test "$ECW_SETTING" = "yes" ; then   
+      LIBS="-lecwj2 $CARBON_FRAMEWORK $LIBS"
+    fi
+  fi
+
+else
+
+  AC_MSG_CHECKING([for libNCSEcw.so or libecwj2])
+  ECW_SETTING=yes
+  if test -r $with_ecw/lib/libNCSCnet.so -o -r $with_ecw/lib/libNCSCnet.dylib ; then
+    LIBS="-L$with_ecw/lib -lNCSEcw -lNCSCnet -lNCSUtil $LIBS"
+    AC_MSG_RESULT([found in $with_ecw/lib.])
+  elif test -r $with_ecw/lib/libNCSCNet.so -o -r $with_ecw/lib/libNCSCNet.dylib ; then
+    LIBS="-L$with_ecw/lib -lNCSEcw -lNCSCNet -lNCSUtil $LIBS"
+    AC_MSG_RESULT([found in $with_ecw/lib.])
+  elif test -r $with_ecw/bin/libNCSEcw.so -o -r $with_ecw/bin/libNCSEcw.dylib ; then
+    LIBS="-L$with_ecw/bin -lNCSEcw -lNCSEcw -lNCSCnet $LIBS"
+    AC_MSG_RESULT([found in $with_ecw/bin.])
+  elif test -r $with_ecw/lib/libecwj2.dylib ; then
+    LIBS="-L$with_ecw/lib -lecwj2 $CARBON_FRAMEWORK $LIBS"
+    AC_MSG_RESULT([found libecwj2 in $with_ecw/lib.])
+  else
+    AC_MSG_ERROR([not found in $with_ecw/lib or $with_ecw/bin.])
+  fi
+
+  AC_MSG_CHECKING([for NCSECWClient.h in $with_ecw/include])
+  if test -r $with_ecw/include/NCSECWClient.h ; then  
+    AC_MSG_RESULT([found.])
+    ECW_INCLUDE="-I$with_ecw/include"
+  else
+    AC_MSG_ERROR([not found.])
+  fi
+fi
+
+AC_SUBST(ECW_INCLUDE,$ECW_INCLUDE)
+AC_SUBST(ECW_SETTING,$ECW_SETTING)
+
+dnl ---------------------------------------------------------------------------
+
+rm -f conftest*
+
+AC_OUTPUT(Makefile)
+
+
+

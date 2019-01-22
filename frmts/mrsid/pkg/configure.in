@@ -1,0 +1,280 @@
+dnl ***************************************************************************
+dnl $Id: configure.in 9971 2006-08-23 20:06:02Z fwarmerdam $
+dnl
+dnl Project:  GDAL MrSID Plugin
+dnl Purpose:  Configure source file.
+dnl Author:   Frank Warmerdam, warmerdam@pobox.com
+dnl Changed by: Alan Boudreault, aboudreault@mapgears.com on the basis of
+dnl             GDAL GRASS Plugin 
+dnl
+dnl ***************************************************************************
+dnl Copyright (c) 2005, Frank Warmerdam
+dnl Copyright (c) 2008, Alan Boudreault
+dnl
+dnl Permission is hereby granted, free of charge, to any person obtaining a
+dnl copy of this software and associated documentation files (the "Software"),
+dnl to deal in the Software without restriction, including without limitation
+dnl the rights to use, copy, modify, merge, publish, distribute, sublicense,
+dnl and/or sell copies of the Software, and to permit persons to whom the
+dnl Software is furnished to do so, subject to the following conditions:
+dnl
+dnl The above copyright notice and this permission notice shall be included
+dnl in all copies or substantial portions of the Software.
+dnl
+dnl THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+dnl OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+dnl FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+dnl THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+dnl LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+dnl FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+dnl DEALINGS IN THE SOFTWARE.
+dnl ***************************************************************************
+
+dnl Disable configure caching ... it causes lots of hassles.
+define([AC_CACHE_LOAD], )
+define([AC_CACHE_SAVE], )
+
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(Makefile.in)
+
+dnl We require autoconf 2.52+ for libtool support on cygwin/mingw hosts
+AC_PREREQ(2.52)
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_CXX
+
+AC_PROG_RANLIB
+AC_COMPILER_PIC
+AC_LD_SHARED
+AC_COMPILER_WFLAGS
+
+dnl ---------------------------------------------------------------------------
+dnl Find GDAL
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH(gdal,
+[  --with-gdal[=PATH]        GDAL (PATH is path to gdal-config)],,)
+
+if test "$with_gdal" = "yes" -o "$with_gdal" = "" ; then
+
+  if test "`basename xx/$with_gdal`" = "gdal-config" ; then
+    GDAL_CONFIG="$with_gdal"
+  fi
+
+  if test -z "$GDAL_CONFIG" ; then
+    AC_PATH_PROG(GDAL_CONFIG, gdal-config, no)
+  fi
+
+  if test "$GDAL_CONFIG" = "no" ; then
+    AC_MSG_ERROR([couldn't find gdal-config])
+  fi
+
+elif test -n "$with_gdal" -a "$with_gdal" != "no" ; then
+
+  GDAL_CONFIG=$with_gdal
+
+  if test -f "$GDAL_CONFIG" -a -x "$GDAL_CONFIG" ; then
+    AC_MSG_RESULT([user supplied gdal-config ($GDAL_CONFIG)])
+  else
+    AC_MSG_ERROR(['$GDAL_CONFIG' is not an executable.  Make sure you use --with-gdal=/path/to/gdal-config])
+  fi
+
+else
+
+  AC_MSG_ERROR([gdal required to build GDAL MrSID driver])
+
+fi
+
+LIBS="`$GDAL_CONFIG --libs` $LIBS"
+GDAL_INC=`$GDAL_CONFIG --cflags`
+
+AC_SUBST(GDAL_INC,    $GDAL_INC)
+
+dnl ---------------------------------------------------------------------------
+dnl Where to put driver?
+dnl ---------------------------------------------------------------------------
+AC_ARG_WITH(autoload,[  --with-autoload[=DIR]      Directory for autoload drivers],,)
+
+if test "$with_autoload" != "" ; then
+  AUTOLOAD_DIR=$with_autoload
+else
+  if $GDAL_CONFIG --autoload > /dev/null 2>&1 ; then
+    AUTOLOAD_DIR=`$GDAL_CONFIG --autoload`
+  else
+    AUTOLOAD_DIR=`$GDAL_CONFIG --prefix`/lib/gdalplugins
+  fi
+fi
+
+AC_MSG_RESULT(using $AUTOLOAD_DIR as GDAL shared library autoload directory)
+AC_SUBST(AUTOLOAD_DIR,$AUTOLOAD_DIR)
+
+dnl ---------------------------------------------------------------------------
+dnl Find MrSID stuff
+dnl ---------------------------------------------------------------------------
+
+MRSID_INCLUDE=
+MRSID_FLAGS=
+MRSID_SETTING=no
+HAVE_KAKADU=no
+
+AC_ARG_WITH(mrsid,[  --with-mrsid[=ARG]      Include MrSID support (ARG=path to MrSID DSDK or no)],,)
+
+AC_ARG_WITH(jp2mrsid,[  --with-jp2mrsid[=ARG]   Enable MrSID JPEG2000 support (ARG=yes/no)],,)
+
+if test "x$with_mrsid" = "xno"  -o "x$with_mrsid" = "x" ; then
+
+  AC_MSG_ERROR([MrSID DSDK is required to build GDAL MrSID driver])
+
+else
+
+  MRSID_BASE="$with_mrsid/include"
+
+  AC_MSG_CHECKING([for lt_base.h in $MRSID_BASE/support])
+  if test -r "$MRSID_BASE/support/lt_base.h" ; then
+
+    AC_MSG_RESULT([found MrSID DSDK version 4.x or newer.])
+    MRSID_SETTING=yes
+    MRSID_INCLUDE="-I$MRSID_BASE/base -I$MRSID_BASE/metadata -I$MRSID_BASE/mrsid_readers -I$MRSID_BASE/j2k_readers -I$MRSID_BASE/support"
+
+  else
+
+    AC_MSG_RESULT([not found.])
+
+    AC_MSG_CHECKING([for lt_base.h in $MRSID_BASE])
+    if test -r "$MRSID_BASE/lt_base.h" ; then
+
+      AC_MSG_RESULT([found MrSID DSDK version 7.x or newer.]);
+      MRSID_SETTING=yes
+      MRSID_INCLUDE="-I$MRSID_BASE"
+
+    fi
+
+  fi
+
+  if test $MRSID_SETTING = yes ; then
+
+    MRSID_LIBS="-lltidsdk -lpthread"
+
+    AC_MSG_CHECKING([for MG3ImageWriter.h in $with_mrsid/include/mrsid_writers])
+    if test -r "$with_mrsid/include/mrsid_writers/MG3ImageWriter.h" ; then
+      AC_MSG_RESULT([found MrSID ESDK version 4.x or newer.])
+      MRSID_FLAGS="-DMRSID_ESDK $MRSID_FLAGS"
+      MRSID_INCLUDE="-I$with_mrsid/include/mrsid_writers -I$with_mrsid/include/j2k_writers $MRSID_INCLUDE"
+      if test -r $with_mrsid/3rd-party/lib/Release/libcryptopp.a ; then
+        MRSID_LIBS="-lltiesdk -lcryptopp -lxmlparse $MRSID_LIBS"
+      else
+        MRSID_LIBS="-lltiesdk -lxmlparse $MRSID_LIBS"
+      fi
+    else
+      AC_MSG_RESULT([no encoding support.])
+    fi
+
+    AC_MSG_CHECKING([for MrSID JPEG2000 support])
+    if test "x$with_jp2mrsid" = "xyes" -a "$HAVE_KAKADU" = "yes" ; then
+      AC_MSG_ERROR([MrSID JPEG2000 support requested, but this is incompatible with use of standalone Kakadu])
+    fi
+
+    MRSID_KAKADU_LIB=
+    if test "$HAVE_KAKADU" = "no" ; then
+      if test x"$with_jp2mrsid" = x"" -o x"$with_jp2mrsid" = x"yes" ; then
+        if test -r $with_mrsid/3rd-party/lib/Release/libltikdu.a ; then 
+          with_jp2mrsid=yes
+          MRSID_KAKADU_LIB=-lltikdu
+        elif test -r $with_mrsid/3rd-party/lib/Release/liblt_kakadu.a ; then 
+          with_jp2mrsid=yes
+          MRSID_KAKADU_LIB=-llt_kakadu
+        else
+          AC_MSG_ERROR([MrSID JPEG2000 support requested, but libltikdu.a not found.])
+        fi
+      fi
+    fi
+
+    if test "x$with_jp2mrsid" = "xyes" ; then
+      MRSID_LIBS="$MRSID_LIBS $MRSID_KAKADU_LIB"
+      MRSID_FLAGS="-DMRSID_J2K $MRSID_FLAGS"
+      AC_MSG_RESULT([enabled])
+    else
+      AC_MSG_RESULT([disabled])
+    fi
+
+    if test -r "$with_mrsid/lib/libltidsdk.a" ; then
+      MRSID_LIBS="-L$with_mrsid/lib -L$with_mrsid/3rd-party/lib $MRSID_LIBS"
+    else
+      MRSID_LIBS="-L$with_mrsid/lib/Release -L$with_mrsid/3rd-party/lib/Release $MRSID_LIBS"
+    fi
+
+    LIBS="$MRSID_LIBS $LIBS" 
+  else
+    MRSID_SETTING=no
+    AC_MSG_RESULT([not found.])
+    AC_MSG_ERROR([  MrSID requested, but components not found.])
+  fi
+fi
+
+AC_SUBST(MRSID_INCLUDE,$MRSID_INCLUDE)
+AC_SUBST(MRSID_FLAGS,$MRSID_FLAGS)
+
+dnl ---------------------------------------------------------------------------
+dnl Select a libgeotiff library to use.
+dnl ---------------------------------------------------------------------------
+
+GEOTIFF_INCLUDE=
+GEOTIFF_LIBS=
+GEOTIFF_SETTING=no
+
+AC_ARG_WITH(geotiff,[  --with-geotiff=ARG    Libgeotiff library to use (ARG=yes or path)],,)
+
+if test "x$with_geotiff" = "xno" ; then
+
+  AC_MSG_ERROR([libgeotiff is required to build GDAL MrSID driver])
+
+else
+
+  GEOTIFF_SETTING=not_found
+
+  if test "x$with_geotiff" = "xyes"  -o "x$with_geotiff" = "x" ; then
+    AC_CHECK_LIB(geotiff,XTIFFClientOpen,GEOTIFF_SETTING=yes,GEOTIFF_SETTING=not_found)
+
+    if test "$GEOTIFF_SETTING" = "yes" ; then
+      GEOTIFF_LIBS="-lgeotiff"
+      if test  -d /usr/include/geotiff ; then
+         GEOTIFF_INCLUDE="-I/usr/include/geotiff"
+      fi
+    else
+        AC_MSG_ERROR([libgeotiff is required to build GDAL MrSID driver])
+    fi
+ 
+  else
+    dnl We now require libgeotiff 1.2.1 (for XTIFFClientOpen). 
+    dnl first check if $with_geotiff/lib has the library:
+    AC_CHECK_LIB(geotiff,XTIFFClientOpen,GEOTIFF_SETTING=yes,GEOTIFF_SETTING=not_found, -L$with_geotiff/lib)
+
+    if test $GEOTIFF_SETTING = "yes" ; then
+      GEOTIFF_LIBS="-L$with_geotiff/lib -lgeotiff"
+      if test  -d $with_geotiff/include ; then
+         GEOTIFF_INCLUDE="-I$with_geotiff/include"
+      fi
+    else
+      dnl check if $with_geotiff itself contains the header and library (e.g. as an uninstalled build directory would)
+      AC_CHECK_LIB(geotiff,XTIFFClientOpen,GEOTIFF_SETTING=yes,GEOTIFF_SETTING=not_found,-L$with_geotiff)
+    
+	if test $GEOTIFF_SETTING = "yes" ; then
+       	   GEOTIFF_LIBS="-L$with_geotiff -lgeotiff"
+      	   GEOTIFF_INCLUDE="-I$with_geotiff"
+        else
+           AC_MSG_ERROR([libgeotiff is required to build GDAL MrSID driver])
+	fi
+     fi
+  echo "using libgeotiff from $with_geotiff."
+  fi
+  LIBS="$GEOTIFF_LIBS $LIBS"
+fi
+
+AC_SUBST(GEOTIFF_INCLUDE,$GEOTIFF_INCLUDE)
+
+dnl ---------------------------------------------------------------------------
+
+rm -f conftest*
+
+AC_OUTPUT(Makefile)
