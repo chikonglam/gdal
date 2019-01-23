@@ -1,0 +1,92 @@
+--- a/debian/rules
++++ b/debian/rules
+@@ -81,7 +81,7 @@
+ override_dh_clean:
+ 	dh_clean config.log
+ 
+-override_dh_auto_clean:
++override_dh_auto_clean: crnlib_clean
+ 	[ ! -f GDALmake.opt ] || $(MAKE) distclean
+ 	rm -rf $(CURDIR)/swig/perl/*.bs $(CURDIR)/swig/perl/doc
+ 	rm -rf $(CURDIR)/swig/java/*.so $(CURDIR)/swig/java/*.o $(CURDIR)/swig/java/build/ $(CURDIR)/swig/java/*.jar $(CURDIR)/swig/java/.libs
+@@ -92,7 +92,7 @@
+ 	rm -rf $(CURDIR)/frmts/o/.libs
+ 	rm -f  $(CURDIR)/islibdappost310.*
+ 
+-override_dh_auto_configure:
++override_dh_auto_configure: crnlib
+ 	for V in $(PYVERS); do \
+ 		PYTHON=/usr/bin/python$$V ./configure --prefix=/usr \
+ 			--mandir=\$$\{prefix\}/share/man \
+@@ -133,6 +133,7 @@
+ 			--with-static-proj4=yes \
+ 			--with-java=/usr/lib/jvm/default-java \
+ 			--with-perl \
++			--with-dds=$(CURDIR)/crunchdds/crnlib \
+ 			--with-python; \
+ 		mv GDALmake.opt GDALmake.opt-$$V; \
+ 	done
+@@ -227,3 +228,10 @@
+ get-orig-source:
+ 	uscan --verbose --force-download
+ 
++crnlib:
++	$(MAKE) -C $(CURDIR)/crunchdds/crnlib
++
++crnlib_clean:
++	$(MAKE) -C $(CURDIR)/crunchdds/crnlib clean
++
++
+--- a/LICENSE.TXT
++++ b/LICENSE.TXT
+@@ -33,6 +33,38 @@
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
+ 
++gdal/crunchdds
++---------------
++Crunch DDS libraries from https://github.com/BinomialLLC/crunch (with minor compilation problem fixes),
++forked on:  https://github.com/pdavidc/crunch
++Licensing terms:
++
++crunch/crnlib uses a modified ZLIB license. Specifically, it's the same as zlib except that 
++public credits for using the library are *required*.
++
++Copyright (c) 2010-2016 Richard Geldreich, Jr., Tenacious Software, and Binomial LLC
++
++This software is provided 'as-is', without any express or implied
++warranty.  In no event will the authors be held liable for any damages
++arising from the use of this software.
++
++Permission is granted to anyone to use this software for any purpose,
++including commercial applications, and to alter it and redistribute it
++freely, subject to the following restrictions:
++
++1. The origin of this software must not be misrepresented; you must not
++claim that you wrote the original software. 
++
++2. If you use this software in a product, this acknowledgment in the product 
++documentation or credits is required:
++
++"Crunch Library Copyright (c) 2010-2016 Richard Geldreich, Jr., Tenacious Software, and Binomial LLC"
++
++3. Altered source versions must be plainly marked as such, and must not be
++misrepresented as being the original software.
++
++4. This notice may not be removed or altered from any source distribution.
++
+ 
+ gdal/frmts/gtiff/tif_float.c
+ ----------------------------
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,3 +1,9 @@
++gdal (2.2.3+dfsg-2dds) UNRELEASED; urgency=medium
++
++  * Enabled support for DDS (DirectDraw Surface) with code from https://github.com/pdavidc/crunch/tree/master/crnlib
++
++ -- Chi Lam <chikonglam@gmail.com>  Tue, 22 Jan 2019 16:21:42 -0800
++
+ gdal (2.2.3+dfsg-2) unstable; urgency=medium
+ 
+   * Update spelling-errors.patch to also fix 'Altitude' typo.

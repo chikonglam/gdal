@@ -81,7 +81,7 @@ gdal-mrsid-dist:
 override_dh_clean:
 	dh_clean config.log
 
-override_dh_auto_clean:
+override_dh_auto_clean: crnlib_clean
 	[ ! -f GDALmake.opt ] || $(MAKE) distclean
 	rm -rf $(CURDIR)/swig/perl/*.bs $(CURDIR)/swig/perl/doc
 	rm -rf $(CURDIR)/swig/java/*.so $(CURDIR)/swig/java/*.o $(CURDIR)/swig/java/build/ $(CURDIR)/swig/java/*.jar $(CURDIR)/swig/java/.libs
@@ -92,7 +92,7 @@ override_dh_auto_clean:
 	rm -rf $(CURDIR)/frmts/o/.libs
 	rm -f  $(CURDIR)/islibdappost310.*
 
-override_dh_auto_configure:
+override_dh_auto_configure: crnlib
 	for V in $(PYVERS); do \
 		PYTHON=/usr/bin/python$$V ./configure --prefix=/usr \
 			--mandir=\$$\{prefix\}/share/man \
@@ -133,6 +133,7 @@ override_dh_auto_configure:
 			--with-static-proj4=yes \
 			--with-java=/usr/lib/jvm/default-java \
 			--with-perl \
+			--with-dds=$(CURDIR)/crunchdds/crnlib \
 			--with-python; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
@@ -226,4 +227,11 @@ override_dh_shlibdeps:
 
 get-orig-source:
 	uscan --verbose --force-download
+
+crnlib:
+	$(MAKE) -C $(CURDIR)/crunchdds/crnlib
+
+crnlib_clean:
+	$(MAKE) -C $(CURDIR)/crunchdds/crnlib clean
+
 
