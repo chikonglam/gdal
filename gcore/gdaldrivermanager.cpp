@@ -740,7 +740,7 @@ void GDALDriverManager::AutoLoadDrivers()
     #ifdef MACOSX_FRAMEWORK
                                         GDAL_PREFIX "/PlugIns");
     #else
-                                        GDAL_PREFIX "/lib/gdalplugins" );
+                                        GDAL_PREFIX "/lib/gdalplugins/2.2" );
     #endif
 #else
         char szExecPath[1024];

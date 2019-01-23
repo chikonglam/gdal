@@ -31,3 +31,10 @@ $(PLUGIN_DLL):  $(OBJ)
 #	    -rpath $(INST_LIB) \
 #	    -no-undefined -export-dynamic
 
+dist:
+	cp -r pkg libgdal-mrsid-$(GDAL_VER)
+	rm -rf libgdal-mrsid-$(GDAL_VER)/.svn
+	cp *.h libgdal-mrsid-$(GDAL_VER)
+	cp *.cpp libgdal-mrsid-$(GDAL_VER)
+	tar czvf libgdal-mrsid-$(GDAL_VER).tar.gz ./libgdal-mrsid-$(GDAL_VER)
+	rm -rf libgdal-mrsid-$(GDAL_VER)

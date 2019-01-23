@@ -7,7 +7,7 @@ build: Makefile_Geo__GDAL
 	$(MAKE) -f Makefile_Geo__OSR
 
 Makefile_Geo__GDAL:
-	perl Makefile.PL INSTALL_BASE=$(INST_PREFIX)
+	perl Makefile.PL INSTALLDIRS=vendor
 
 test: build
 	$(MAKE) -f Makefile_Geo__GDAL test
